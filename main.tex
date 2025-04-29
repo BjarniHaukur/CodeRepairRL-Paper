@@ -1,0 +1,47 @@
+\documentclass[12pt, openany]{book}
+
+% This is all the packages and settings and so on.
+% It is using custom fonts that needs to be installed on the computer. If they are not present, they have to be added manually.
+\input{setup/settings.tex}
+
+% Defining files for bibliography
+%\addbibresource{ref.bib}
+\addbibresource{references.bib}
+% Add a second bibliography file for the second author to allow
+% both to update it through the mendeley integration.
+% \addbibresource{ref-author-2.bib}
+
+% Defining document information
+\title{Template}
+\newcommand{\subtitle}{KTH Thesis Report}
+\author{Bjarni Haukur}
+
+\begin{document}
+\setstretch{1.4}
+
+% The front page of the document
+\pagenumbering{roman}
+\include{setup/title-page}
+\include{sections/0-pre-content}
+
+\pagenumbering{arabic}
+
+\include{sections/1-introduction}
+\include{sections/2-background}
+\include{sections/3-method}
+\include{sections/4-work}
+\include{sections/5-results}
+\include{sections/6-conclusions}
+
+% \include{content}
+
+\newpage
+\addcontentsline{toc}{chapter}{References}
+\textbf{If you are using mendeley to manage references, you might have to export them manually in the end as the automatic ways removes the "date accessed" field}
+\printbibliography
+
+
+\include{sections/appendices}
+\include{back-cover}
+
+\end{document}

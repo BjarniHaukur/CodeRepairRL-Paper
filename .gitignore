@@ -1,0 +1,43 @@
+# --- LaTeX intermediate files -------------------
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.brf
+*.fdb_latexmk
+*.fls
+*.glg
+*.glo
+*.gls
+*.ist
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.xdy
+*.xdv
+# minted / pygments cache
+_minted*
+# latexmk internal state
+*.latexmk
+
+# --- PDF output ---------------------------------
+# Keep PDFs out of main branch; put release PDFs elsewhere
+*.pdf
+
+# --- Editor / OS cruft --------------------------
+# VS Code
+.vscode/
+# macOS
+.DS_Store
+# Windows thumbnails / indexing
+Thumbs.db
+desktop.ini
+
+# Intermediary build files
+build/
