@@ -21,10 +21,10 @@ fc-cache -fv    # refresh fontconfig so XeLaTeX can see Georgia/Arial
 ## Quick start
 
 ```bash
-make pdf        # one-shot build → build/main.pdf
+make pdf        # one-shot build
 make watch      # continuous build; recompiles on save
-make clean      # remove intermediates, keep build/main.pdf
-make distclean  # remove build/ and the PDF
+make clean      # remove intermediates, keep main.pdf
+make distclean  # remove intermediates and the PDF
 ```
 
 ## Declutter
