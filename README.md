@@ -1,7 +1,6 @@
 # MSc Thesis – <working title>
 
 
-
 ## Requirements
 
 | Platform | TeX distribution | Extras          |
@@ -10,7 +9,6 @@
 | WSL      | `texlive-full`   | MS Core Fonts (`ttf-mscorefonts-installer`) |
 | macOS    | MacTeX 2024      | — |
 
- _LaTeX Workshop_ is recommended.
 
 ## Rough install guide
 ```bash
@@ -18,32 +16,4 @@ sudo apt update && sudo apt install texlive-full latexmk biber ttf-mscorefonts-i
 fc-cache -fv    # refresh fontconfig so XeLaTeX can see Georgia/Arial
 ```
 
-## Quick start
-
-```bash
-make pdf        # one-shot build
-make watch      # continuous build; recompiles on save
-make clean      # remove intermediates, keep main.pdf
-make distclean  # remove intermediates and the PDF
-```
-
-## Declutter
-This latex setup creates a ton of intermediary / temp files, I recommend putting this in your user / workspace settings.json
-```json
-{
-    "files.exclude": {
-        "**/*.aux": true,
-        "*main.bbl": true,
-        "*main.bcf": true,
-        "*main.blg": true,
-        "*main.fdb_latexmk": true,
-        "*main.fls": true,
-        "*main.log": true,
-        "*main.out": true,
-        "*main.run.xml": true,
-        "*main.synctex.gz": true,
-        "*main.toc": true,
-        "*main.xdv": true,
-    }
-}
-```
+Then, use the _LaTeX Workshop_ extension to compile. 
