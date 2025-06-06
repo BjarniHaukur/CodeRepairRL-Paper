@@ -1,13 +1,458 @@
-\chapter{<Theoretical Background>}
-% \thispagestyle{fancy}
-In this chapter, a detailed description about background of the degree project is presented together with related work. Discuss what is found useful and what is less useful. Use valid arguments. 
+\chapter{Background and Related Work}
 
-Explain what and how prior work / prior research will be applied on or used in the degree project /work (described in this thesis). Explain why and what is not used in the degree project and give valid reasons for rejecting the work/research.
+This chapter provides the theoretical foundation for agent-in-the-loop reinforcement learning applied to automated code repair. We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
 
-Use references!
+\section{Automated Code Repair with Language Models}
 
-\section{Use headings to break the text}
-Do not use subtitles after each other without text in between the sections.
+Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
 
-\subsection{Related Work}
-You should probably keep a heading about the related work here even though the entire chapter basically only contains related work.
+\todoinline{Cover evolution from early APR systems (GenProg, etc.) to neural approaches. Discuss key datasets like Defects4J, CodeXGLUE. Review state-of-the-art LLM performance on benchmarks like SWE-Bench (currently ~20\% success rates). Highlight limitations: single-step generation, lack of iterative refinement, poor handling of multi-file changes. Cite recent work like RepairLLaMA, CodeT5 variants.}
+
+Current approaches primarily rely on supervised fine-tuning on bug-fix datasets, where models learn to map broken code snippets to corrected versions. However, this paradigm has fundamental limitations when applied to real-world debugging scenarios.
+
+\todoinline{Discuss the mismatch between training (static input-output pairs) and deployment (interactive debugging). Explain why simple sequence-to-sequence models struggle with repository-level understanding and complex multi-step reasoning required for realistic bug fixes.}
+
+\section{Reinforcement Learning for Language Models}
+
+Reinforcement learning has emerged as a powerful technique for improving language model performance beyond what supervised learning alone can achieve, particularly for tasks requiring sequential decision-making and optimization of complex objectives. Unlike supervised learning, which relies on fixed input-output pairs, RL enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
+
+\subsection{Policy Gradient Foundations}
+
+The foundation of RL for language models lies in treating text generation as a Markov Decision Process (MDP). In this formulation, the language model serves as a policy $\pi_\theta(a_t|s_t)$ that selects actions (tokens) $a_t$ given states (context sequences) $s_t$, parameterized by model weights $\theta$.
+
+The objective is to maximize the expected cumulative reward:
+\begin{equation}
+J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]
+\end{equation}
+where $\tau = (s_0, a_0, s_1, a_1, \ldots, s_T, a_T)$ represents a trajectory (complete sequence generation) and $R(\tau)$ is the total reward for that trajectory.
+
+The policy gradient theorem provides the foundation for optimization:
+\begin{equation}
+\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t|s_t) R(\tau)]
+\end{equation}
+
+However, this basic REINFORCE estimator suffers from high variance, making training unstable and sample-inefficient. This limitation becomes particularly problematic for language models, where sequence lengths can be substantial and reward signals are often sparse.
+
+\subsection{Proximal Policy Optimization (PPO)}
+
+Proximal Policy Optimization has emerged as the dominant algorithm for fine-tuning large language models due to its ability to stabilize training while maintaining sample efficiency. PPO addresses the fundamental challenge of policy optimization: making meaningful progress without taking overly large steps that destabilize learning.
+
+\subsubsection{The Clipping Mechanism}
+
+PPO introduces a clipped objective function that prevents destructive policy updates:
+\begin{equation}
+L^{CLIP}(\theta) = \mathbb{E}_t\left[\min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right)\right]
+\end{equation}
+where:
+\begin{align}
+r_t(\theta) &= \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)} \\
+\hat{A}_t &= R_t - V(s_t)
+\end{align}
+
+The ratio $r_t(\theta)$ measures how much the current policy differs from the previous policy, while $\hat{A}_t$ represents the advantage estimate computed using a value function $V(s_t)$. The clipping parameter $\epsilon$ (typically 0.2) constrains policy updates to prevent catastrophic changes.
+
+\subsubsection{Value Function Training}
+
+PPO employs a separate value network $V_\phi(s)$ trained to predict expected returns, enabling more accurate advantage estimation:
+\begin{equation}
+L^{VF}(\phi) = \mathbb{E}_t\left[(V_\phi(s_t) - R_t)^2\right]
+\end{equation}
+
+The complete PPO objective combines policy and value losses:
+\begin{equation}
+L(\theta, \phi) = L^{CLIP}(\theta) - c_1 L^{VF}(\phi) + c_2 S[\pi_\theta](s_t)
+\end{equation}
+where $S[\pi_\theta]$ is an entropy bonus encouraging exploration, and $c_1, c_2$ are weighting coefficients.
+
+\subsubsection{Success in Language Model Fine-tuning}
+
+PPO's success in language model applications, particularly in Reinforcement Learning from Human Feedback (RLHF), stems from several key properties:
+
+\textbf{Stable Learning}: The clipping mechanism prevents the policy from changing too rapidly, which is crucial when fine-tuning large pre-trained models where dramatic changes can destroy learned representations.
+
+\textbf{Sample Efficiency}: By reusing data for multiple gradient steps and employing importance sampling correction, PPO achieves better sample efficiency than simpler policy gradient methods.
+
+\textbf{Scalability}: PPO's architecture separates policy and value training, enabling distributed training across multiple GPUs with different computational loads for each component.
+
+However, PPO also introduces significant computational overhead through the separate value network training and the need for multiple gradient updates per batch of experience.
+
+\subsection{Group Relative Policy Optimization (GRPO)}
+
+Group Relative Policy Optimization is fundamentally PPO with a crucial simplification: instead of training a separate value network to estimate advantages, GRPO computes advantages directly from relative performance within sampled action groups. This elegant modification preserves PPO's theoretical guarantees while dramatically reducing computational overhead.
+
+\subsubsection{The Core Simplification}
+
+The key insight behind GRPO is that for each state $s$, rather than estimating $V(s)$ with a separate network, we can sample multiple actions $a_1, \ldots, a_G$ from the current policy $\pi_{\theta_t}$ and use their reward distribution to compute relative advantages.
+
+For a given state $s$, GRPO samples $G$ actions from the policy and computes the group-relative advantage as:
+\begin{equation}
+A^{\pi_{\theta_t}}(s, a_j) = \frac{r(s, a_j) - \mu}{\sigma}
+\end{equation}
+where $\mu$ and $\sigma$ are the mean and standard deviation of the rewards $r(s, a_1), \ldots, r(s, a_G)$. This is simply the standard score (z-score) of the rewards, providing a normalized measure of relative performance.
+
+Mathematically, this can be expressed as:
+\begin{align}
+\mu &= \frac{1}{G}\sum_{i=1}^G r(s, a_i) \\
+\sigma &= \sqrt{\frac{1}{G}\sum_{i=1}^G (r(s, a_i) - \mu)^2} \\
+A^{\pi_{\theta_t}}(s, a_j) &= \frac{r(s, a_j) - \mu}{\sigma}
+\end{align}
+
+\subsubsection{PPO Objective with Group-Relative Advantages}
+
+GRPO then maximizes the standard PPO objective, but using these group-relative advantages instead of value-network-based estimates. The objective becomes:
+\begin{equation}
+\max_\theta \frac{1}{G}\sum_{i=1}^G \mathbb{E}_{(s,a_1,\ldots,a_G) \sim \pi_{\theta_t}}\left[
+\begin{cases}
+\min\left(\frac{\pi_\theta(a_i|s)}{\pi_{\theta_t}(a_i|s)}, 1+\epsilon\right) A^{\pi_{\theta_t}}(s, a_i) & \text{if } A^{\pi_{\theta_t}}(s, a_i) > 0 \\
+\max\left(\frac{\pi_\theta(a_i|s)}{\pi_{\theta_t}(a_i|s)}, 1-\epsilon\right) A^{\pi_{\theta_t}}(s, a_i) & \text{if } A^{\pi_{\theta_t}}(s, a_i) < 0
+\end{cases}
+\right]
+\end{equation}
+
+This formulation preserves PPO's asymmetric clipping behavior: when advantages are positive (indicating good actions), we clip the importance ratio from above at $(1+\epsilon)$ to prevent over-optimization. When advantages are negative (indicating poor actions), we clip from below at $(1-\epsilon)$ to avoid excessive penalization.
+
+\subsubsection{Intuitive Understanding}
+
+The intuition behind GRPO is elegantly simple: each policy update makes the model more likely to produce actions that performed relatively better than other actions tried at the same state, and less likely to produce actions that performed relatively worse. This creates a natural competitive dynamic where actions are evaluated against their peers rather than against an absolute baseline.
+
+Consider a concrete example: if for a given coding problem, the model generates five different debugging approaches with rewards $[0.1, 0.8, 0.3, 0.9, 0.2]$, GRPO will:
+\begin{itemize}
+\item Strongly reinforce the action with reward $0.9$ (highest z-score)
+\item Moderately reinforce the action with reward $0.8$ (second highest z-score)  
+\item Slightly penalize actions with rewards $0.3, 0.2, 0.1$ (below-average performance)
+\end{itemize}
+
+This relative ranking approach is particularly powerful for code repair where absolute reward values may vary significantly across different types of bugs, but relative solution quality within each problem remains meaningful.
+
+\subsubsection{Relationship to PPO}
+
+It's crucial to understand that GRPO is not a fundamentally different algorithm from PPO—it is PPO with a specific choice of advantage estimation. The clipping mechanism, importance sampling, and optimization dynamics remain identical. The only change is replacing:
+\begin{equation}
+\hat{A}_t^{PPO} = R_t - V_\phi(s_t)
+\end{equation}
+with:
+\begin{equation}
+\hat{A}_t^{GRPO} = \frac{r_t - \mu_{\text{group}}}{\sigma_{\text{group}}}
+\end{equation}
+
+This substitution eliminates the need for:
+\begin{itemize}
+\item Training a separate value network $V_\phi$
+\item Computing value loss $L^{VF}(\phi)$
+\item Managing value network hyperparameters
+\item Coordinating policy and value network training schedules
+\end{itemize}
+
+\subsubsection{Computational and Practical Advantages}
+
+The computational benefits of GRPO are substantial:
+
+\textbf{Memory Efficiency}: Eliminating the value network reduces GPU memory requirements by approximately 50\%, enabling larger batch sizes or model sizes within the same hardware constraints.
+
+\textbf{Training Simplicity}: The training loop becomes significantly simpler, reducing implementation complexity and potential sources of bugs. There are no value network updates to coordinate or balance against policy updates.
+
+\textbf{Hyperparameter Robustness}: With fewer moving parts, GRPO exhibits reduced sensitivity to hyperparameter choices, making it more reliable across different tasks and model architectures.
+
+\textbf{Batch Processing Efficiency}: GRPO can naturally handle variable batch sizes and sequence lengths without the complications introduced by value network training, which often requires careful batch construction.
+
+\subsubsection{Advantages for Code Repair}
+
+GRPO's design makes it particularly well-suited for code repair applications:
+
+\textbf{Natural Handling of Sparse Rewards}: Code repair often produces binary success/failure outcomes or sparse quality metrics. GRPO's relative comparison approach handles this naturally, as the standard score normalization adapts to the reward distribution within each group.
+
+\textbf{Problem Diversity}: Different coding problems require vastly different solution approaches and have different inherent difficulty levels. GRPO's group-relative baseline automatically adjusts to each problem's context, whereas a global value function would struggle to capture this diversity.
+
+\textbf{Exploration Encouragement}: By comparing actions against their immediate peers rather than a global baseline, GRPO encourages exploration of diverse solution strategies, which is crucial for learning robust debugging skills.
+
+\textbf{Computational Scaling}: Code repair training requires processing thousands of agent interactions across diverse repositories and bug types. GRPO's computational efficiency makes this scale of training practically feasible.
+
+The mathematical elegance of GRPO lies in its ability to preserve all of PPO's theoretical guarantees while dramatically simplifying the implementation. For code repair, where relative solution quality matters more than absolute reward prediction, this approach provides an optimal balance of performance, simplicity, and computational efficiency.
+
+\todoinline{Acknowledge variance collapse as a fundamental challenge in GRPO - the policy gradient term inherently incentivizes reducing output variance, leading to less diverse/exploratory behavior. This is an active area of research. Cite relevant papers on this phenomenon and proposed solutions (entropy regularization, KL penalties, etc.). Discuss implications for code repair where diverse exploration strategies are crucial.}
+
+\section{Low-Rank Adaptation (LoRA)}
+
+Parameter-efficient fine-tuning has become essential for adapting large language models to specific tasks without the computational overhead of full fine-tuning. Low-Rank Adaptation (LoRA) represents one of the most successful approaches in this domain.
+
+\subsection{Mathematical Foundation}
+
+LoRA is based on the hypothesis that weight updates during fine-tuning have low intrinsic rank. For a pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, LoRA represents the update $\Delta W$ as:
+
+\begin{equation}
+\Delta W = BA
+\end{equation}
+
+where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$ with rank $r \ll \min(d,k)$. The adapted weight becomes:
+
+\begin{equation}
+W = W_0 + \Delta W = W_0 + BA
+\end{equation}
+
+During training, $W_0$ remains frozen while only $A$ and $B$ are updated. This dramatically reduces the number of trainable parameters from $dk$ to $r(d+k)$.
+
+\subsection{Implementation Details}
+
+\subsubsection{Initialization Strategy}
+
+LoRA uses a specific initialization scheme to ensure training stability:
+\begin{itemize}
+\item Matrix $A$ is initialized using random Gaussian values
+\item Matrix $B$ is initialized to zero, ensuring $\Delta W = BA = 0$ at the start
+\item This guarantees that the adapted model initially behaves identically to the pre-trained model
+\end{itemize}
+
+\subsubsection{Scaling Factor}
+
+The LoRA update is typically scaled by a factor $\alpha/r$ where $\alpha$ is a hyperparameter:
+
+\begin{equation}
+W = W_0 + \frac{\alpha}{r}BA
+\end{equation}
+
+This scaling allows for consistent learning rates across different rank values and provides a simple way to control adaptation strength.
+
+\subsection{Computational Advantages}
+
+LoRA offers substantial practical benefits for RL training:
+
+\textbf{Memory Efficiency}: With typical rank values $r = 8$ to $64$, LoRA reduces trainable parameters by 99\%+ for large models, dramatically lowering GPU memory requirements.
+
+\textbf{Training Speed}: Fewer parameters mean faster gradient computation and reduced communication overhead in distributed training setups.
+
+\textbf{Storage Efficiency}: LoRA adapters are small (typically <100MB vs multi-GB full models), enabling efficient storage and distribution of task-specific adaptations.
+
+\textbf{Modularity}: Multiple LoRA adapters can be trained for different tasks and dynamically loaded, enabling flexible model deployment.
+
+\subsection{Integration with Reinforcement Learning}
+
+LoRA's benefits become particularly pronounced in RL settings where multiple model instances must be maintained:
+
+\textbf{Policy-Reference Separation}: RL algorithms like PPO require keeping both current and reference policies. With LoRA, the reference policy can share the frozen base weights while only the adapter differs.
+
+\textbf{Parallel Training}: Multiple RL experiments can share base model weights while training independent adapters, maximizing resource utilization.
+
+\textbf{Rapid Iteration}: LoRA's small parameter count enables faster experimentation with different reward functions and training configurations.
+
+\subsection{Theoretical Considerations}
+
+Recent research has examined LoRA's representational capacity and limitations:
+
+\textbf{Expressiveness}: While LoRA cannot represent arbitrary weight updates, empirical evidence suggests that many fine-tuning scenarios do indeed have low-rank structure, making LoRA's constraints reasonable.
+
+\textbf{Task Transfer}: LoRA adapters learned for related tasks can serve as initialization for new tasks, potentially accelerating learning through transfer.
+
+\textbf{Rank Selection}: Choosing appropriate rank values requires balancing expressiveness against efficiency. Higher ranks provide more flexibility but reduce computational savings.
+
+\subsection{Application to Code Repair}
+
+For agent-in-the-loop code repair training, LoRA offers specific advantages:
+
+\textbf{Environmental Diversity}: Different repositories and bug types may benefit from specialized adaptations. LoRA enables training multiple task-specific adapters efficiently.
+
+\textbf{Continual Learning}: As new bug patterns emerge, LoRA adapters can be incrementally trained without catastrophic forgetting of previous skills.
+
+\textbf{Model Composition}: Multiple LoRA adapters can potentially be combined to handle complex bugs requiring diverse skill sets, though this remains an active research area.
+
+The combination of LoRA's efficiency with agent-in-the-loop RL creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
+
+\section{Tool-Calling in Large Language Models}
+
+The ability for language models to interact with external tools and APIs represents a fundamental shift from purely generative models to interactive agents capable of performing complex, multi-step tasks in real environments.
+
+\subsection{Function Calling Mechanisms}
+
+Modern LLMs implement tool calling through structured output generation, where models learn to produce specially formatted function calls that can be parsed and executed by external systems. This capability emerged from training models on datasets containing examples of tool usage patterns, enabling them to understand when and how to invoke external functions.
+
+\subsubsection{JSON-Based Function Calling}
+
+The dominant paradigm uses JSON-formatted function calls embedded within model outputs:
+
+\begin{verbatim}
+{
+  "function_name": "apply_patch",
+  "arguments": {
+    "file_path": "src/utils.py",
+    "old_content": "def buggy_function():",
+    "new_content": "def fixed_function():"
+  }
+}
+\end{verbatim}
+
+This approach offers several advantages: (1) structured parsing that reduces ambiguity, (2) type safety through schema validation, and (3) compatibility with existing API frameworks.
+
+\subsubsection{Training for Tool Use}
+
+Tool-calling capabilities are typically acquired through multi-stage training:
+
+\textbf{Function Schema Learning}: Models learn to understand function signatures, parameter types, and expected behaviors through exposure to API documentation and usage examples.
+
+\textbf{Execution Context Modeling}: Training includes examples of function calls with their subsequent outputs, enabling models to predict the effects of tool usage and plan multi-step interactions.
+
+\textbf{Error Handling}: Models learn to interpret tool execution results, handle failures gracefully, and adapt their strategies based on feedback.
+
+\subsection{Implications for Agent Training}
+
+Tool calling fundamentally changes the RL training dynamics by introducing:
+
+\textbf{Discrete Action Spaces}: Unlike continuous text generation, tool calls represent discrete actions with clear semantic meanings, simplifying reward attribution and policy learning.
+
+\textbf{Environmental Feedback}: Tool execution provides immediate, structured feedback that complements language-based responses, enabling richer training signals.
+
+\textbf{Compositional Reasoning}: Models must learn to combine multiple tool calls into coherent strategies, developing higher-level planning capabilities beyond single-step generation.
+
+The integration of tool calling with RL training enables models to learn not just what tools to use, but when and how to use them effectively within complex problem-solving workflows.
+
+\section{Agent-Based Programming Environments}
+
+The integration of language models with interactive programming environments has opened new possibilities for automated software engineering, enabling models to perform complex, multi-step reasoning tasks.
+
+\subsection{Coding Agent Frameworks}
+
+Modern coding agents combine language models with tool access, allowing them to navigate codebases, execute commands, and iteratively refine solutions.
+
+\todoinline{Survey existing coding agents: GitHub Copilot Workspace, Cursor, Aider, OpenHands/SWE-Agent. Discuss their architectures, tool sets, and performance. Highlight the distinction between inference-time agents vs training-time integration. Review benchmarks like SWE-Bench where scaffolded agents show ~1.8x improvement over prompt-only approaches.}
+
+\subsection{Scaffold Design Philosophy}
+
+Agent scaffolds represent the interface between language models and their operating environment, with design choices significantly impacting performance and learning outcomes.
+
+\todoinline{Define scaffolding in the context of coding agents. Contrast minimalist approaches (basic file I/O, shell commands) vs heavyweight approaches (repository mapping, contextual reasoning, guided workflows). Discuss the "bitter lesson" perspective: whether minimal assumptions lead to better generalization. Review existing work on tool complexity vs performance trade-offs.}
+
+The choice of scaffold complexity represents a fundamental design decision that affects both training dynamics and deployment performance, yet this relationship remains poorly understood.
+
+\subsection{The Nano-Agent: A Minimalist Approach}
+
+The nano-agent represents a deliberate exploration of minimalist scaffold design, embodying the principle that simpler, more general tools may enable better learning outcomes than heavily engineered, task-specific environments.
+
+\subsubsection{Design Philosophy}
+
+The nano-agent's design is guided by the "bitter lesson" from AI research: methods that leverage computation and learning tend to be more effective in the long run than those that rely on human knowledge and engineering. Rather than providing sophisticated tools and contextual assistance, the nano-agent offers only the most fundamental capabilities needed for code interaction.
+
+This minimalist approach serves several purposes:
+
+\begin{itemize}
+\item \textbf{Transparency for RL training}: Simple tools produce clear, interpretable action sequences that facilitate reward computation and training analysis
+\item \textbf{Generalization potential}: Minimal assumptions about programming languages, frameworks, or development practices should enable broader applicability
+\item \textbf{Computational efficiency}: Lightweight operations reduce overhead in RL training loops where thousands of agent interactions must be processed
+\item \textbf{Research reproducibility}: Simple implementations are easier to replicate and extend by other researchers
+\end{itemize}
+
+\subsubsection{Tool Interface}
+
+The nano-agent provides exactly two primary tools for interacting with codebases:
+
+\textbf{Shell Command Execution} (\texttt{shell(cmd)}): This tool allows the agent to execute terminal commands within a restricted bash environment (rbash). Available commands include standard Unix utilities for navigation and inspection:
+\begin{itemize}
+\item File system navigation: \texttt{ls}, \texttt{cd}, \texttt{pwd}, \texttt{find}
+\item Content inspection: \texttt{cat}, \texttt{head}, \texttt{tail}, \texttt{less}
+\item Text processing: \texttt{grep}, \texttt{awk}, \texttt{sed}, \texttt{sort}
+\item Repository operations: \texttt{git log}, \texttt{git diff}, \texttt{git status}
+\end{itemize}
+
+\textbf{File Patching} (\texttt{apply\_patch}): This tool enables precise code modifications through a search-and-replace mechanism. The agent specifies:
+\begin{itemize}
+\item Target file path
+\item Exact text to be replaced (old\_content)
+\item Replacement text (new\_content)
+\item Optional context for disambiguation
+\end{itemize}
+
+\todoinline{Emphasize the elegance of this approach: making LLMs produce valid diffs is a notoriously difficult problem involving complex formatting, line number coordination, and context management. We completely sidestep this challenge by using the simplified apply\_patch format that is naturally conducive to LLMs, then computing the actual diff afterward via 'git diff' rather than forcing the model to generate it. This architectural choice eliminates a major source of formatting errors while preserving full patch information for evaluation.}
+
+\subsubsection{Safety and Isolation}
+
+Security is paramount when allowing language models to execute arbitrary commands. The nano-agent employs several safety mechanisms:
+
+\textbf{Restricted Bash (rbash)}: All shell commands execute within a restricted bash environment that prevents:
+\begin{itemize}
+\item Network access and external communication
+\item File system access outside the designated workspace
+\item Process spawning beyond allowed utilities
+\item Modification of system files or configurations
+\end{itemize}
+
+\textbf{Sandboxed Execution}: Each agent session runs in an isolated container with:
+\begin{itemize}
+\item Limited computational resources (CPU, memory, time)
+\item No persistent state between sessions
+\item Comprehensive logging of all actions and outputs
+\end{itemize}
+
+\textbf{Command Validation}: Before execution, all commands undergo validation to ensure they match allowed patterns and don't contain potential exploits.
+
+\subsubsection{Comparison to Heavyweight Scaffolds}
+
+The nano-agent's minimalist design contrasts sharply with heavyweight coding agents that provide extensive support features:
+
+\textbf{Repository Understanding}: While tools like Aider generate comprehensive repository maps and maintain contextual awareness across files, the nano-agent requires models to build this understanding through direct exploration using basic commands.
+
+\textbf{Guided Workflows}: Heavyweight scaffolds often provide structured interaction patterns, step-by-step guidance, and built-in reasoning frameworks. The nano-agent offers no such assistance, forcing models to develop their own debugging strategies.
+
+\textbf{Error Handling}: Advanced agents may provide sophisticated error recovery, automatic retries, and contextual help. The nano-agent provides only raw command output, requiring models to interpret failures and adapt accordingly.
+
+\textbf{Code Analysis}: While heavyweight scaffolds might include syntax parsing, dependency analysis, and semantic understanding, the nano-agent relies on the model's inherent code comprehension abilities supplemented only by basic text processing tools.
+
+\subsubsection{Advantages for RL Training}
+
+The nano-agent's simplicity offers several advantages specifically for reinforcement learning applications:
+
+\textbf{Complete Action Logging}: Every agent interaction produces clear, interpretable logs that can be analyzed to understand learning dynamics and failure modes. There are no hidden internal operations or black-box processing steps.
+
+\textbf{Reward Clarity}: With minimal tool complexity, it becomes easier to attribute successes and failures to specific agent decisions, enabling more accurate reward assignment and training signal propagation.
+
+\textbf{Scalable Batch Processing}: Simple operations can be efficiently parallelized across multiple training instances without the overhead of complex state management or resource coordination required by heavyweight scaffolds.
+
+\textbf{Debugging and Analysis}: When training fails or produces unexpected results, the minimal tool set makes it easier to identify root causes and adjust training procedures accordingly.
+
+\subsubsection{Expected Learning Dynamics}
+
+The hypothesis underlying the nano-agent design is that models trained with minimal scaffolds will develop more robust, generalizable debugging skills. Specifically:
+
+\textbf{Fundamental Skill Development}: Without sophisticated assistance, models must learn essential programming skills like code navigation, pattern recognition, and systematic debugging approaches.
+
+\textbf{Adaptability}: Models that succeed with minimal tools should adapt more readily to new environments, programming languages, and unexpected scenarios.
+
+\textbf{Self-Reliance}: Rather than depending on engineered heuristics and guided workflows, models learn to formulate their own strategies and recover from mistakes independently.
+
+\textbf{Transfer Learning}: Skills learned through fundamental tool use should transfer more effectively to different programming contexts than highly specialized, environment-specific behaviors.
+
+This design philosophy will be empirically tested through direct comparison with heavyweight scaffold approaches, providing insights into the optimal balance between tool sophistication and learning effectiveness in agent-based code repair systems.
+
+\section{Agent-in-the-Loop Training}
+
+The integration of agent frameworks directly into model training represents a paradigm shift from traditional supervised learning approaches, enabling models to learn through active interaction rather than passive observation.
+
+\todoinline{Define agent-in-the-loop training and contrast with traditional approaches. Explain why this is novel: most prior work trains on static data then deploys as agents. Discuss technical challenges: reward engineering, environment stability, computational scaling. Review limited prior work in this area, highlighting gaps this thesis addresses.}
+
+Current research in this area is primarily conducted by industry labs (OpenAI, Anthropic, Cognition Labs) with limited open-source replication, creating a significant knowledge gap in the academic community.
+
+\subsection{Reward Design for Code Repair}
+
+Effective reward design is crucial for agent-in-the-loop training, requiring careful balance between task-specific objectives and general coding principles.
+
+\todoinline{Discuss reward engineering for code tasks: patch similarity metrics, test execution results, code quality measures. Review challenges: sparse signals, delayed feedback, difficulty capturing semantic correctness. Explain the specific reward formulation used in this work: diff-based similarity to oracle patches, file-level matching, format compliance.}
+
+\section{Evaluation Benchmarks}
+
+Rigorous evaluation of automated code repair systems requires diverse, realistic benchmarks that capture the complexity of real-world debugging scenarios.
+
+\subsection{SWE-Bench Family}
+
+The SWE-Bench benchmark series has emerged as the gold standard for evaluating coding agents on realistic software engineering tasks.
+
+\todoinline{Describe SWE-Bench evolution: original dataset, SWE-Bench-Verified improvements, Multi-SWE-Bench for language diversity. Explain task format: GitHub issues with repository context and ground truth patches. Discuss evaluation methodology and why success rates remain low (~20\%) even for state-of-the-art systems.}
+
+\subsection{Cross-Language Generalization}
+
+Evaluating generalization across programming languages provides insights into whether learned debugging skills transfer beyond training environments.
+
+\todoinline{Review Java benchmarks like Defects4J v2.0, GitBug-Java. Discuss why cross-language evaluation is important for understanding fundamental reasoning vs language-specific pattern matching. Explain the hypothesis that minimalist scaffolds should generalize better across languages due to fewer language-specific assumptions.}
+
+\section{Related Work}
+
+This section synthesizes prior research most directly relevant to our agent-in-the-loop approach, highlighting gaps that this thesis addresses.
+
+\todoinline{Comprehensive review of: (1) RL for code tasks - limited prior work, mostly focused on code generation rather than repair; (2) Agent-based debugging - mostly inference-time systems, not training integration; (3) Scaffold complexity studies - very limited research on tool complexity vs learning outcomes. Emphasize what's missing: open-source agent-in-loop training, systematic scaffold comparison, monotonic improvement demonstration.}
+
+\todoinline{Conclude by positioning this work: first open-source replication of agent-in-loop RL for code repair, novel comparison of scaffold complexity effects, potential to democratize access to advanced coding agent training techniques previously available only to industry labs.}

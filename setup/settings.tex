@@ -55,6 +55,11 @@
 
 \usepackage[printonlyused]{acronym}
 
+\usepackage{todonotes}
+\newcommand{\todoinline}[1]{%
+  \leavevmode\noindent%
+  \colorbox{yellow!30}{\parbox{\dimexpr\linewidth-2\fboxsep}{\textbf{TODO:} #1}}%
+}
 
 \counterwithin{figure}{section} 
 \counterwithin{table}{section}

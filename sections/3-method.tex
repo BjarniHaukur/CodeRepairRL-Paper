@@ -1,11 +1,313 @@
-\chapter{<Engineering-related content, Methodologies and Methods>}
-% \thispagestyle{fancy}
+\chapter{Method}
+\label{ch:method}
 
-Describe the engineering-related contents (preferably with models) and the research methodology and methods that are used in the degree project. 
+This chapter presents our novel approach to training large language models for automated code repair through agent-in-the-loop reinforcement learning. We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the RL training loop improves bug-fixing performance.
 
-Most likely it generally describes the method used in each step to make sure that you can answer the research question.
+\section{Overview of Agent-in-the-Loop Reinforcement Learning}
+\label{sec:method-overview}
 
-\section{Engineering-related and scientific content:}
-Applying engineering related and scientific skills; modelling, analysing, developing, and evaluating engineering-related and scientific content; correct choice of methods based on problem formulation; consciousness of aspects relating to society and ethics (if applicable).
+Traditional approaches to training LLMs for code repair rely on supervised fine-tuning with static datasets of code-patch pairs. In contrast, our method pioneers \textit{agent-in-the-loop reinforcement learning}, where coding agents actively interact with real software repositories during training. This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
 
-As mentioned earlier, give a theoretical description of methodologies and methods and how these are applied in the degree project.
+The core innovation lies in our integration of existing coding agent frameworks directly into the RL training pipeline. Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can:
+\begin{itemize}
+    \item Navigate repository structures using terminal commands
+    \item Examine multiple files to understand code context
+    \item Iteratively refine solutions based on environmental feedback
+    \item Learn from the outcomes of their actions rather than just imitating examples
+\end{itemize}
+
+By implementing an OpenAI-compatible API server with asynchronous token streaming capabilities, we bridge the gap between standard RL training frameworks and agent scaffolding. This enables our custom Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
+
+\todoinline{Add a figure illustrating the agent-in-the-loop architecture showing the feedback cycle between the LLM, agent scaffold, code repository, and reward signal}
+
+\section{Experimental Setup}
+\label{sec:experimental-setup}
+
+\subsection{Datasets and Benchmarks}
+
+Our experimental design carefully separates training and evaluation data to demonstrate true generalization rather than memorization. We employ the following datasets:
+
+\textbf{Training Dataset:} We use SWE-Gym, a curated collection of approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories. Each task includes:
+\begin{itemize}
+    \item A containerized repository snapshot at the time of the bug report
+    \item The original issue description
+    \item The ground-truth patch that resolved the issue
+    \item Isolated execution environments for safe agent interaction
+\end{itemize}
+
+SWE-Gym's containerized design makes it ideal for RL training, as agents can freely explore and modify code without risk while receiving deterministic feedback based on their actions.
+
+\textbf{Primary Evaluation:} SWE-Bench-Verified serves as our main evaluation benchmark, containing approximately 500 carefully validated Python bugs from popular open-source projects. These bugs are notably more challenging than the training set, often requiring multi-file modifications and deep understanding of project structure. This dataset tests whether our agent-trained models can generalize beyond their training distribution.
+
+\textbf{Generalization Testing:} To assess cross-language transfer of learned repair skills, we evaluate on Defects4J v2.0, which contains 835 real Java bugs from mature projects. This tests whether the code repair strategies learned in Python environments transfer to syntactically different languages—directly addressing our research question about the generality of agent-learned skills.
+
+\subsection{Model Selection}
+
+We base our experiments on the Qwen2.5-Coder family of models, specifically the 7B parameter variant. This choice is motivated by:
+\begin{itemize}
+    \item Strong baseline performance on code understanding tasks
+    \item Open availability enabling reproducible research
+    \item Sufficient capacity to learn complex agent behaviors while remaining computationally tractable
+    \item Compatibility with our distributed training infrastructure
+\end{itemize}
+
+The model undergoes continued training rather than traditional fine-tuning, preserving its general capabilities while acquiring specialized agent skills through reinforcement learning.
+
+\section{The Nano Coding Agent Scaffold}
+\label{sec:nano-agent}
+
+Our Nano coding agent represents a minimalist approach to agent scaffolding, designed to provide essential repository interaction capabilities without imposing rigid workflows or excessive complexity. The scaffold enables models to:
+
+\subsection{Core Capabilities}
+
+The Nano agent provides a streamlined set of tools for repository interaction:
+
+\begin{itemize}
+    \item \texttt{bash}: Execute shell commands for navigation and file system operations
+    \item \texttt{str\_replace}: Perform precise string replacements for code modification
+    \item \texttt{view\_file}: Examine file contents with optional line range specification
+    \item \texttt{write\_file}: Create new files when necessary
+\end{itemize}
+
+This minimal toolset encourages models to develop their own strategies for code understanding and modification rather than relying on pre-engineered heuristics. The agent must learn to:
+\begin{itemize}
+    \item Navigate unfamiliar codebases using standard Unix commands
+    \item Identify relevant files through grep searches and directory exploration
+    \item Understand code context by examining multiple related files
+    \item Apply targeted fixes using precise string replacements
+\end{itemize}
+
+\subsection{Design Philosophy}
+
+The Nano scaffold embodies several key design principles:
+
+\textbf{Simplicity:} By providing only essential tools, we reduce the complexity of the action space and make it easier for models to learn effective strategies through trial and error.
+
+\textbf{Flexibility:} The agent is not constrained to any particular workflow—it can develop its own patterns for approaching different types of bugs based on what proves effective during training.
+
+\textbf{Transparency:} All agent actions map directly to interpretable operations that developers would perform manually, making the learned behaviors more understandable and trustworthy.
+
+\textbf{Efficiency:} The minimal interface reduces computational overhead and allows for faster training iterations compared to more complex scaffolding systems.
+
+\subsection{Integration with RL Training}
+
+The Nano agent integrates seamlessly with our RL training pipeline through a structured action-observation loop:
+
+\begin{enumerate}
+    \item The agent receives an issue description and repository state
+    \item It generates a sequence of tool calls to explore and understand the codebase
+    \item Each action produces observations (command outputs, file contents, etc.)
+    \item The agent iteratively refines its understanding and proposes fixes
+    \item The final patch is evaluated against the ground truth for reward computation
+\end{enumerate}
+
+This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes. The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
+
+\section{Reinforcement Learning Training Algorithm}
+\label{sec:rl-algorithm}
+
+\subsection{Group Relative Policy Optimization (GRPO)}
+
+We employ Group Relative Policy Optimization (GRPO) as our primary RL algorithm. GRPO offers several advantages for our agent-in-the-loop setting:
+
+\begin{itemize}
+    \item \textbf{No value model required:} Unlike traditional actor-critic methods, GRPO estimates advantages using relative performance within a batch, eliminating the need for a separate value network
+    \item \textbf{Reduced variance:} By normalizing rewards across groups of trajectories, GRPO provides more stable training signals
+    \item \textbf{Simplified pipeline:} The absence of value estimation reduces computational overhead and implementation complexity
+\end{itemize}
+
+\subsection{Training Process}
+
+Our training follows an iterative process where the agent attempts to solve bugs from the SWE-Gym dataset:
+
+\begin{enumerate}
+    \item \textbf{Trajectory Generation:} For each bug in a training batch, the agent generates a complete trajectory—from initial exploration through final patch submission
+    \item \textbf{Reward Computation:} Each trajectory receives a reward based on the similarity between the generated patch and the ground-truth solution (detailed in Section~\ref{sec:reward-design})
+    \item \textbf{Advantage Estimation:} GRPO computes advantages by comparing each trajectory's reward to the mean reward within its group
+    \item \textbf{Policy Update:} The model parameters are updated to increase the likelihood of high-advantage actions while maintaining proximity to the reference policy through KL regularization
+\end{enumerate}
+
+\subsection{Hyperparameters}
+
+Key hyperparameters for our GRPO implementation include:
+
+\begin{itemize}
+    \item \textbf{Batch size:} 32 trajectories per update
+    \item \textbf{Learning rate:} $1 \times 10^{-5}$ with cosine annealing
+    \item \textbf{KL coefficient:} $\beta = 0.1$ to balance exploration and stability
+    \item \textbf{Maximum trajectory length:} 8192 tokens to accommodate multi-step agent interactions
+    \item \textbf{Training iterations:} 5,000 episodes covering the SWE-Gym dataset
+\end{itemize}
+
+These values were selected through preliminary experiments to ensure stable convergence while allowing sufficient exploration of the action space.
+
+\subsection{Distributed Training Infrastructure}
+
+To handle the computational demands of agent-in-the-loop RL, we implement a distributed training architecture:
+
+\begin{itemize}
+    \item \textbf{DeepSpeed ZeRO-3:} Model parameters, gradients, and optimizer states are sharded across GPUs to enable training of 7B parameter models
+    \item \textbf{Asynchronous trajectory collection:} Multiple agent instances run in parallel, maximizing GPU utilization
+    \item \textbf{Dynamic batching:} Trajectories of varying lengths are efficiently packed to minimize padding overhead
+\end{itemize}
+
+This infrastructure enables us to train on realistic, multi-step agent interactions while maintaining reasonable training times.
+
+\section{Reward Design}
+\label{sec:reward-design}
+
+\subsection{Outcome-Based Patch Similarity}
+
+Our reward function focuses on the final outcome—the generated patch—rather than intermediate steps. This design choice offers several benefits:
+
+\begin{itemize}
+    \item \textbf{Simplicity:} Evaluating final patches is straightforward and deterministic
+    \item \textbf{Flexibility:} Agents can discover diverse problem-solving strategies without being constrained by process-specific rewards
+    \item \textbf{Alignment:} The reward directly measures what we care about—correct bug fixes
+\end{itemize}
+
+\subsection{Reward Computation}
+
+For each generated patch, we compute rewards based on similarity to the ground-truth solution:
+
+\begin{equation}
+R(p_{\text{gen}}, p_{\text{true}}) = \begin{cases}
+1.0 & \text{if } p_{\text{gen}} = p_{\text{true}} \\
+\text{sim}(p_{\text{gen}}, p_{\text{true}}) & \text{if partial match} \\
+0.0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+Where $\text{sim}$ measures line-level similarity between patches, awarding partial credit for fixes that modify the correct locations but with imperfect changes.
+
+\todoinline{Elaborate on why this approach works so well: the agent performs any number of apply\_patch operations during its interaction, each in a simplified search-replace format that LLMs handle naturally. Only after the complete interaction do we run 'git diff' to compute the actual patch for evaluation. This separation of concerns—letting the model focus on semantic changes while automatically handling diff formatting—eliminates a notorious source of LLM errors and enables clean reward computation.}
+
+\subsection{Addressing Sparse Rewards}
+
+The sparse nature of exact patch matching presents challenges for RL training. We address this through:
+
+\begin{itemize}
+    \item \textbf{Curriculum learning:} Starting with simpler bugs where rewards are more attainable
+    \item \textbf{Partial credit:} Rewarding patches that target correct files and functions even if the exact fix differs
+    \item \textbf{Large batch sizes:} Ensuring sufficient positive examples within each training batch
+\end{itemize}
+
+\subsection{Future Extensions}
+
+While our current approach uses patch similarity for computational efficiency, the framework naturally extends to test-based evaluation. Future work could incorporate:
+
+\begin{itemize}
+    \item Execution of project test suites to verify functional correctness
+    \item Multi-objective rewards balancing correctness, code quality, and efficiency
+    \item Human preference learning for subjective aspects of code style
+\end{itemize}
+
+These extensions would require significant infrastructure investment but could lead to more robust and generalizable repair capabilities.
+
+\section{Training Infrastructure: vLLM Integration}
+\label{sec:training-infrastructure}
+
+\subsection{OpenAI-Compatible API Server}
+
+A key technical innovation in our approach is the integration of vLLM's asynchronous serving capabilities with the RL training loop. This enables:
+
+\begin{itemize}
+    \item \textbf{Seamless agent integration:} Existing coding agents designed for OpenAI's API can be used without modification
+    \item \textbf{Asynchronous token streaming:} Real-time generation allows for natural multi-turn interactions
+    \item \textbf{Parallel trajectory collection:} Multiple agent instances can explore different solutions simultaneously
+\end{itemize}
+
+\subsection{Architecture Overview}
+
+Our training infrastructure consists of several interconnected components:
+
+\begin{enumerate}
+    \item \textbf{vLLM Inference Server:} Hosts the model and provides OpenAI-compatible endpoints
+    \item \textbf{Agent Workers:} Multiple Nano agent instances that interact with code repositories
+    \item \textbf{Trajectory Collectors:} Gather complete agent episodes for batch processing
+    \item \textbf{GRPO Trainer:} Computes rewards and updates model parameters
+    \item \textbf{Weight Synchronization:} Ensures all components use the latest model weights
+\end{enumerate}
+
+\subsection{Real-Time Weight Updates}
+
+Unlike traditional RL setups where inference and training are separate phases, our system enables continuous learning:
+
+\begin{itemize}
+    \item Model weights are updated after each batch of trajectories
+    \item Updates are immediately synchronized to all inference processes
+    \item Agents benefit from improvements within the same training session
+\end{itemize}
+
+This tight integration between serving and training represents a significant departure from conventional approaches, enabling more efficient exploration and faster convergence.
+
+\subsection{Implementation Details}
+
+Key implementation choices include:
+
+\begin{itemize}
+    \item \textbf{Collective RPC:} For efficient weight sharing across distributed processes
+    \item \textbf{LoRA adaptation:} Optional use of low-rank adapters to reduce communication overhead
+    \item \textbf{Containerized environments:} Each agent runs in an isolated Docker container for safety
+    \item \textbf{Request batching:} Multiple agent requests are processed concurrently for efficiency
+\end{itemize}
+
+\todoinline{Add a diagram showing the data flow between vLLM server, agent workers, and GRPO trainer}
+
+\section{Evaluation Methodology}
+\label{sec:evaluation}
+
+\subsection{Evaluation Metrics}
+
+We assess model performance using several complementary metrics:
+
+\begin{itemize}
+    \item \textbf{Success Rate:} Percentage of bugs for which the agent generates an exactly correct patch
+    \item \textbf{Partial Success Rate:} Including fixes that target the correct location with minor differences
+    \item \textbf{Time to Solution:} Average wall-clock time required to generate a fix
+    \item \textbf{Exploration Efficiency:} Number of files examined and commands executed per bug
+\end{itemize}
+
+\subsection{Baseline Comparisons}
+
+To contextualize our results, we compare against several baselines:
+
+\begin{enumerate}
+    \item \textbf{Base Model:} The pretrained Qwen2.5-Coder without any bug-fixing training
+    \item \textbf{Supervised Fine-Tuning:} The same model fine-tuned on bug-fix pairs using standard supervised learning
+    \item \textbf{Direct Generation:} Models prompted to generate fixes without agent scaffolding
+    \item \textbf{State-of-the-art Systems:} Published results from other automated repair approaches
+\end{enumerate}
+
+\subsection{Generalization Testing}
+
+Beyond in-domain performance, we evaluate generalization through:
+
+\begin{itemize}
+    \item \textbf{Cross-dataset evaluation:} Testing on SWE-Bench-Verified after training on SWE-Gym
+    \item \textbf{Cross-language evaluation:} Applying Python-trained models to Java bugs
+    \item \textbf{Temporal generalization:} Testing on bugs from time periods not covered in training
+\end{itemize}
+
+\subsection{Ablation Studies}
+
+To understand the contribution of different components, we conduct ablations:
+
+\begin{itemize}
+    \item \textbf{Without RL:} Using only supervised fine-tuning on the same data
+    \item \textbf{Without agent scaffold:} Direct patch generation without repository interaction
+    \item \textbf{Varying trajectory lengths:} Impact of allowing more or fewer exploration steps
+    \item \textbf{Different reward functions:} Comparing patch similarity vs. binary success rewards
+\end{itemize}
+
+\subsection{Statistical Significance}
+
+All reported improvements are tested for statistical significance using:
+
+\begin{itemize}
+    \item Bootstrap confidence intervals for success rate differences
+    \item McNemar's test for paired comparisons on the same test set
+    \item Effect size measurements (Cohen's d) to quantify practical significance
+\end{itemize}
+
+This comprehensive evaluation framework ensures that our conclusions about agent-in-the-loop RL are well-supported and reproducible.

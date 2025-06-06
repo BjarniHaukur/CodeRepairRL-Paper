@@ -1,80 +1,83 @@
 \chapter{Introduction}
 
-Provide a general introduction to the area for the degree project. Use references!
-
-Link things together with references. This is a reference to a section: \ref{sec:background}.
-
 \section{Background}
 \label{sec:background}
-Present the background for the area. Give the context by explaining the parts that are needed to understand the degree project and thesis. (Still, keep in mind that this is an introductory part, which does not require too detailed description).
 
-Use references\footnote{You can also add footnotes if you want to clarify the content on the same page.}
+Automated code repair has emerged as one of the most challenging problems in software engineering. Despite significant advances in large language models (LLMs), even state-of-the-art systems solve under 20\% of real bug-fix tasks in rigorous benchmarks like SWE-Bench. Traditional approaches to training code repair models rely on passive learning from static datasets of bug-fix pairs, where models observe input-output examples without ever experiencing the iterative, exploratory process that human developers use when debugging.
 
-Detailed description of the area should be moved to Chapter 2, where detailed information about background is given together with related work. 
+The evolution of AI capabilities provides crucial context for understanding why reinforcement learning (RL) has only recently become applicable to complex real-world tasks like code repair. AlphaZero's superhuman game performance represented a significant milestone in AI development, yet it simultaneously exposed a fundamental limitation: games provide reward signals for every legal move, while real-world tasks require deep conceptual understanding merely to participate meaningfully. Before the advent of LLMs, applying RL to tasks like coding remained futile—models could not even attempt such problems coherently. The limitation was not algorithmic; rather, these systems lacked any gradient to climb.
 
-This background presents background to writing a report in latex.
+LLMs fundamentally transformed this landscape by providing the prerequisite knowledge to attempt real-world tasks coherently. When an RL agent attempts to fix a bug, it can now execute valid commands, interpret error messages, and generate the rich learning signals that RL algorithms require. For the first time, decades of RL research can be applied to problems of practical significance, as LLMs have provided that crucial first rung on the ladder of capability.
 
+This limitation becomes particularly apparent when considering how humans actually fix bugs. Developers don't simply look at broken code and immediately produce a patch. Instead, they navigate through codebases, examine multiple files, run tests, execute commands, and iteratively refine their understanding before implementing a solution. This active, exploratory process is fundamentally different from the passive pattern matching that current LLMs perform.
 
-Example citation \cite{Jones2017} or for two authors: \cite{Jones2017, Liu2017}
-
-Look at sample table \ref{tab:sample-table-label} for a table sample.
-
-\input{tables/sample-table}
-
-Boxes can be used to organize content
-
-\begin{tcolorbox}[title={Development environment for prototype}]
-	\tt{
-		\textbf{Operating systems }\\
-		computer: Linux - kernel 4.18.5-arch1-1-ARCH\\
-		android phone: 8.1.0\\
-		~\\
-		\textbf{Build tools}\\
-		exp (build tool): version 55.0.4\\
-		~\\
-		...
-	}
-\end{tcolorbox}
+Recent work has begun exploring agent-based approaches where LLMs are given tools to interact with code repositories. However, these systems are typically trained using traditional supervised learning on static datasets, then deployed as agents at inference time. This disconnect between training and deployment environments may limit their effectiveness.
 
 \section{Problem}
-Present the problems found in the area. Preferable use and end this section with a question as a problem statement. 
 
-Use references
-Preferable, state the problem, to be solved, as a question. Do not use a question that can be answered with yes and/or no. 
+The core problem addressed in this thesis is that current approaches to automated code repair suffer from a fundamental mismatch between how models are trained and how they are deployed. Models learn from static bug-fix examples but are expected to perform dynamic, multi-step debugging in interactive environments.
 
-Use acronyms:
-The \ac{CPU} is very nice. It is a \ac{CPU}
+Specifically, we identify three key limitations in existing approaches:
+
+First, \textbf{passive learning limits exploration capabilities}. Models trained on static datasets never learn to actively explore codebases, navigate file structures, or iteratively gather information needed for complex bug fixes.
+
+Second, \textbf{single-step generation doesn't match debugging workflows}. Real debugging involves multiple iterations of hypothesis formation, testing, and refinement, but current models are trained to produce patches in a single forward pass.
+
+Third, \textbf{scaffold complexity effects are poorly understood}. When LLMs are deployed as coding agents, they rely on various tools and interfaces (scaffolds) to interact with code. It's unclear whether simple, minimal scaffolds or complex, feature-rich ones lead to better learning outcomes when integrated into training.
+
+How can we train LLMs to perform automated code repair through active, agent-like interaction with codebases, and what role does scaffold complexity play in this learning process?
 
 \section{Purpose}
-The purpose of the degree project/thesis is the purpose of the written material, i.e., the thesis. The thesis presents the work / discusses / illustrates and so on.
 
-It is not “The project is about” even though this can be included in the purpose. If so, state the purpose of the project after purpose of the thesis).
+The purpose of this thesis is to investigate a novel training paradigm called "agent-in-the-loop reinforcement learning" for automated code repair. Rather than training models on static datasets, we embed coding agents directly into the reinforcement learning training loop, allowing models to learn through active interaction with real codebases.
+
+This work aims to demonstrate that LLMs can learn more effective debugging strategies when they experience the full process of navigating, exploring, and iteratively fixing bugs, rather than simply observing input-output pairs. We specifically examine how different levels of scaffold complexity - from minimalist terminal-based interfaces to feature-rich development environments - affect learning outcomes.
 
 \section{Goal}
-The goal means the goal of the degree project. Present following: the goal(s), deliverables and results of the project. 
 
-\section{Benefits, Ethics and Sustainability}
-Describe who will benefit from the degree project, the ethical issues (what ethical problems can arise) and the sustainability aspects of the project.
+The primary goal of this research is to develop and evaluate an agent-in-the-loop reinforcement learning framework for training coding agents to perform automated program repair. 
 
-Use references!
+Specific deliverables include:
+
+\begin{itemize}
+\item A novel training pipeline integrating coding agents directly into GRPO (Group Relative Policy Optimization) reinforcement learning loops
+\item Implementation of two contrasting agent scaffolds: a minimalist "nano-agent" using only basic terminal commands, and a heavyweight scaffold with rich contextual features
+\item Experimental evaluation on Python bug-fixing tasks using SWE-Gym and SWE-Bench-Verified datasets
+\item Analysis of whether reinforcement learning produces monotonic improvement in coding agent performance - a result that would represent significant progress in open-source automated debugging research
+\end{itemize}
+
+\section{Research Questions}
+
+This thesis is guided by three primary research questions:
+
+\textbf{RQ1: Does integrating an agent scaffold into the reinforcement learning training loop significantly improve automated code repair performance compared to non-RL-trained models?}
+
+This foundational question investigates whether the agent-in-the-loop RL approach produces measurable improvements over baseline model performance. We hypothesize that learning through active interaction will yield better debugging capabilities than passive learning alone.
+
+\textbf{RQ2: Does a minimalist coding scaffold yield better performance in RL-based code repair than a heavyweight scaffold with extensive engineered features?}
+
+Inspired by the 'bitter lesson' in AI research, this question examines whether simple, general-purpose tools enable better learning outcomes than hand-engineered, feature-rich environments. We compare a minimalist nano-agent (using only shell commands and basic file operations) against heavyweight scaffolds with repository mapping, context summarization, and guided reasoning.
+
+\textbf{RQ3: Do the performance gains from scaffold-in-the-loop RL training generalize beyond the training environment to other programming languages and general code generation tasks?}
+
+This question probes whether the approach produces fundamental improvements in reasoning and problem-solving abilities, or merely optimizes performance within the specific training scaffold and language. We evaluate generalization to Java bug-fixing and general code generation benchmarks.
 
 \section{Methodology}
-Introduce, theoretically, the methodologies and methods that can be used in a project and, then, select and introduce the methodologies and methods that are used in the degree project. Must be described on the level that is enough to understand the contents of the thesis. 
 
-Use references!
+This research employs an experimental methodology combining reinforcement learning techniques with agent-based software engineering environments. The core approach involves a two-stage training pipeline: supervised fine-tuning (SFT) on high-quality code repair demonstrations, followed by Group Relative Policy Optimization (GRPO) reinforcement learning where agents actively interact with codebases to fix bugs.
 
-Preferably, the philosophical assumptions, research methods, and research approaches are presented here. Write quantitative / qualitative, deductive / inductive / abductive. Start with theory about methods, choose the methods that are used in the thesis and apply. 
+The experimental design compares multiple agent scaffold configurations across standardized benchmarks, using both quantitative metrics (patch similarity, task success rates) and qualitative analysis of learning trajectories. We employ controlled experiments to isolate the effects of scaffold complexity while maintaining consistent model architectures and training procedures.
 
-
-Detailed description of these methodologies and methods should be presented in Chapter 3. In chapter 3, the focus could be research strategies, data collection, data analysis, and quality assurance.
-
-
-\section{Stakeholders}
-Present the stakeholders for the degree project.
+Data collection involves automated interaction logs from agent-codebase interactions, reward signals based on patch quality, and evaluation results across multiple programming languages and task types.
 
 \section{Delimitations}
-Explain the delimitations. These are all the things that could affect the study if they were examined and included in the degree project. 
-Use references!
+
+This research focuses specifically on automated bug fixing rather than broader code generation tasks, though we include limited evaluation on general programming benchmarks for generalization assessment. The primary evaluation environment is Python codebases, with Java evaluation for cross-language generalization.
+
+The scope is limited to repository-level bug fixes rather than system-level or infrastructure issues. We do not address bugs requiring external dependencies, network interactions, or complex runtime environments beyond what can be simulated in containerized settings.
+
+While the approach is designed to be model-agnostic, experiments focus on Qwen3 family models due to computational constraints. The reinforcement learning approach requires significant computational resources, limiting the scale of hyperparameter exploration.
 
 \section{Outline}
-In text, describe what is presented in Chapters 2 and forward. Exclude the first chapter and references as well as appendix. 
+
+Chapter 2 provides comprehensive background on reinforcement learning for language models, automated code repair, and agent-based programming environments, situating this work within existing literature. Chapter 3 presents the detailed methodology, including the agent-in-the-loop training pipeline, scaffold implementations, and experimental design. Chapter 4 describes the technical implementation of the training infrastructure and agent frameworks. Chapter 5 presents experimental results and analysis, focusing on the core research questions and learning trajectory analysis. Chapter 6 concludes with discussion of findings, limitations, and future research directions.
