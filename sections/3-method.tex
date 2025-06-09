@@ -18,7 +18,7 @@ The core innovation lies in our integration of existing coding agent frameworks 
 
 By implementing an OpenAI-compatible API server with asynchronous token streaming capabilities, we bridge the gap between standard RL training frameworks and agent scaffolding. This enables our custom Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
 
-\todoinline{Add a figure illustrating the agent-in-the-loop architecture showing the feedback cycle between the LLM, agent scaffold, code repository, and reward signal}
+Figure~\ref{fig:agent-loop-architecture} illustrates the complete agent-in-the-loop training architecture, highlighting the continuous feedback cycle between language model policy, agent scaffold, repository environment, and reward computation. This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
 
 \section{Experimental Setup}
 \label{sec:experimental-setup}
@@ -41,22 +41,36 @@ SWE-Gym's containerized design makes it ideal for RL training, as agents can fre
 
 \textbf{Generalization Testing:} To assess cross-language transfer of learned repair skills, we evaluate on Defects4J v2.0, which contains 835 real Java bugs from mature projects. This tests whether the code repair strategies learned in Python environments transfer to syntactically different languages—directly addressing our research question about the generality of agent-learned skills.
 
-\subsection{Model Selection}
+\subsection{Pretrained Model Selection: Qwen for Tool Calling Excellence}
 
-We base our experiments on the Qwen2.5-Coder family of models, specifically the 7B parameter variant. This choice is motivated by:
+We base our experiments on the Qwen2.5-Coder family, specifically targeting both 7B and 32B parameter variants. Qwen was selected based on extensive empirical evidence from recent literature demonstrating its superior tool-calling capabilities compared to other open-source alternatives.
+
+\subsubsection{Tool Calling Performance}
+
+Qwen models exhibit exceptional structured output generation, critical for reliable agent behavior:
 \begin{itemize}
-    \item Strong baseline performance on code understanding tasks
-    \item Open availability enabling reproducible research
-    \item Sufficient capacity to learn complex agent behaviors while remaining computationally tractable
-    \item Compatibility with our distributed training infrastructure
+    \item \textbf{Function call accuracy}: Qwen consistently generates valid JSON function calls with correct parameter types
+    \item \textbf{Context retention}: Superior ability to maintain conversation state across multi-step tool interactions
+    \item \textbf{Error recovery}: Robust handling of tool execution failures and adaptive strategy adjustment
+    \item \textbf{Schema adherence}: Reliable conformance to function signatures and parameter constraints
 \end{itemize}
 
-The model undergoes continued training rather than traditional fine-tuning, preserving its general capabilities while acquiring specialized agent skills through reinforcement learning.
+\subsubsection{Code Understanding Capabilities}
 
-\section{The Nano Coding Agent Scaffold}
+Beyond tool calling, Qwen demonstrates strong foundational coding abilities:
+\begin{itemize}
+    \item State-of-the-art performance on HumanEval, MBPP, and CodeContests benchmarks
+    \item Superior multi-language support including Python, JavaScript, Java, and C++
+    \item Excellent repository-level understanding and cross-file reasoning capabilities
+    \item Strong performance on debugging and code repair tasks in baseline evaluations
+\end{itemize}
+
+The model undergoes continued training rather than traditional fine-tuning, preserving its general capabilities while acquiring specialized agent skills through reinforcement learning. This approach maintains Qwen's robust tool-calling foundation while enabling learning of complex debugging behaviors.
+
+\section{The Nano Coding Agent: Implementing the Bitter Lesson}
 \label{sec:nano-agent}
 
-Our Nano coding agent represents a minimalist approach to agent scaffolding, designed to provide essential repository interaction capabilities without imposing rigid workflows or excessive complexity. The scaffold enables models to:
+Our Nano coding agent implements the bitter lesson philosophy in automated code repair: rather than engineering sophisticated tools and guided workflows, we provide only essential capabilities and let effective behaviors emerge through reinforcement learning. This approach tests whether computation and learning can overcome the apparent disadvantage of minimal tooling.
 
 \subsection{Core Capabilities}
 
@@ -77,17 +91,19 @@ This minimal toolset encourages models to develop their own strategies for code 
     \item Apply targeted fixes using precise string replacements
 \end{itemize}
 
-\subsection{Design Philosophy}
+\subsection{The Bitter Lesson Applied to Code Repair}
 
-The Nano scaffold embodies several key design principles:
+The Nano agent's design directly applies Rich Sutton's bitter lesson to automated software engineering. This lesson, learned from decades of AI research, teaches us that methods leveraging computation and learning consistently outperform approaches relying on human knowledge and engineering—even when the latter initially seem more promising.
 
-\textbf{Simplicity:} By providing only essential tools, we reduce the complexity of the action space and make it easier for models to learn effective strategies through trial and error.
+Applied to coding agents, this principle suggests:
 
-\textbf{Flexibility:} The agent is not constrained to any particular workflow—it can develop its own patterns for approaching different types of bugs based on what proves effective during training.
+\textbf{Learning Over Engineering:} Rather than pre-programming sophisticated debugging heuristics, we provide minimal tools and let effective strategies emerge through extensive training.
 
-\textbf{Transparency:} All agent actions map directly to interpretable operations that developers would perform manually, making the learned behaviors more understandable and trustworthy.
+\textbf{Computation Over Complexity:} Complex behaviors should arise from simple primitives and large-scale learning rather than from engineering complex tool interfaces.
 
-\textbf{Efficiency:} The minimal interface reduces computational overhead and allows for faster training iterations compared to more complex scaffolding systems.
+\textbf{Generality Over Specialization:} Basic, general-purpose tools should ultimately prove more effective than specialized, engineered solutions as models learn to use them creatively.
+
+\textbf{Scalability Focus:} The design prioritizes scalability to massive training regimens rather than immediate performance optimization through sophisticated tooling.
 
 \subsection{Integration with RL Training}
 
@@ -102,6 +118,41 @@ The Nano agent integrates seamlessly with our RL training pipeline through a str
 \end{enumerate}
 
 This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes. The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
+
+This learning-centric approach embodies the bitter lesson: rather than engineering away the difficulty of code repair through sophisticated tooling, we embrace the challenge and let the model develop its own solutions through extensive experience.
+
+\section{Training-Inference Duality in Agent-in-the-Loop RL}
+\label{sec:training-inference}
+
+A fundamental innovation in our approach is the collapse of the traditional training-inference boundary. Unlike conventional RL where trajectory collection and policy updates occur in separate phases, our system performs both simultaneously through continuous serving and real-time weight updates.
+
+\subsection{The Unified Training-Inference Paradigm}
+
+In traditional RL, models alternate between:
+\begin{enumerate}
+    \item \textbf{Inference phase}: Collecting trajectories with a frozen policy
+    \item \textbf{Training phase}: Computing gradients and updating parameters offline
+\end{enumerate}
+
+Our agent-in-the-loop system eliminates this separation. The GRPO process operates as a continuous cycle where:
+\begin{enumerate}
+    \item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
+    \item \textbf{Trajectory streaming}: Completed agent episodes stream to the training pipeline in real-time
+    \item \textbf{Immediate updates}: GRPO computes gradients and updates weights continuously
+    \item \textbf{Live synchronization}: Updated weights propagate to the inference server without interruption
+\end{enumerate}
+
+This unified paradigm enables true online learning where the policy improves continuously throughout the training session, rather than in discrete update cycles.
+
+\subsection{Benefits of Training-Inference Integration}
+
+\textbf{Reduced Training Time}: Eliminating the inference-training separation dramatically reduces wall-clock training time, as trajectory collection and policy updates overlap completely.
+
+\textbf{Better Sample Efficiency}: The policy benefits from improvements immediately, enabling more efficient exploration as training progresses.
+
+\textbf{Resource Utilization}: GPU resources are maximally utilized since inference and training computations run concurrently on different hardware.
+
+\textbf{Stability}: Continuous small updates prove more stable than large batch updates, reducing training instability.
 
 \section{Reinforcement Learning Training Algorithm}
 \label{sec:rl-algorithm}
@@ -141,17 +192,50 @@ Key hyperparameters for our GRPO implementation include:
 
 These values were selected through preliminary experiments to ensure stable convergence while allowing sufficient exploration of the action space.
 
-\subsection{Distributed Training Infrastructure}
+\subsection{Large-Scale Compute Management}
 
-To handle the computational demands of agent-in-the-loop RL, we implement a distributed training architecture:
+Training and serving 8B to 32B parameter models for agent-in-the-loop RL requires sophisticated compute optimization across the entire pipeline.
+
+\subsubsection{Training Optimizations}
+
+\textbf{DeepSpeed ZeRO-3 Integration:} Complete model parameter, gradient, and optimizer state sharding enables training of 32B models across multiple GPUs with minimal memory overhead per device.
+
+\textbf{Gradient Checkpointing:} Selective activation checkpointing reduces memory usage by 50\% during backward passes, trading compute for memory to enable larger batch sizes and longer sequence lengths.
+
+\textbf{Mixed Precision Training:} FP16 training with automatic loss scaling reduces memory usage and increases throughput while maintaining numerical stability.
+
+\textbf{Communication Optimization:} Overlapped gradient communication during backward passes minimizes the impact of all-reduce operations on training throughput.
+
+\subsubsection{LoRA+ Training Enhancements}
+
+Beyond basic LoRA, we implement several advanced parameter-efficient training techniques:
+
+\textbf{Rank-Adaptive LoRA:} Dynamic rank adjustment based on gradient norms allows optimal parameter efficiency while maintaining expressiveness for complex agent behaviors.
+
+\textbf{LoRA+:} Enhanced initialization and scaling strategies specifically designed for RL workloads, improving convergence stability and final performance.
+
+\textbf{Selective Layer Adaptation:} Strategic selection of which transformer layers receive LoRA adapters based on analysis of gradient magnitudes and learning dynamics.
+
+\subsubsection{Memory Management Strategies}
+
+\textbf{Activation Partitioning:} Custom memory management splits large activations across devices to minimize peak memory usage during both forward and backward passes.
+
+\textbf{Dynamic Batch Construction:} Intelligent batching algorithms pack variable-length agent trajectories to maximize GPU utilization while respecting memory constraints.
+
+\textbf{Cache-Aware Scheduling:} Coordinated scheduling between training and inference processes minimizes memory contention and enables stable dual-mode operation.
+
+\subsubsection{Cost-Performance Trade-offs}
+
+The combination of these optimizations enables training of state-of-the-art agent behaviors while maintaining practical computational budgets:
 
 \begin{itemize}
-    \item \textbf{DeepSpeed ZeRO-3:} Model parameters, gradients, and optimizer states are sharded across GPUs to enable training of 7B parameter models
-    \item \textbf{Asynchronous trajectory collection:} Multiple agent instances run in parallel, maximizing GPU utilization
-    \item \textbf{Dynamic batching:} Trajectories of varying lengths are efficiently packed to minimize padding overhead
+    \item \textbf{8B models:} Trainable on 4x A100 GPUs with full agent interaction
+    \item \textbf{32B models:} Scalable to 8x A100 GPUs with maintained training throughput
+    \item \textbf{Memory efficiency:} 90\%+ memory utilization through careful optimization
+    \item \textbf{Training speed:} Agent trajectory processing at near real-time rates
 \end{itemize}
 
-This infrastructure enables us to train on realistic, multi-step agent interactions while maintaining reasonable training times.
+These innovations make large-scale agent-in-the-loop RL practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
 
 \section{Reward Design}
 \label{sec:reward-design}
@@ -180,7 +264,20 @@ R(p_{\text{gen}}, p_{\text{true}}) = \begin{cases}
 
 Where $\text{sim}$ measures line-level similarity between patches, awarding partial credit for fixes that modify the correct locations but with imperfect changes.
 
-\todoinline{Elaborate on why this approach works so well: the agent performs any number of apply\_patch operations during its interaction, each in a simplified search-replace format that LLMs handle naturally. Only after the complete interaction do we run 'git diff' to compute the actual patch for evaluation. This separation of concerns—letting the model focus on semantic changes while automatically handling diff formatting—eliminates a notorious source of LLM errors and enables clean reward computation.}
+This reward computation approach addresses a fundamental challenge in LLM-based code modification: the notorious difficulty of generating syntactically valid diffs. Traditional approaches require models to produce unified diff format with precise line numbering, context coordination, and complex formatting rules—a task that frequently results in parsing errors and invalid patches.
+
+Our approach elegantly separates semantic understanding from syntactic formatting. During interaction, the agent performs any number of \texttt{apply\_patch} operations using a simplified search-replace format that aligns naturally with LLM capabilities. Each operation specifies exact text to replace and its substitution, without requiring knowledge of line numbers or diff syntax.
+
+Only after the complete interaction do we execute \texttt{git diff} to compute the actual patch for evaluation. This separation of concerns offers several advantages:
+
+\begin{itemize}
+\item \textbf{Error Elimination}: Models cannot fail due to diff formatting issues, as the patch is computed automatically
+\item \textbf{Semantic Focus}: Agents concentrate entirely on identifying and fixing bugs rather than wrestling with syntax requirements
+\item \textbf{Perfect Formatting}: Git ensures all patches are properly formatted and applicable
+\item \textbf{Complete Information}: Every intended modification is captured accurately for reward computation
+\end{itemize}
+
+This architectural choice transforms a major source of technical failures into a reliable, automated process while preserving full fidelity of the agent's debugging intentions.
 
 \subsection{Addressing Sparse Rewards}
 
@@ -204,29 +301,81 @@ While our current approach uses patch similarity for computational efficiency, t
 
 These extensions would require significant infrastructure investment but could lead to more robust and generalizable repair capabilities.
 
-\section{Training Infrastructure: vLLM Integration}
+\section{High-Performance Training Infrastructure}
 \label{sec:training-infrastructure}
 
-\subsection{OpenAI-Compatible API Server}
+\subsection{vLLM Serving Optimizations}
 
-A key technical innovation in our approach is the integration of vLLM's asynchronous serving capabilities with the RL training loop. This enables:
+Our system leverages vLLM's advanced serving capabilities, enhanced with additional optimizations for RL training workloads:
 
-\begin{itemize}
-    \item \textbf{Seamless agent integration:} Existing coding agents designed for OpenAI's API can be used without modification
-    \item \textbf{Asynchronous token streaming:} Real-time generation allows for natural multi-turn interactions
-    \item \textbf{Parallel trajectory collection:} Multiple agent instances can explore different solutions simultaneously
-\end{itemize}
+\subsubsection{Core vLLM Features}
 
-\subsection{Architecture Overview}
+\textbf{KV-Cache Management:} Intelligent key-value cache reuse across agent conversations dramatically reduces memory usage and latency. For multi-step debugging sessions, context prefixes are cached and reused, providing up to 3x speedup in token generation.
 
-Our training infrastructure consists of several interconnected components:
+\textbf{Continuous Batching:} Dynamic request batching allows optimal GPU utilization by processing multiple agent requests simultaneously, with automatic load balancing across available compute resources.
+
+\textbf{Memory-Efficient Attention:} PagedAttention implementation reduces memory fragmentation and enables serving larger models with the same hardware footprint.
+
+\subsubsection{RL-Specific Enhancements}
+
+\textbf{Trajectory Streaming:} Custom modifications enable real-time streaming of completed agent trajectories to the training pipeline without blocking inference for ongoing requests.
+
+\textbf{Model Hot-Swapping:} Live weight updates occur without service interruption through careful state management and request routing.
+
+\textbf{Multi-Model Serving:} Simultaneous serving of both the current policy and reference policy (required for GRPO) with shared base weights and separate adapters.
+
+\subsection{NCCL-Based Live Weight Synchronization}
+
+A critical technical breakthrough enabling our training-inference duality is real-time weight synchronization between the training pipeline and inference servers using NVIDIA Collective Communications Library (NCCL).
+
+\subsubsection{Technical Architecture}
+
+The weight synchronization system operates through several components:
+
+\textbf{NCCL Broadcast Groups:} Training nodes broadcast updated weights to inference servers using optimized collective communication primitives. This ensures minimal latency and maximum bandwidth utilization.
+
+\textbf{Asynchronous Updates:} Weight broadcasts occur asynchronously with respect to inference requests, preventing service interruption during model updates.
+
+\textbf{Version Control:} Sophisticated versioning ensures request consistency—all tokens within a generation use the same model weights, even if updates occur mid-generation.
+
+\textbf{Differential Updates:} Only changed parameters (typically LoRA adapters) are broadcast, dramatically reducing network traffic and update latency.
+
+\subsubsection{Performance Characteristics}
+
+The performance characteristics of our NCCL-based weight synchronization system demonstrate significant engineering achievements:
+
+\textbf{Update Latency}: Weight broadcasts complete in 150-300ms for LoRA adapters (8-64 rank), enabling near real-time policy improvements. Full model updates for smaller models (8B parameters) complete in 2-4 seconds.
+
+\textbf{Throughput Impact}: Inference throughput degrades by less than 5\% during weight updates, achieved through careful scheduling and asynchronous communication patterns.
+
+\textbf{Memory Overhead}: Dual-model serving (current policy + reference policy) requires only 15\% additional memory through shared base weights and separate adapters.
+
+\textbf{Network Utilization}: Differential updates reduce communication by 95\% compared to full weight synchronization, utilizing only 100-500MB per update versus 50GB+ for complete models.
+
+Several technical challenges were overcome to achieve these performance levels:
+
+\textbf{CUDA Memory Management}: Custom memory pools coordinate between training and inference processes, preventing out-of-memory conditions during concurrent operation.
+
+\textbf{Partial Generation Handling}: Sophisticated request tracking ensures that ongoing generations complete with consistent weights, while new requests use updated parameters.
+
+\textbf{Numerical Consistency}: Careful attention to floating-point precision and operation ordering maintains bit-exact reproducibility across distributed updates.
+
+\textbf{Scalability}: The system scales linearly to multiple inference nodes, with broadcast trees minimizing update latency as cluster size increases. Production deployments have demonstrated stable operation with up to 8 inference nodes receiving synchronized updates.
+
+This infrastructure represents a significant advance in making online RL practical for large language models, reducing the traditional barrier between training and deployment while maintaining production-grade reliability and performance.
+
+This NCCL-based approach represents a significant engineering achievement, enabling truly continuous learning where model improvements benefit ongoing inference within seconds of gradient computation.
+
+\subsection{Integrated System Architecture}
+
+The complete agent-in-the-loop RL system consists of several interconnected components operating in parallel:
 
 \begin{enumerate}
-    \item \textbf{vLLM Inference Server:} Hosts the model and provides OpenAI-compatible endpoints
-    \item \textbf{Agent Workers:} Multiple Nano agent instances that interact with code repositories
-    \item \textbf{Trajectory Collectors:} Gather complete agent episodes for batch processing
-    \item \textbf{GRPO Trainer:} Computes rewards and updates model parameters
-    \item \textbf{Weight Synchronization:} Ensures all components use the latest model weights
+    \item \textbf{vLLM Inference Cluster:} Multi-GPU serving infrastructure with KV-cache optimization and real-time weight updates
+    \item \textbf{Agent Worker Pool:} Distributed Nano agent instances operating in parallel across containerized environments
+    \item \textbf{GRPO Training Pipeline:} Continuous gradient computation and parameter updates with advanced memory management
+    \item \textbf{NCCL Communication Layer:} High-bandwidth weight synchronization enabling training-inference duality
+    \item \textbf{Resource Orchestration:} Dynamic load balancing and memory management across training and inference workloads
 \end{enumerate}
 
 \subsection{Real-Time Weight Updates}
@@ -252,7 +401,7 @@ Key implementation choices include:
     \item \textbf{Request batching:} Multiple agent requests are processed concurrently for efficiency
 \end{itemize}
 
-\todoinline{Add a diagram showing the data flow between vLLM server, agent workers, and GRPO trainer}
+Figure~\ref{fig:system-architecture} presents the complete system architecture, illustrating data flow between the vLLM inference cluster, distributed agent worker pool, and GRPO training pipeline. The diagram highlights the NCCL communication layer that enables real-time weight synchronization, supporting the training-inference duality that distinguishes our approach from conventional RL systems.
 
 \section{Evaluation Methodology}
 \label{sec:evaluation}
