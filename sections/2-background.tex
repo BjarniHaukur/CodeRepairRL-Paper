@@ -745,23 +745,21 @@ Three primary approaches exist for evaluating code repair quality:
 
 \textbf{Our Reward Formulation}
 
-We employ a hierarchical reward structure that balances tractability with semantic meaningfulness:
+We employ a hierarchical reward structure that balances tractability with semantic meaningfulness, decomposing the complex task of bug fixing into three distinct components:
 
 \begin{equation}
-R_{total} = \alpha R_{exact} + \beta R_{file} + \gamma R_{location} + \delta R_{format}
+R_{\text{total}} = 0.2 \cdot R_{\text{files}} + 0.4 \cdot R_{\text{functional}} + 0.4 \cdot R_{\text{testing}}
 \end{equation}
 
-where:
+where each component evaluates a specific dimension of repair quality:
 
-\textit{Exact match reward} $R_{exact} \in \{0, 1\}$: Binary indicator for generating identical patches to the oracle solution. While rare, exact matches provide the strongest learning signal.
+\textit{File Targeting Component} $R_{\text{files}} \in [0,1]$: Evaluates whether the agent modified the correct files that should be changed to fix the bug. This component rewards the agent for identifying the appropriate locations in the codebase, regardless of the specific changes made.
 
-\textit{File-level reward} $R_{file} \in [0, 1]$: Fraction of correctly identified files requiring modification. This rewards understanding problem scope even when specific edits are incorrect.
+\textit{Functional Similarity Component} $R_{\text{functional}} \in [0,1]$: Measures how similar the agent's changes are to the ground-truth solution in terms of the functional aspects of fixing the bug. This component focuses on whether the core logic changes align with the expected repair strategy.
 
-\textit{Location reward} $R_{location} \in [0, 1]$: Normalized edit distance between predicted and actual modification locations within files. This captures partially correct localizations.
+\textit{Testing Alignment Component} $R_{\text{testing}} \in [0,1]$: Assesses how well the agent's changes align with the testing suite additions or modifications in the ground truth, which monitor the bug and ensure correctness while preventing regression.
 
-\textit{Format compliance reward} $R_{format} \in \{0, 1\}$: Binary indicator for generating syntactically valid patches that can be applied. This basic requirement prevents learning from malformed outputs.
-
-The weights $(\alpha=10, \beta=3, \gamma=1, \delta=0.5)$ reflect the relative importance of each component, determined through preliminary experiments.
+The weights $(0.2, 0.4, 0.4)$ reflect that while file targeting is important for localization, the functional and testing aspects are equally critical for comprehensive bug repair.
 
 \textbf{Similarity Computation Details}
 

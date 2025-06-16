@@ -58,6 +58,11 @@ The thesis pioneered "agent-in-the-loop reinforcement learning" where coding age
 
 ## Writing Guidelines
 
+### Writing Strategy
+- **Current approach**: Write as much content as possible and see what sticks
+- **Content addition priority**: Prefer adding new sections over changing existing ones unless explicitly requested
+- **Build first, refine later**: Focus on comprehensive content development before optimization
+
 ### Writing Focus
 - **Current stage**: Focus on SUBSTANCE over academic style/polish
 - Early drafts should prioritize getting ideas down and building complete arguments

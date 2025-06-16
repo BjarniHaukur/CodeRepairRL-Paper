@@ -20,6 +20,113 @@ By implementing an OpenAI-compatible API server with asynchronous token streamin
 
 Figure~\ref{fig:agent-loop-architecture} illustrates the complete agent-in-the-loop training architecture, highlighting the continuous feedback cycle between language model policy, agent scaffold, repository environment, and reward computation. This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
 
+\section{Formal Problem Formulation as a Markov Decision Process}
+\label{sec:mdp-formulation}
+
+To establish rigorous theoretical foundations, we formalize the agent-in-the-loop code repair task as a Markov Decision Process (MDP). This formulation clarifies the relationship between natural language agent interactions and standard reinforcement learning components, enabling principled application of RL algorithms to conversational debugging tasks.
+
+\subsection{MDP Definition}
+
+We define our code repair environment as the tuple $\langle \mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma \rangle$ where:
+
+\textbf{State Space} $\mathcal{S}$: Each state $s_t \in \mathcal{S}$ represents the current conversational context and implicit repository state:
+\begin{align}
+s_t = (h_t, \mathcal{R}_t, I)
+\end{align}
+where:
+\begin{itemize}
+    \item $h_t = \{(a_1, o_1), (a_2, o_2), \ldots, (a_t, o_t)\}$ is the conversation history of action-observation pairs
+    \item $\mathcal{R}_t$ represents the implicit repository state (filesystem, working directory, applied modifications)
+    \item $I$ is the initial issue description provided to the agent
+\end{itemize}
+
+The state space is effectively $\mathcal{S} = \mathcal{H} \times \mathcal{R} \times \mathcal{I}$ where $\mathcal{H}$ is the space of possible conversation histories, $\mathcal{R}$ is the space of repository configurations, and $\mathcal{I}$ is the space of issue descriptions.
+
+\textbf{Action Space} $\mathcal{A}$: Actions consist of both structured tool invocations and natural language reasoning:
+\begin{align}
+\mathcal{A} = \mathcal{A}_{\text{tool}} \cup \mathcal{A}_{\text{text}}
+\end{align}
+where:
+\begin{itemize}
+    \item $\mathcal{A}_{\text{tool}} = \{\text{bash}(c), \text{read\_file}(p), \text{apply\_patch}(\text{old}, \text{new})\}$ represents structured tool calls
+    \item $\mathcal{A}_{\text{text}}$ represents natural language reasoning and explanation
+\end{itemize}
+
+Each action $a_t$ is realized as a sequence of tokens generated autoregressively by the language model policy.
+
+\textbf{Transition Function} $\mathcal{P}$: The transition dynamics are largely predictable for tool interactions:
+\begin{align}
+\mathcal{P}(s_{t+1} | s_t, a_t) = \begin{cases}
+1 & \text{if } s_{t+1} = f(s_t, a_t) \text{ for consistent tool responses} \\
+0 & \text{otherwise}
+\end{cases}
+\end{align}
+
+The function $f$ updates the conversation history $h_{t+1} = h_t \cup \{(a_t, o_t)\}$ and repository state $\mathcal{R}_{t+1}$ based on the tool's response $o_t$, which is consistent given the same repository state and command inputs.
+
+\textbf{Reward Function} $\mathcal{R}$: We employ a sparse terminal reward based on multi-component evaluation against ground truth:
+\begin{align}
+\mathcal{R}(s_t, a_t) = \begin{cases}
+R_{\text{total}}(p_{\text{generated}}, p_{\text{true}}) & \text{if } t = T \text{ (terminal state)} \\
+0 & \text{otherwise}
+\end{cases}
+\end{align}
+
+where $p_{\text{generated}}$ is the patch produced by executing all \texttt{apply\_patch} operations, $p_{\text{true}}$ is the ground-truth solution, and $R_{\text{total}}$ combines file targeting, functional similarity, and testing alignment components (detailed in Section~\ref{sec:reward-design}).
+
+\textbf{Discount Factor} $\gamma$: For episodic tasks with terminal rewards, we typically set $\gamma = 1.0$ to avoid discounting the final outcome.
+
+\subsection{Policy Representation}
+
+The policy $\pi_\theta: \mathcal{S} \rightarrow \Delta(\mathcal{A})$ is parameterized by a large language model with parameters $\theta$:
+\begin{align}
+\pi_\theta(a_t | s_t) = \prod_{i=1}^{|a_t|} p_\theta(a_t^{(i)} | s_t, a_t^{(1:i-1)})
+\end{align}
+
+where $a_t^{(i)}$ represents the $i$-th token in action $a_t$, and the policy factorizes autoregressively over the token sequence.
+
+\subsection{Episode Structure}
+
+Episodes begin with initial state $s_0 = (\emptyset, \mathcal{R}_0, I)$ containing an empty conversation history, initial repository state, and issue description. Episodes terminate when:
+\begin{itemize}
+    \item The agent signals completion (implicitly through not calling a tool and having made changes to the repository)
+    \item Maximum action limit $T_{\max}$ is reached (Nano has a finite action budget)
+    \item Token limit exceeded: $\text{tokencount}(h_{t+1}) > \text{MAX\_TOKENS} - \text{SAFETY\_THRESHOLD}$
+    \item The agent produces an invalid action sequence
+\end{itemize}
+
+Importantly, inaction (i.e., not calling any tools) counts as an action toward the $T_{\max}$ limit, making this a finite time horizon MDP. The token-based termination criterion reflects Nano's compute-aware design—the agent operates while the conversation history fits comfortably in GPU memory, ensuring tractable resource usage during both training and inference.
+
+A complete trajectory is $\tau = (s_0, a_0, r_0, s_1, a_1, r_1, \ldots, s_T, r_T)$ where rewards are zero except at termination.
+
+\subsection{Compute-Aware Agent Design}
+
+The finite horizon and token-based termination criteria reflect a key design philosophy: Nano is inherently compute-aware. Rather than allowing unbounded exploration that could exhaust computational resources, the agent operates within well-defined memory and computational budgets. This approach ensures:
+
+\begin{itemize}
+    \item \textbf{Predictable Memory Usage}: Token limits guarantee that conversation histories remain within GPU memory constraints during training and inference
+    \item \textbf{Bounded Computational Cost}: Action limits prevent runaway episodes that could consume excessive computational resources
+    \item \textbf{Practical Deployment}: Resource awareness makes the system suitable for real-world deployment where computational budgets matter
+    \item \textbf{Training Stability}: Finite horizons prevent extremely long episodes that could destabilize training dynamics
+\end{itemize}
+
+This compute-aware design represents a departure from traditional RL environments with unbounded action spaces, reflecting the practical constraints of deploying large language models in resource-constrained settings.
+
+\subsection{If Finite MDP, Why Not Q-Learning?}
+
+With finite state and action spaces, Q-learning becomes theoretically applicable. However, [placeholder for discussion of practical considerations, scalability challenges, and why policy gradient methods are preferred for this high-dimensional natural language domain].
+
+\subsection{Connection to GRPO}
+
+This MDP formulation enables direct application of Group Relative Policy Optimization. GRPO operates on batches of trajectories $\{\tau_1, \tau_2, \ldots, \tau_B\}$, computing advantages by comparing terminal rewards within each batch. The policy update maximizes:
+\begin{align}
+\mathcal{L}_{\text{GRPO}}(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{T} A_t \log \pi_\theta(a_t | s_t) \right]
+\end{align}
+
+where advantages $A_t$ are computed via the GRPO procedure using terminal rewards and within-batch normalization.
+
+This formalization establishes the theoretical foundation for applying reinforcement learning to conversational code repair, clarifying how natural language interactions map to standard RL components while preserving the interactive, multi-step nature of debugging tasks.
+
 \section{Experimental Setup}
 \label{sec:experimental-setup}
 
@@ -167,6 +274,65 @@ We employ Group Relative Policy Optimization (GRPO) as our primary RL algorithm.
     \item \textbf{Simplified pipeline:} The absence of value estimation reduces computational overhead and implementation complexity
 \end{itemize}
 
+\subsection{Masked Loss Computation for Tool-Augmented RL}
+\label{sec:masked-loss-computation}
+
+A key design consideration in training tool-augmented language models involves the treatment of externally-generated content during optimization. Interactive agents must process and reason about tool outputs (shell command results, file contents, search results) to maintain coherent conversations, yet including these external tokens in the loss computation shifts optimization pressure away from the primary learning objective: making appropriate tool calls based on context.
+
+Consider an agent trajectory $\tau = (s_1, a_1, o_1, s_2, a_2, o_2, \ldots, s_T)$ where $a_t$ represents agent actions (tool calls) and $o_t$ represents corresponding tool outputs. While tool outputs are partially predictable given sufficient context, training the model to predict them deemphasizes the critical skill of contextual tool selection and invocation. Traditional sequence modeling treats the entire trajectory as a prediction target, diluting the learning signal for agent reasoning and tool usage patterns.
+
+\subsubsection{Dual-Mask Strategy for Loss Isolation}
+
+We introduce a dual-masking approach that preserves contextual information during forward computation while focusing optimization on agent-authored content. Let $\mathbf{x} = [x_1, x_2, \ldots, x_n]$ represent a tokenized trajectory and $\mathcal{T} \subset \{1, 2, \ldots, n\}$ denote the indices corresponding to tool-generated tokens.
+
+\textbf{Forward Pass:} The model processes the complete sequence with full attention:
+\begin{align}
+\mathbf{M}_{\text{att}} &= \mathbf{1}_{n \times n} \quad \text{(full attention mask)} \\
+\mathbf{h} &= \text{Transformer}(\mathbf{x}, \mathbf{M}_{\text{att}}) \\
+\mathbf{L} &= \text{LinearHead}(\mathbf{h})
+\end{align}
+
+where $\mathbf{h}$ contains representations informed by all tokens, including tool outputs. Crucially, when computing log probabilities for agent-authored tokens, the model maintains full access to tool response content through the attention mechanism.
+
+\textbf{Loss Computation:} We apply selective masking to focus optimization exclusively on agent-authored tokens:
+\begin{align}
+\mathbf{M}_{\text{loss}}[i] &= \begin{cases} 
+1 & \text{if } i \notin \mathcal{T} \text{ (agent-authored)} \\
+0 & \text{if } i \in \mathcal{T} \text{ (tool-generated)}
+\end{cases} \\
+\mathcal{L}_{\text{GRPO}} &= \frac{\sum_{i=1}^{n} \mathbf{M}_{\text{loss}}[i] \cdot \ell_i \cdot A_i}{\sum_{i=1}^{n} \mathbf{M}_{\text{loss}}[i]}
+\end{align}
+
+where $\ell_i$ represents the per-token policy loss and $A_i$ denotes advantages computed via GRPO.
+
+\subsubsection{Perplexity Analysis and Training Focus}
+
+Figure~\ref{fig:tool-perplexity-analysis} demonstrates the importance of masked loss computation through perplexity decomposition across agent trajectories. Tool-generated tokens consistently exhibit higher perplexity as the model's predicted distributions often diverge from actual tool outputs—reflecting the difficulty of precisely predicting external system responses without complete environmental state.
+
+% TODO: Create figure showing perplexity breakdown
+\begin{figure}[ht]
+    \centering
+    \fbox{\parbox{0.8\textwidth}{\centering 
+        \textit{[Figure placeholder: Perplexity decomposition across agent trajectories showing tool-generated tokens contribute disproportionately to sequence-level perplexity. Left panel: trajectory timeline with color-coded regions (agent reasoning, tool calls, tool outputs). Right panel: per-token perplexity highlighting the spike at tool response boundaries where model predictions diverge from external content that, while partially predictable, is not the target learning objective.]}
+    }}
+    \caption{Perplexity analysis revealing the dominance of tool-generated tokens in sequence-level prediction difficulty. The majority of perplexity arises from tool responses, which while not entirely unpredictable, represent a different learning objective than the desired focus on contextual tool selection and agent reasoning.}
+    \label{fig:tool-perplexity-analysis}
+\end{figure}
+
+Without selective masking, the optimization objective allocates significant capacity to predicting tool outputs rather than focusing on the primary training goal: learning to make appropriate tool calls and reason effectively about their results.
+
+\subsubsection{Algorithmic Benefits}
+
+\textbf{Training Focus:} Tool tokens contribute zero gradient magnitude, ensuring optimization pressure concentrates exclusively on agent reasoning and tool invocation patterns—the core competencies we seek to develop.
+
+\textbf{Contextual Preservation:} The forward pass maintains full attention over tool outputs, enabling coherent reasoning about external information while directing optimization toward appropriate tool usage rather than content prediction.
+
+\textbf{Computational Efficiency:} Loss masking integrates seamlessly with fused kernel implementations, avoiding additional forward passes or memory overhead during training.
+
+\textbf{Objective Clarity:} As tool outputs grow in length and complexity, the masking strategy ensures training remains focused on agent capabilities rather than becoming diluted across external content prediction tasks.
+
+This masked loss formulation represents an important design choice for tool-augmented RL, enabling models to leverage external information for reasoning while maintaining clear optimization objectives focused on contextual tool selection and effective agent behavior.
+
 \subsection{Training Process}
 
 Our training follows an iterative process where the agent attempts to solve bugs from the SWE-Gym dataset:
@@ -250,19 +416,23 @@ Our reward function focuses on the final outcome—the generated patch—rather 
     \item \textbf{Alignment:} The reward directly measures what we care about—correct bug fixes
 \end{itemize}
 
-\subsection{Reward Computation}
+\subsection{Multi-Component Reward Computation}
 
-For each generated patch, we compute rewards based on similarity to the ground-truth solution:
+Our reward function decomposes the complex task of bug fixing into three distinct components, each capturing a different aspect of repair quality:
 
 \begin{equation}
-R(p_{\text{gen}}, p_{\text{true}}) = \begin{cases}
-1.0 & \text{if } p_{\text{gen}} = p_{\text{true}} \\
-\text{sim}(p_{\text{gen}}, p_{\text{true}}) & \text{if partial match} \\
-0.0 & \text{otherwise}
-\end{cases}
+R_{\text{total}} = 0.2 \cdot R_{\text{files}} + 0.4 \cdot R_{\text{functional}} + 0.4 \cdot R_{\text{testing}}
 \end{equation}
 
-Where $\text{sim}$ measures line-level similarity between patches, awarding partial credit for fixes that modify the correct locations but with imperfect changes.
+where each component evaluates a specific dimension of the agent's solution:
+
+\textbf{File Targeting Component} ($R_{\text{files}} \in [0,1]$): Evaluates whether the agent modified the correct files that should be changed to fix the bug. This component rewards the agent for identifying the appropriate locations in the codebase, regardless of the specific changes made.
+
+\textbf{Functional Similarity Component} ($R_{\text{functional}} \in [0,1]$): Measures how similar the agent's changes are to the ground-truth solution in terms of the functional aspects of fixing the bug. This component focuses on whether the core logic changes align with the expected repair strategy.
+
+\textbf{Testing Alignment Component} ($R_{\text{testing}} \in [0,1]$): Assesses how well the agent's changes align with the testing suite additions or modifications in the ground truth, which monitor the bug and ensure correctness while preventing regression.
+
+This decomposition reflects the multi-faceted nature of software debugging: successful repair requires not only identifying the right locations and implementing functional fixes, but also considering how changes interact with the broader testing infrastructure that validates correctness.
 
 This reward computation approach addresses a fundamental challenge in LLM-based code modification: the notorious difficulty of generating syntactically valid diffs. Traditional approaches require models to produce unified diff format with precise line numbering, context coordination, and complex formatting rules—a task that frequently results in parsing errors and invalid patches.
 

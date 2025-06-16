@@ -33,18 +33,29 @@
 \chapter*{Abstract}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This is a template for writing thesis reports for the ICT school at KTH. I do not own any of the images provided in the template and this can only be used to submit thesis work for KTH.
+% Topic
+Software engineering agents have emerged as the dominant approach for automated program repair, with systems like SWE-agent, AutoCodeRover, and OpenHands achieving unprecedented success on real-world debugging tasks. These agents augment large language models with tools for repository navigation, code execution, and iterative refinement—capabilities essential for solving complex software engineering problems. 
 
-The report needs to be compiled using XeLaTeX as different fonts are needed for the project to look like the original report. You might have to change this manually in overleaf.
+% Motivation
+However, a critical disconnect exists between how these models are trained and deployed: while inference relies on sophisticated agent scaffolding for multi-step reasoning and environmental interaction, training typically uses static datasets of code changes without any agent capabilities. This train-test distribution mismatch fundamentally limits model performance, as they never learn to leverage the very tools and iterative processes that define successful debugging. Frontier labs have likely addressed this gap—systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting agent-based training—but their methods remain proprietary. Similarly, while companies like OpenHands have achieved impressive results, they have not released their training procedures, leaving the open-source community without access to these critical techniques.
 
-This template was created by Hannes Rabo <hannes.rabo@gmail.com or hrabo@kth.se> from the template provided by KTH. You can send me an email if you need help in making it work for you.
+% Contribution
+This thesis presents \textit{one of the first fully open training recipes} for coding agents, addressing a fundamental misalignment in current practice: while deployment combines models with agent scaffolds (tools, memory, action spaces), training typically optimizes models in isolation. We introduce a reinforcement learning approach that trains the complete agent—model plus scaffold—as an integrated system. By training models within the exact scaffolding they will use at deployment, we enable them to learn debugging strategies through environmental feedback rather than mere pattern matching. Our work bridges the gap between closed-source frontier capabilities and open research, providing complete implementation details, training procedures, and infrastructure specifications that have previously been closely guarded industry secrets.
 
+% Detail/Nuance
+We implement this through a two-stage pipeline combining supervised fine-tuning with Group Relative Policy Optimization (GRPO), where models actively debug real repositories during training. The key technical innovation lies in our training-inference duality: a custom integration layer enables simultaneous model training and serving, with NCCL facilitating live weight synchronization across distributed GPUs [expand: specific throughput numbers, latency implications]. Our ``nano-agent'' architecture deliberately provides minimal scaffolding—only essential bash and file operations—testing whether reinforcement learning can discover effective debugging strategies without extensive human engineering.
 
-\vspace{2cm}
-Write an abstract. Introduce the subject area for the project and describe the problems that are solved and described in the thesis. Present how the problems have been solved, methods used and present results for the project. Use probably one sentence for each chapter in the final report.
+% Evidence / Secondary Contribution
+Experiments on [X training instances, Y compute hours] demonstrate that agent-in-the-loop training yields models exhibiting sophisticated debugging behaviors: systematic hypothesis testing, incremental code modification, and test-guided exploration [specific examples needed]. On SWE-Bench-Verified, our approach achieves [X\% resolve rate], representing [Y\% improvement over baselines]. Notably, models trained with minimal scaffolding [match/exceed?] those with complex frameworks, empirically validating that [specific claim about bitter lesson]. Secondary findings include [cross-language generalization to Java?, emergent tool-use patterns?, computational efficiency gains?].
 
-The presentation of the results should be the main part of the abstract. Use about ½ A4-page.
-English abstract
+% Weaker Result
+[Preliminary results on cross-dataset generalization / specific failure modes / computational cost analysis - expand based on actual findings]
+
+% Narrow Impact
+For automated program repair, this work establishes that the choice of training regime may matter more than scaffold complexity—a departure from current focus on engineering increasingly sophisticated agent frameworks. Our results suggest [specific implications for future code repair systems, optimal scaffold design principles].
+
+% Broad Impact
+Beyond code repair, agent-in-the-loop RL offers a general framework for training AI systems on interactive tasks where static datasets poorly capture deployment complexity. By demonstrating that models can learn rich environmental interactions through reinforcement learning—rather than requiring hand-crafted reasoning chains—this work supports the ``bitter lesson'' thesis and points toward [future possibilities: self-improving coding assistants, autonomous software development, general interactive AI training].
 
 
 
