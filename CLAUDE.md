@@ -90,3 +90,7 @@ The thesis pioneered "agent-in-the-loop reinforcement learning" where coding age
 ## Development Notes
 
 The thesis content draws heavily from detailed notes in `notes/` directory. When writing sections, reference these files for comprehensive technical details and research context. The goal is demonstrating that LLMs can learn terminal navigation and codebase interaction through RL - a significant open-source achievement.
+
+## Citation and URL Guidelines
+
+- Always append lines with a valid URL when referencing external sources or research artifacts

@@ -37,3 +37,9 @@ desktop.ini
 
 # Intermediary build files
 build/
+
+.venv/
+
+plotting/media/
+
+__pycache__/
