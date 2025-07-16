@@ -8,6 +8,7 @@ Uses the exact template structure with command states and actual transition data
 
 import sys
 import os
+import argparse
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
@@ -17,14 +18,7 @@ from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from wandb_utils import get_run, get_history, extract_shell_commands
-from plot_config import get_command_color
-
-
-# Configuration 
-ENTITY = "assert-kth"
-PROJECT = "SWE-Gym-GRPO"
-RUN_ID = "nz1r7ml3"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/nz1r7ml3
-# RUN_ID = "c1mr1lgd"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/c1mr1lgd
+from plot_config import get_command_color, ENTITY, PROJECT, RUN_ID, get_output_filename
 
 # Time steps for evolution
 T = 25 # Number of time steps - good tradeoff point
@@ -348,7 +342,7 @@ def create_sankey_diagram(states_by_timestep, transitions, all_states, title, fi
     )
 
     # ── 4. Export ─────────────────────────────────────────────────────────────
-    html_path = f"../figures/plots/{filename}.html"
+    html_path = f"{filename}.html"
     
     fig.write_html(html_path)
     print(f"Saved HTML: {html_path}")
@@ -358,13 +352,17 @@ def create_sankey_diagram(states_by_timestep, transitions, all_states, title, fi
 
 def main():
     """Main function."""
+    parser = argparse.ArgumentParser(description='Create Sankey diagrams for command evolution')
+    parser.add_argument('--run-id', type=str, default=RUN_ID, 
+                        help=f'WandB run ID (default: {RUN_ID})')
+    args = parser.parse_args()
     
     print("="*60)
     print("Proper Sankey Diagrams: Command Time Evolution")
     print("="*60)
     
     # Get run
-    run = get_run(ENTITY, PROJECT, RUN_ID)
+    run = get_run(ENTITY, PROJECT, args.run_id)
     print(f"Loaded run: {run.name} (ID: {run.id})")
     print(f"Tags: {run.tags}")
     print(f"State: {run.state}")
@@ -402,7 +400,7 @@ def main():
         early_transitions,
         early_all_states,
         f"{run.name}: Early Training Command Evolution (First 20%)",
-        f"early_training_sankey_{RUN_ID}"
+        get_output_filename("early_training_sankey", args.run_id)
     )
     
     # Late training Sankey  
@@ -411,7 +409,7 @@ def main():
         late_transitions,
         late_all_states,
         f"{run.name}: Late Training Command Evolution (Last 20%)",
-        f"late_training_sankey_{RUN_ID}"
+        get_output_filename("late_training_sankey", args.run_id)
     )
     
     print(f"\n✅ Created proper time-evolution Sankey diagrams!")

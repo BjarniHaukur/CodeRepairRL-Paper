@@ -6,6 +6,7 @@ Extract python/python3 commands and their outputs to understand what the model i
 
 import sys
 import os
+import argparse
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import re
@@ -15,12 +16,12 @@ from tqdm import tqdm
 
 # Import from command_evolution_sankey
 from command_evolution_sankey import (
-    ENTITY, PROJECT, RUN_ID,
     get_run, extract_all_training_tables
 )
 
 # Import from wandb_utils
 from wandb_utils import extract_shell_commands
+from plot_config import ENTITY, PROJECT, RUN_ID, get_output_filename
 
 def extract_python_commands_with_context(completion_text):
     """
@@ -282,8 +283,13 @@ def analyze_python_usage_from_tables(tables):
 
 def main():
     """Main function."""
+    parser = argparse.ArgumentParser(description='Analyze Python commands executed by the model throughout training')
+    parser.add_argument('--run-id', type=str, default=RUN_ID, 
+                        help=f'WandB run ID (default: {RUN_ID})')
+    args = parser.parse_args()
+    
     # Get run
-    run = get_run(ENTITY, PROJECT, RUN_ID)
+    run = get_run(ENTITY, PROJECT, args.run_id)
     print(f"Analyzing run: {run.name} (ID: {run.id})")
     
     # Extract all training tables using the existing function

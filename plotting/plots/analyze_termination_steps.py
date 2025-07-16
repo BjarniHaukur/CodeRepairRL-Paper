@@ -6,6 +6,7 @@ before and after training. Success is defined as Unified_diff_similarity_reward_
 
 import sys
 import os
+import argparse
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
@@ -17,11 +18,11 @@ from tqdm import tqdm
 
 # Import from command_evolution_sankey
 from command_evolution_sankey import (
-    ENTITY, PROJECT, RUN_ID,
     get_run, extract_all_training_tables
 )
 
 from wandb_utils import extract_shell_commands
+from plot_config import ENTITY, PROJECT, RUN_ID, get_output_filename
 
 def analyze_termination_patterns(tables):
     """
@@ -266,27 +267,26 @@ def analyze_termination_patterns(tables):
     
     plt.tight_layout()
     
+    return df
+
+def save_results(df, run_id=None):
+    """Save plot and data with standardized naming."""
     # Save the plot
-    output_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'figures', 'plots')
-    os.makedirs(output_dir, exist_ok=True)
-    
-    plot_path = os.path.join(output_dir, f'termination_analysis_{RUN_ID}.png')
+    plot_path = get_output_filename('termination_analysis', run_id) + '.png'
     plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     print(f"Plot saved to: {plot_path}")
     
-    # Also save the data
-    data_path = os.path.join(output_dir, f'termination_data_{RUN_ID}.csv')
-    df.to_csv(data_path, index=False)
-    print(f"Data saved to: {data_path}")
-    
     plt.show()
-    
-    return df
 
 def main():
     """Main function."""
+    parser = argparse.ArgumentParser(description='Analyze termination steps for successful vs unsuccessful attempts')
+    parser.add_argument('--run-id', type=str, default=RUN_ID, 
+                        help=f'WandB run ID (default: {RUN_ID})')
+    args = parser.parse_args()
+    
     # Get run
-    run = get_run(ENTITY, PROJECT, RUN_ID)
+    run = get_run(ENTITY, PROJECT, args.run_id)
     print(f"Analyzing run: {run.name} (ID: {run.id})")
     
     # Extract all training tables
@@ -300,6 +300,9 @@ def main():
     
     # Analyze termination patterns
     df = analyze_termination_patterns(tables)
+    
+    # Save results
+    save_results(df, args.run_id)
     
     return df
 

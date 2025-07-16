@@ -8,6 +8,20 @@ import seaborn as sns
 import os
 from typing import Dict, List, Tuple, Optional
 
+# WandB configuration constants
+ENTITY = "assert-kth"
+PROJECT = "SWE-Gym-GRPO"
+RUN_ID = "nz1r7ml3"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/nz1r7ml3
+
+# Standardized filename format
+FILENAME_FORMAT = "{name}_{run_id}"
+
+def get_output_filename(name: str, run_id: str = None) -> str:
+    if run_id is None:
+        run_id = RUN_ID
+    filename = FILENAME_FORMAT.format(name=name, run_id=run_id)
+    return f"../figures/plots/{filename}"
+
 # Color scheme for different components
 COLORS = {
     # Scaffold types
