@@ -16,9 +16,9 @@ The core innovation lies in our integration of existing coding agent frameworks 
     \item Learn from the outcomes of their actions rather than just imitating examples
 \end{itemize}
 
-By implementing an OpenAI-compatible API server with asynchronous token streaming capabilities, we bridge the gap between standard RL training frameworks and agent scaffolding. This enables our custom Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
+By implementing an OpenAI-compatible API server with asynchronous token streaming capabilities, we enable seamless integration between RL training and agent execution. This allows our Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
 
-Figure~\ref{fig:agent-loop-architecture} illustrates the complete agent-in-the-loop training architecture, highlighting the continuous feedback cycle between language model policy, agent scaffold, repository environment, and reward computation. This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
+Figure~\ref{fig:agent-loop-architecture} illustrates the complete agent-in-the-loop training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation. This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
 
 \section{Formal Problem Formulation as a Markov Decision Process}
 \label{sec:mdp-formulation}
@@ -743,7 +743,7 @@ To contextualize our results, we compare against several baselines:
 \begin{enumerate}
     \item \textbf{Base Model:} The pretrained Qwen2.5-Coder without any bug-fixing training
     \item \textbf{Supervised Fine-Tuning:} The same model fine-tuned on bug-fix pairs using standard supervised learning
-    \item \textbf{Direct Generation:} Models prompted to generate fixes without agent scaffolding
+    \item \textbf{Direct Generation:} Models prompted to generate fixes without agent capabilities
     \item \textbf{State-of-the-art Systems:} Published results from other automated repair approaches
 \end{enumerate}
 
@@ -763,7 +763,7 @@ To understand the contribution of different components, we conduct ablations:
 
 \begin{itemize}
     \item \textbf{Without RL:} Using only supervised fine-tuning on the same data
-    \item \textbf{Without agent scaffold:} Direct patch generation without repository interaction
+    \item \textbf{Without agent:} Direct patch generation without repository interaction
     \item \textbf{Varying trajectory lengths:} Impact of allowing more or fewer exploration steps
     \item \textbf{Different reward functions:} Comparing patch similarity vs. binary success rewards
 \end{itemize}

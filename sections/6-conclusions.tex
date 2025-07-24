@@ -20,7 +20,7 @@ Our work makes several significant contributions to the field of automated softw
 
 \textbf{Significant Performance Improvements}: Experimental results on SWE-Bench-Verified demonstrate statistically significant improvements of 7-10 percentage points over supervised fine-tuning baselines, with our best models achieving 31.8\% success rates compared to 22.2\% for supervised approaches on the same data.
 
-\textbf{Bitter Lesson Validation}: We provide the first empirical evidence that Sutton's bitter lesson applies to software engineering domains. Minimalist scaffolds achieve performance parity with sophisticated engineered solutions while requiring 45\% less training time and 57\% less memory, supporting the hypothesis that computation and learning outperform human engineering intuitions.
+\textbf{Minimalist Agent Success}: Our nano-agent implementation demonstrates that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning, achieving strong performance with only basic terminal commands and file operations.
 
 \textbf{Cross-Domain Generalization}: Models trained on Python debugging tasks demonstrate positive transfer to Java environments (2x improvement over baselines) and general code generation (4\% improvement on HumanEval), indicating that learned debugging strategies generalize beyond training contexts.
 
@@ -35,7 +35,7 @@ Our work makes several significant contributions to the field of automated softw
 \section{Research Question Answers}
 \label{sec:research-answers}
 
-Our experimental evaluation provides definitive answers to the three research questions motivating this investigation:
+Our experimental evaluation provides definitive answers to the research questions motivating this investigation:
 
 \subsection{RQ1: Effectiveness of Agent-in-the-Loop RL}
 
@@ -45,15 +45,7 @@ Our experimental evaluation provides definitive answers to the three research qu
 
 \textbf{Mechanism}: The effectiveness stems from three key factors: (1) multi-step interaction capabilities that mirror human debugging workflows, (2) environmental feedback that enables strategy refinement, and (3) reward-driven optimization of tool usage patterns that cannot be captured through static supervision.
 
-\subsection{RQ2: Impact of Scaffold Complexity}
-
-\textbf{Finding}: Minimalist scaffolds achieve comparable performance to feature-rich alternatives while providing substantial computational and generalization advantages.
-
-\textbf{Evidence}: The nano-agent achieves 28.5\% success rates compared to 26.8\% for Aider-based scaffolds, while requiring 45\% less training time and 57\% less memory. This validates the bitter lesson hypothesis that simple tools with extensive learning outperform sophisticated engineering.
-
-\textbf{Implications}: The results suggest that complex pre-engineered solutions may actually hinder learning by constraining exploration and reducing the model's need to develop fundamental problem-solving skills. Minimalist approaches enable more robust generalization and efficient scaling.
-
-\subsection{RQ3: Generalization and Transfer}
+\subsection{RQ2: Generalization and Transfer}
 
 \textbf{Finding}: Debugging capabilities learned through agent-in-the-loop RL demonstrate positive transfer across multiple dimensions, indicating acquisition of fundamental rather than narrow skills.
 
@@ -78,7 +70,6 @@ By providing complete open-source implementations, we enable broader academic in
 
 \subsection{Validation of Fundamental AI Principles}
 
-The empirical validation of the bitter lesson in software engineering domains provides important evidence for fundamental principles governing AI development. The success of simple tools with extensive learning over sophisticated engineering suggests that similar approaches may benefit other complex domains requiring reasoning and planning.
 
 \section{Limitations and Constraints}
 \label{sec:limitations}

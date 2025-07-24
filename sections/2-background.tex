@@ -459,15 +459,13 @@ Our work represents a paradigm shift by integrating agent scaffolding directly i
 
 This training-time integration represents the core innovation of our approach, potentially bridging the gap between current agent capabilities and human-level performance on complex software engineering tasks.
 
-\subsection{The Nano-Agent: Embracing the Bitter Lesson}
+\subsection{The Nano-Agent: A Minimalist Approach}
 
-The nano-agent embodies a fundamental principle from AI research known as the "bitter lesson": methods that leverage computation and learning tend to be more effective in the long run than those that rely on human knowledge and sophisticated engineering. Rather than providing complex, pre-engineered solutions, the nano-agent offers only the most essential tools needed for code interaction, allowing the model to develop its own strategies through reinforcement learning.
+The nano-agent represents a minimalist approach to coding agent design, providing only the most essential tools needed for code interaction. This design philosophy allows models to develop their own debugging strategies through reinforcement learning rather than relying on pre-engineered solutions.
 
 \subsubsection{Design Philosophy}
 
-The bitter lesson teaches us that breakthroughs in AI have consistently come from scaling computation and learning rather than incorporating human insights about how intelligent behavior should work. Applied to coding agents, this suggests that models should learn debugging strategies from experience rather than being guided by engineered workflows or sophisticated tool interfaces.
-
-The nano-agent's minimalist design serves this philosophy through:
+The nano-agent's minimalist design enables models to learn debugging strategies from experience through:
 
 \begin{itemize}
 \item \textbf{Maximum learning opportunity}: By providing minimal assistance, the model must develop fundamental programming skills through trial and error
@@ -600,19 +598,6 @@ The nano-agent's simplicity offers several advantages specifically for reinforce
 
 \textbf{Debugging and Analysis}: When training fails or produces unexpected results, the minimal tool set makes it easier to identify root causes and adjust training procedures accordingly.
 
-\subsubsection{The Bitter Lesson Hypothesis}
-
-The nano-agent tests a specific hypothesis derived from the bitter lesson: that models trained with minimal scaffolding will develop more robust, generalizable debugging capabilities. This hypothesis predicts:
-
-\textbf{Emergent Sophistication}: Complex debugging behaviors should emerge from simple tools and extensive training, rather than being pre-programmed into the environment.
-
-\textbf{Broad Generalization}: Skills developed through fundamental operations should transfer more effectively across programming languages, frameworks, and unexpected scenarios.
-
-\textbf{Computational Scaling}: Learning effectiveness should improve primarily through increased computation (more training interactions) rather than more sophisticated tool design.
-
-\textbf{Long-term Advantage}: While initial performance may lag behind engineered solutions, the learned behaviors should ultimately prove more adaptable and robust.
-
-This approach represents a deliberate bet on computation and learning over human engineering intuitions, directly testing whether the bitter lesson applies to automated software engineering.
 
 \section{Agent-in-the-Loop Training}
 
@@ -920,9 +905,9 @@ Defects4J's bugs require understanding Java-specific constructs (interfaces, gen
 
 GitBug-Java tests whether models can adapt to evolving language features and contemporary development patterns absent from training data.
 
-\subsubsection{Cross-Language Generalization: Testing the Bitter Lesson}
+\subsubsection{Cross-Language Generalization}
 
-Cross-language evaluation directly tests the bitter lesson hypothesis central to this thesis. If the minimalist nano-agent approach succeeds, we expect:
+Cross-language evaluation tests whether our minimalist agent approach produces generalizable debugging capabilities:
 
 \textbf{Fundamental skill transfer}: Models should exhibit similar debugging strategies across languages:
 \begin{itemize}
@@ -958,7 +943,7 @@ The nano-agent's language-agnostic tools should facilitate better cross-language
 
 \subsubsection{Empirical Predictions}
 
-Based on the bitter lesson philosophy, we predict:
+Based on our training approach, we predict:
 
 1. \textbf{Relative performance preservation}: Models showing strong Python debugging skills should maintain relative rankings on Java tasks, even with absolute performance drops.
 
@@ -980,7 +965,7 @@ Cross-language evaluation requires careful methodology to ensure fair comparison
 
 \textbf{Ablation studies}: Comparing performance with and without language-specific hints tests the model's ability to independently recognize and adapt to language differences.
 
-This cross-language evaluation provides the strongest test of whether agent-in-the-loop training with minimal scaffolding produces genuinely general debugging capabilities—validating or refuting the bitter lesson's applicability to automated software engineering.
+This cross-language evaluation provides a strong test of whether agent-in-the-loop training produces genuinely general debugging capabilities.
 
 \section{Related Work}
 
@@ -1024,26 +1009,6 @@ The proliferation of coding agents has occurred almost entirely in the inference
 \item Inability to discover novel tool combinations
 \end{itemize}
 
-\subsubsection{The Bitter Lesson in Software Engineering}
-
-Richard Sutton's bitter lesson~\cite{bitterLesson2019} argues that methods leveraging computation and learning consistently outperform those incorporating human knowledge. Despite its influence across AI, this principle remains largely untested in software engineering:
-
-\textbf{Existing approaches favor engineering}: Current coding assistants embed substantial domain knowledge:
-\begin{itemize}
-\item Sophisticated parsing and analysis tools
-\item Language-specific heuristics and patterns
-\item Carefully crafted prompting strategies
-\item Hand-designed workflow orchestration
-\end{itemize}
-
-\textbf{No empirical tests}: We found no prior work systematically comparing minimal versus engineered scaffolding for code tasks. This represents a significant gap given the principle's success in other domains:
-\begin{itemize}
-\item Game playing: Simple self-play outperformed chess knowledge
-\item Language modeling: Scale beats linguistic features
-\item Computer vision: Learned features surpass hand-crafted ones
-\end{itemize}
-
-\textbf{Why software engineering might be different}: Skeptics could argue that code's formal structure and precise semantics require engineered solutions. Our work provides the first empirical test of this assumption.
 
 \subsubsection{The Missing Pieces}
 
@@ -1057,7 +1022,7 @@ Our research addresses three critical gaps in the literature:
 \item Detailed instrumentation for analysis
 \end{itemize}
 
-\textbf{2. Empirical bitter lesson evaluation}: Our comparison of nano-agent versus heavyweight scaffolds provides the first systematic test of whether minimal tooling produces superior learned behaviors in coding domains.
+\textbf{2. Minimalist agent design}: Our nano-agent demonstrates that effective debugging behaviors can emerge from simple tools combined with reinforcement learning.
 
 \textbf{3. Demonstrated learning improvements}: We show monotonic improvement through RL iterations, validating that interactive training produces measurable capability gains beyond static fine-tuning.
 
@@ -1069,16 +1034,16 @@ This chapter has established the theoretical and empirical foundations for agent
 
 Our review of reinforcement learning techniques, particularly the elegant simplification offered by GRPO, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees. The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
 
-The introduction of the nano-agent architecture, guided by the bitter lesson principle, presents a radical alternative to conventional wisdom in agent design. By providing only essential tools and relying on learning rather than engineering, we test whether simpler scaffolding ultimately produces more capable and generalizable systems.
+The nano-agent architecture presents an alternative approach to agent design. By providing only essential tools and relying on learning, we demonstrate that effective debugging capabilities can emerge from simple interfaces.
 
 This thesis makes three fundamental contributions to the field:
 
 \textbf{First open-source agent-in-the-loop implementation}: We provide the research community with complete infrastructure for training language models through interactive environmental experience. This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary. Our implementation enables researchers to explore interactive learning across diverse domains beyond code repair.
 
-\textbf{Novel application of the bitter lesson}: While Sutton's principle has proven transformative across AI domains, its applicability to software engineering remained untested. Our systematic comparison of minimalist versus heavyweight scaffolding provides the first empirical evaluation of whether learning from basic tools outperforms engineered solutions in coding domains.
+\textbf{Minimalist agent approach}: We demonstrate that a simple agent design with basic tools can achieve strong performance when combined with reinforcement learning, showing that sophisticated debugging behaviors can emerge from minimal interfaces.
 
 \textbf{Bridge between research and practice}: By demonstrating that models can learn effective debugging strategies through reinforcement learning in realistic environments, we bridge the gap between academic research on program repair and practical tools used by developers. Our approach shows that the future of coding assistance lies not in ever-more-sophisticated prompt engineering, but in models that learn from experience.
 
-The implications extend beyond code repair. If minimal scaffolding with extensive learning outperforms careful engineering, it suggests a fundamental shift in how we approach AI system development—from designing sophisticated behaviors to creating environments where sophisticated behaviors can emerge. This work provides both the theoretical framework and practical tools to explore this paradigm shift.
+The implications extend beyond code repair. Our work demonstrates that effective debugging behaviors can emerge from simple agent designs when combined with reinforcement learning. This provides both the theoretical framework and practical tools to explore agent-in-the-loop training.
 
-As we proceed to describe our method in detail, keep in mind that our goal is not merely to improve performance metrics on benchmarks, but to demonstrate a fundamentally different approach to developing AI systems—one that embraces computation and learning over human engineering, following the bitter lesson to its logical conclusion in the domain of automated software engineering.
+As we proceed to describe our method in detail, keep in mind that our goal is not merely to improve performance metrics on benchmarks, but to demonstrate a fundamentally different training approach that enables models to learn from environmental interaction.

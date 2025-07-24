@@ -4,8 +4,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a LaTeX thesis repository for "CodeRepairRL" - research on agent-in-the-loop reinforcement learning for automated code repair. The thesis explores training LLMs to fix bugs by embedding coding agents into the RL training loop, comparing minimalist vs heavyweight scaffolding approaches.
-
 ## Build Commands
 
 **Compile thesis:**
@@ -28,69 +26,11 @@ fc-cache -fv  # refresh fontconfig for XeLaTeX fonts
 - `notes/` - Detailed research notes and project documentation
 - `setup/` - LaTeX configuration, title page, and KTH branding
 - `references.bib` - Bibliography (currently minimal, needs expansion)
+- `plotting/` - Python scripts to create the plots in this thesis by using the WandB API
 
-### Key Documentation Files
-- `notes/PROJECT.md` - Comprehensive project overview, research questions, technical approach
-- `notes/PAPER.md` - Detailed thesis outline with section breakdowns
-- `notes/AGENT_RL_INTEGRATION.md` - Technical details on agent-in-the-loop implementation
-- `notes/DATASETS.md` - Information about SWE-Gym, SWE-Bench-Verified datasets
-- `notes/RESOURCES.md` - Literature review and related work compilation
 
-### Thesis Content Status
-- **Sections 1-6**: Currently contain only template content - all substantive research content needs to be written
-- **Abstract/Introduction**: Template placeholders only
-- **Method/Results**: Empty sections waiting for actual research content
-- **Bibliography**: Only contains one entry, needs comprehensive academic references
-
-## Research Context
-
-### Core Innovation
-The thesis pioneered "agent-in-the-loop reinforcement learning" where coding agents are embedded directly into RL training loops, enabling:
-- Multi-step interactive debugging rather than single-pass generation
-- Direct reinforcement in realistic development environments  
-- Comparison of minimalist (nano-agent) vs heavyweight scaffolding approaches
-
-### Technical Approach
-- **Training**: Two-stage pipeline (SFT → GRPO reinforcement learning)
-- **Models**: Qwen3 continued RL training (not traditional fine-tuning)
-- **Scaffolds**: Nano-agent (minimalist) vs Aider-style (heavyweight)
-- **Evaluation**: SWE-Bench-Verified, potentially Defects4J for Java generalization
-
-## Writing Guidelines
-
-### Writing Strategy
-- **Current approach**: Write as much content as possible and see what sticks
-- **Content addition priority**: Prefer adding new sections over changing existing ones unless explicitly requested
-- **Build first, refine later**: Focus on comprehensive content development before optimization
-
-### Writing Focus
-- **Current stage**: Focus on SUBSTANCE over academic style/polish
-- Early drafts should prioritize getting ideas down and building complete arguments
-- Style refinement comes later in the writing process
-- Use `\todoinline{}` commands to mark sections needing development with instructive ideas for what should come next
+Use `\todoinline{}` commands to mark sections needing development with instructive ideas for what should come next
 
 ### Academic Style (for later refinement)
 - Target venue: KTH thesis, potentially adapted for academic conference
 - Emphasize novel "hill-climbing the coding agent gradient" experiment
-- Highlight significance: first open-source replication of agent-in-loop RL for code
-
-### Content Priorities
-1. **Method section**: Core technical contribution of agent-RL integration
-2. **Introduction**: Problem statement and novel approach positioning  
-3. **Background**: Literature review on RL for code, agent scaffolding
-4. **Results**: Experimental outcomes demonstrating monotonic improvement
-
-### Key Technical Terms
-- Agent-in-the-loop RL
-- GRPO (Group Relative Policy Optimization)
-- Scaffold complexity (minimalist vs heavyweight)
-- SWE-Gym/SWE-Bench evaluation environments
-- Nano-agent architecture
-
-## Development Notes
-
-The thesis content draws heavily from detailed notes in `notes/` directory. When writing sections, reference these files for comprehensive technical details and research context. The goal is demonstrating that LLMs can learn terminal navigation and codebase interaction through RL - a significant open-source achievement.
-
-## Citation and URL Guidelines
-
-- Always append lines with a valid URL when referencing external sources or research artifacts

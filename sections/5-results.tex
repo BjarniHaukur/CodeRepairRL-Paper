@@ -1,14 +1,14 @@
 \chapter{Experimental Results and Analysis}
 \label{ch:results}
 
-This chapter presents comprehensive experimental results addressing our three research questions about agent-in-the-loop reinforcement learning for automated code repair. We demonstrate statistically significant improvements over baseline approaches, analyze the effects of scaffold complexity, and evaluate the generalization of learned debugging capabilities.
+This chapter presents comprehensive experimental results addressing our research questions about agent-in-the-loop reinforcement learning for automated code repair. We demonstrate statistically significant improvements over baseline approaches and evaluate the generalization of learned debugging capabilities.
 
 \section{Training Dynamics and Convergence}
 \label{sec:training-dynamics}
 
 \subsection{Learning Curve Analysis}
 
-Our GRPO training demonstrates clear and consistent learning dynamics across multiple experimental runs. Figure~\ref{fig:training-curves} shows the evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the nano-agent scaffold.
+Our GRPO training demonstrates clear and consistent learning dynamics across multiple experimental runs. Figure~\ref{fig:training-curves} shows the evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the nano-agent.
 
 \subsubsection{Reward Progression}
 
@@ -90,66 +90,6 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 
 \textbf{Tool Usage Efficiency}: Trained agents develop efficient command usage patterns, avoiding redundant operations and focusing on information-gathering commands that maximize debugging insight.
 
-\section{Scaffold Complexity Analysis}
-\label{sec:scaffold-analysis}
-
-\subsection{Minimalist vs. Feature-Rich Comparison}
-
-To investigate our second research question about scaffold complexity, we compare the nano-agent (minimalist) approach against a feature-rich Aider-based scaffold that provides repository mapping, semantic search, and guided reasoning capabilities.
-
-\begin{table}[h]
-\centering
-\caption{Scaffold complexity comparison on SWE-Bench-Verified subset (200 tasks)}
-\label{tab:scaffold-comparison}
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Scaffold Type} & \textbf{Success Rate} & \textbf{Avg. Steps} & \textbf{Training Time} & \textbf{Memory Usage} \\
-\midrule
-Nano-Agent (Minimal) & \textbf{28.5\%} & 12.3 & 1.0x & 1.0x \\
-Aider-Based (Rich) & 26.8\% & 8.7 & 1.8x & 2.3x \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsubsection{Performance Parity Despite Complexity Difference}
-
-Remarkably, the minimalist nano-agent achieves comparable (slightly superior) performance to the feature-rich scaffold, validating the bitter lesson hypothesis in the coding domain. This result suggests that:
-
-\begin{itemize}
-\item \textbf{Learning Overcomes Engineering}: Given sufficient training, models can develop sophisticated behaviors using simple tools rather than requiring pre-engineered solutions
-\item \textbf{Generalization Through Simplicity}: Minimal assumptions about problem structure enable broader learning across diverse bug types and repository structures
-\item \textbf{Computational Efficiency}: Simple scaffolds enable more extensive training within the same computational budget, potentially leading to better ultimate performance
-\end{itemize}
-
-\subsubsection{Training Efficiency Advantages}
-
-The nano-agent demonstrates significant training efficiency advantages:
-
-\begin{itemize}
-\item \textbf{45\% faster training}: Simpler action spaces and fewer tool interactions enable faster episode completion
-\item \textbf{57\% lower memory usage}: Minimal tool state and context management reduce memory overhead
-\item \textbf{Better sample efficiency}: Clear action-outcome relationships facilitate more effective learning from experience
-\end{itemize}
-
-\subsubsection{Behavioral Differences}
-
-While performance levels are similar, the two scaffolds develop notably different behavioral patterns:
-
-\textbf{Nano-Agent Behaviors}:
-\begin{itemize}
-\item Develops systematic file exploration strategies using grep and find commands
-\item Learns to piece together understanding from multiple partial observations
-\item Shows creative use of basic tools for complex analysis tasks
-\item Demonstrates robust error recovery when simple approaches fail
-\end{itemize}
-
-\textbf{Aider-Based Behaviors}:
-\begin{itemize}
-\item Relies heavily on provided repository analysis and semantic search
-\item Shows faster initial convergence but potentially less robust generalization
-\item Develops dependence on engineered features that may not transfer to new contexts
-\item Exhibits more deterministic, less exploratory problem-solving patterns
-\end{itemize}
 
 \section{Generalization and Transfer Learning}
 \label{sec:generalization}

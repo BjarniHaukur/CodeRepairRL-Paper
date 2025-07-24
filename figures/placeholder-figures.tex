@@ -10,14 +10,14 @@
 Agent-in-the-Loop Training Architecture\\[0.5cm]
 \textit{This figure should show the complete feedback cycle between:}\\
 \textit{• Language model policy generating tool calls}\\
-\textit{• Agent scaffold executing actions in repository environment}\\
+\textit{• Agent executing actions in repository environment}\\
 \textit{• Environment providing observations and feedback}\\
 \textit{• Reward computation based on patch quality}\\
 \textit{• GRPO updating policy parameters in real-time}\\
 \textit{• NCCL synchronizing weights to inference servers}\\
 \vspace{3cm}
 \end{minipage}}
-\caption{Agent-in-the-loop reinforcement learning architecture showing the complete feedback cycle between language model policy, agent scaffold, repository environment, and reward computation. The diagram illustrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.}
+\caption{Agent-in-the-loop reinforcement learning architecture showing the complete feedback cycle between language model policy, agent implementation, repository environment, and reward computation. The diagram illustrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.}
 \label{fig:agent-loop-architecture}
 \end{figure}
 
@@ -56,7 +56,7 @@ Training Curves and Learning Dynamics\\[0.5cm]
 \textit{• Phase markers for initial, intermediate, and convergence phases}\\
 \vspace{3cm}
 \end{minipage}}
-\caption{Training dynamics showing the evolution of reward and success rate throughout GRPO training for both 8B and 32B parameter Qwen models using the nano-agent scaffold. The curves demonstrate monotonic improvement and remarkable training stability compared to traditional PPO implementations.}
+\caption{Training dynamics showing the evolution of reward and success rate throughout GRPO training for both 8B and 32B parameter Qwen models using the nano-agent. The curves demonstrate monotonic improvement and remarkable training stability compared to traditional PPO implementations.}
 \label{fig:training-curves}
 \end{figure}
 
@@ -128,7 +128,6 @@ Agent Behavior Analysis\\[0.5cm]
 \textit{• Typical successful debugging workflows}\\
 \textit{• Command usage patterns and frequencies}\\
 \textit{• Exploration strategies developed through RL}\\
-\textit{• Comparison of nano-agent vs. feature-rich scaffold behaviors}\\
 \textit{• Tool usage efficiency metrics}\\
 \vspace{3cm}
 \end{minipage}}
