@@ -41,5 +41,6 @@ build/
 .venv/
 
 plotting/media/
+plotting/plots/media/
 
 __pycache__/
