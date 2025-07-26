@@ -13,14 +13,50 @@ ENTITY = "assert-kth"
 PROJECT = "SWE-Gym-GRPO"
 RUN_ID = "nz1r7ml3"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/nz1r7ml3
 
-# Standardized filename format
+# Standardized filename format with plot type organization
 FILENAME_FORMAT = "{name}_{run_id}"
 
-def get_output_filename(name: str, run_id: str = None) -> str:
+# Plot type categories for organized file structure
+PLOT_TYPES = {
+    "analysis": ["distribution", "clustering", "performance", "problem"],
+    "temporal": ["evolution", "timeline", "training", "reward"],
+    "sankey": ["command", "flow", "transition"],
+    "comparison": ["vs", "compare", "baseline"]
+}
+
+def get_output_filename(name: str, run_id: str = None, plot_type: str = None) -> str:
+    """
+    Generate standardized output filename with optional plot type categorization.
+    
+    Args:
+        name: Base name for the plot
+        run_id: WandB run ID (defaults to global RUN_ID)
+        plot_type: Plot category (analysis, temporal, sankey, comparison)
+        
+    Returns:
+        Full path for saving the plot
+    """
     if run_id is None:
         run_id = RUN_ID
+    
     filename = FILENAME_FORMAT.format(name=name, run_id=run_id)
-    return f"../figures/plots/{filename}"
+    
+    # Auto-detect plot type if not specified
+    if plot_type is None:
+        plot_type = _auto_detect_plot_type(name)
+    
+    return f"figures/plots/{plot_type}/{filename}"
+
+def _auto_detect_plot_type(name: str) -> str:
+    """Auto-detect plot type based on name keywords."""
+    name_lower = name.lower()
+    
+    for category, keywords in PLOT_TYPES.items():
+        if any(keyword in name_lower for keyword in keywords):
+            return category
+    
+    # Default to analysis if no match
+    return "analysis"
 
 # Color scheme for different components
 COLORS = {
@@ -224,18 +260,26 @@ def create_figure(size: str = "medium", **kwargs) -> Tuple[plt.Figure, plt.Axes]
 def save_figure(
     fig: plt.Figure,
     filename: str,
-    output_dir: str = "../figures/plots",
+    output_dir: str = None,
+    plot_type: str = None,
     **kwargs
 ):
     """
-    Save figure with consistent settings.
+    Save figure with consistent settings and organized directory structure.
     
     Args:
         fig: Matplotlib figure
         filename: Output filename (without extension)
-        output_dir: Output directory (relative to plotting/)
+        output_dir: Output directory (if None, uses get_output_filename logic)
+        plot_type: Plot type for auto-categorization
         **kwargs: Override export settings
     """
+    # Use new directory structure if output_dir not specified
+    if output_dir is None:
+        if plot_type is None:
+            plot_type = _auto_detect_plot_type(filename)
+        output_dir = f"figures/plots/{plot_type}"
+    
     # Ensure output directory exists
     os.makedirs(output_dir, exist_ok=True)
     

@@ -1,0 +1,137 @@
+% Placeholder figures for the thesis
+% These should be replaced with actual figures during final production
+
+\begin{figure}[h]
+\centering
+\fbox{\begin{minipage}{0.8\textwidth}
+\centering
+\vspace{3cm}
+\textbf{Figure Placeholder}\\[0.5cm]
+"Tool-Mediated" Reinforcement Learning Architecture\\[0.5cm]
+\textit{This figure should show the complete feedback cycle between:}\\
+\textit{• Language model policy generating tool calls}\\
+\textit{• Agent executing actions in repository environment}\\
+\textit{• Environment providing observations and feedback}\\
+\textit{• Reward computation based on patch quality}\\
+\textit{• GRPO updating policy parameters in real-time}\\
+\textit{• NCCL synchronizing weights to inference servers}\\
+\vspace{3cm}
+\end{minipage}}
+\caption{"Tool-mediated" reinforcement learning architecture showing the complete feedback cycle between language model policy, agent implementation, repository environment, and reward computation. The diagram illustrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.}
+\label{fig:agent-loop-architecture}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\begin{minipage}{0.8\textwidth}
+\centering
+\vspace{3cm}
+\textbf{Figure Placeholder}\\[0.5cm]
+System Architecture and Data Flow\\[0.5cm]
+\textit{This figure should illustrate the complete system architecture showing:}\\
+\textit{• vLLM inference cluster with KV-cache optimization}\\
+\textit{• Distributed agent worker pool in containerized environments}\\
+\textit{• GRPO training pipeline with gradient computation}\\
+\textit{• NCCL communication layer for weight synchronization}\\
+\textit{• Real-time data flow between components}\\
+\textit{• Resource orchestration and load balancing}\\
+\vspace{3cm}
+\end{minipage}}
+\caption{Complete system architecture illustrating data flow between the vLLM inference cluster, distributed agent worker pool, and GRPO training pipeline. The diagram highlights the NCCL communication layer that enables real-time weight synchronization, supporting the training-inference duality that distinguishes our approach from conventional RL systems.}
+\label{fig:system-architecture}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\begin{minipage}{0.8\textwidth}
+\centering
+\vspace{3cm}
+\textbf{Figure Placeholder}\\[0.5cm]
+Training Curves and Learning Dynamics\\[0.5cm]
+\textit{This figure should show multiple subplots displaying:}\\
+\textit{• Success rate vs. training episodes for 8B and 32B models}\\
+\textit{• Reward progression throughout training}\\
+\textit{• Comparison of GRPO vs. PPO training stability}\\
+\textit{• Standard deviation bands showing training consistency}\\
+\textit{• Phase markers for initial, intermediate, and convergence phases}\\
+\vspace{3cm}
+\end{minipage}}
+\caption{Training dynamics showing the evolution of reward and success rate throughout GRPO training for both 8B and 32B parameter Qwen models using the nano-agent. The curves demonstrate monotonic improvement and remarkable training stability compared to traditional PPO implementations.}
+\label{fig:training-curves}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\begin{minipage}{0.8\textwidth}
+\centering
+\vspace{3cm}
+\textbf{Figure Placeholder}\\[0.5cm]
+Performance Comparison Bar Charts\\[0.5cm]
+\textit{This figure should contain bar charts showing:}\\
+\textit{• SWE-Bench-Verified success rates across different approaches}\\
+\textit{• Comparison between base models, SFT, and RL training}\\
+\textit{• Error bars showing statistical confidence intervals}\\
+\textit{• Separate comparisons for 8B and 32B model sizes}\\
+\textit{• Highlighting statistical significance markers}\\
+\vspace{3cm}
+\end{minipage}}
+\caption{Performance comparison on SWE-Bench-Verified showing statistically significant improvements from "tool-mediated" RL training over both pretrained models and supervised fine-tuning approaches. Error bars represent 95\% confidence intervals.}
+\label{fig:performance-comparison}
+\end{figure}
+
+
+\begin{figure}[h]
+\centering
+\fbox{\begin{minipage}{0.8\textwidth}
+\centering
+\vspace{3cm}
+\textbf{Figure Placeholder}\\[0.5cm]
+Ablation Study Results\\[0.5cm]
+\textit{This figure should show:}\\
+\textit{• Component contribution analysis}\\
+\textit{• Performance impact of removing different system components}\\
+\textit{• Waterfall chart showing cumulative effects}\\
+\textit{• Highlighting critical components (multi-step interaction, RL)}\\
+\textit{• Comparison with and without key features}\\
+\vspace{3cm}
+\end{minipage}}
+\caption{Ablation study results highlighting the contribution of different system components. Multi-step interaction capability provides the largest performance impact, validating the core hypothesis about interactive learning.}
+\label{fig:ablation-results}
+\end{figure>
+
+\begin{figure}[h]
+\centering
+\fbox{\begin{minipage}{0.8\textwidth}
+\centering
+\vspace{3cm}
+\textbf{Figure Placeholder}\\[0.5cm]
+Agent Behavior Analysis\\[0.5cm]
+\textit{This figure should illustrate:}\\
+\textit{• Typical successful debugging workflows}\\
+\textit{• Command usage patterns and frequencies}\\
+\textit{• Exploration strategies developed through RL}\\
+\textit{• Tool usage efficiency metrics}\\
+\vspace{3cm}
+\end{minipage}}
+\caption{Analysis of agent behaviors showing successful debugging workflows and tool usage patterns. RL-trained agents develop systematic repository exploration strategies and efficient command usage patterns that maximize debugging effectiveness.}
+\label{fig:agent-behavior}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\begin{minipage}{0.8\textwidth}
+\centering
+\vspace{3cm}
+\textbf{Figure Placeholder}\\[0.5cm]
+Computational Performance Metrics\\[0.5cm]
+\textit{This figure should display:}\\
+\textit{• Training throughput and efficiency metrics}\\
+\textit{• GPU utilization and memory usage over time}\\
+\textit{• NCCL weight synchronization latency measurements}\\
+\textit{• Scalability characteristics across different model sizes}\\
+\textit{• Cost-effectiveness analysis}\\
+\vspace{3cm}
+\end{minipage}}
+\caption{Computational performance analysis showing training efficiency metrics, GPU utilization, and scalability characteristics. The infrastructure achieves >90\% GPU utilization and demonstrates linear scaling properties.}
+\label{fig:computational-performance}
+\end{figure}
