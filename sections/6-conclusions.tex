@@ -1,7 +1,7 @@
 \chapter{Conclusions and Future Work}
 \label{ch:conclusions}
 
-This thesis presents the first comprehensive open-source implementation of agent-in-the-loop reinforcement learning for automated code repair, demonstrating significant advances in both theoretical understanding and practical capabilities. Through rigorous experimental validation, we establish this paradigm as a viable and superior alternative to traditional supervised learning approaches for training interactive programming agents.
+This thesis presents the first comprehensive open-source implementation of "tool-mediated" reinforcement learning for automated code repair, demonstrating significant advances in both theoretical understanding and practical capabilities. Through rigorous experimental validation, we establish this paradigm as a viable and superior alternative to traditional supervised learning approaches for training interactive programming agents.
 
 \section{Summary of Contributions}
 \label{sec:summary-contributions}
@@ -10,7 +10,6 @@ Our work makes several significant contributions to the field of automated softw
 
 \subsection{Methodological Innovation}
 
-\textbf{Agent-in-the-Loop Training Paradigm}: We introduce and validate a novel training methodology that embeds interactive coding agents directly within the reinforcement learning optimization process. This approach transcends the traditional separation between training and deployment, enabling models to learn debugging strategies through direct environmental interaction rather than passive observation of static examples.
 
 \textbf{Training-Inference Duality}: Our implementation collapses the conventional boundary between training and inference phases through continuous serving and real-time weight updates. This unified approach reduces training time by 60\% while improving sample efficiency by 40\%, making large-scale agent training practically feasible within academic research budgets.
 
@@ -22,7 +21,7 @@ Our work makes several significant contributions to the field of automated softw
 
 \textbf{Minimalist Agent Success}: Our nano-agent implementation demonstrates that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning, achieving strong performance with only basic terminal commands and file operations.
 
-\textbf{Cross-Domain Generalization}: Models trained on Python debugging tasks demonstrate positive transfer to Java environments (2x improvement over baselines) and general code generation (4\% improvement on HumanEval), indicating that learned debugging strategies generalize beyond training contexts.
+\textbf{Transfer Learning}: Models trained on Python debugging tasks demonstrate positive transfer to general code generation (4\% improvement on HumanEval), indicating that learned debugging strategies generalize beyond training contexts.
 
 \subsection{Technical Infrastructure}
 
@@ -30,35 +29,35 @@ Our work makes several significant contributions to the field of automated softw
 
 \textbf{Scalable Distributed Training}: Our implementation successfully scales agent training to 32B parameter models across 8 GPUs while maintaining >90\% memory utilization and linear throughput scaling, demonstrating the practical feasibility of large-scale agent training.
 
-\textbf{Open-Source Democratization}: Complete open-source release of training infrastructure, agent implementations, and evaluation protocols reduces barriers to academic research and enables reproducible investigation of agent-in-the-loop techniques previously available only to industry laboratories.
+\textbf{Open-Source Democratization}: Complete open-source release of training infrastructure, agent implementations, and evaluation protocols reduces barriers to academic research and enables reproducible investigation of "tool-mediated" techniques previously available only to industry laboratories.
 
 \section{Research Question Answers}
 \label{sec:research-answers}
 
-Our experimental evaluation provides definitive answers to the research questions motivating this investigation:
+Our experimental evaluation provides definitive answers to the research question motivating this investigation:
 
-\subsection{RQ1: Effectiveness of Agent-in-the-Loop RL}
+\subsection{RQ1: Effectiveness of "Tool-Mediated" RL}
 
-\textbf{Finding}: Agent-in-the-loop reinforcement learning produces substantial and statistically significant improvements over both pretrained models and supervised fine-tuning approaches.
+\textbf{Finding}: "Tool-mediated" reinforcement learning produces substantial and statistically significant improvements over both pretrained models and supervised fine-tuning approaches.
 
 \textbf{Evidence}: Our best models achieve 31.8\% success rates on SWE-Bench-Verified compared to 22.2\% for supervised fine-tuning on identical data, representing a 43\% relative improvement. All improvements are statistically significant at p < 0.01 with large effect sizes (Cohen's d > 0.8).
 
 \textbf{Mechanism}: The effectiveness stems from three key factors: (1) multi-step interaction capabilities that mirror human debugging workflows, (2) environmental feedback that enables strategy refinement, and (3) reward-driven optimization of tool usage patterns that cannot be captured through static supervision.
 
-\subsection{RQ2: Generalization and Transfer}
+\subsection{Generalization and Transfer}
 
-\textbf{Finding}: Debugging capabilities learned through agent-in-the-loop RL demonstrate positive transfer across multiple dimensions, indicating acquisition of fundamental rather than narrow skills.
+\textbf{Finding}: Debugging capabilities learned through "tool-mediated" RL demonstrate positive transfer across multiple dimensions, indicating acquisition of fundamental rather than narrow skills.
 
-\textbf{Evidence}: Cross-language evaluation shows 2x improvement on Java debugging tasks (12.4\% vs. 6.1\% baseline success rates), while general coding capabilities improve by 4\% on HumanEval despite no direct training on code generation tasks.
+\textbf{Evidence}: General coding capabilities improve by 4\% on HumanEval despite no direct training on code generation tasks, demonstrating that debugging-specific training enhances broader programming competencies.
 
-\textbf{Significance}: The positive transfer validates that our training approach develops genuine debugging competencies rather than narrow pattern matching, suggesting potential for broad application across programming languages and software engineering tasks.
+\textbf{Significance}: The positive transfer validates that our training approach develops genuine debugging competencies rather than narrow pattern matching, suggesting potential for broad application across software engineering tasks.
 
 \section{Broader Implications}
 \label{sec:broader-implications}
 
 \subsection{Paradigm Shift in AI Training}
 
-Our results support a fundamental shift from static dataset-based training to interactive environment-based learning for complex reasoning tasks. The success of agent-in-the-loop RL suggests that many AI capabilities may be better acquired through direct interaction rather than passive observation, particularly for domains requiring multi-step reasoning and strategic planning.
+Our results support a fundamental shift from static dataset-based training to interactive environment-based learning for complex reasoning tasks. The success of "tool-mediated" RL suggests that many AI capabilities may be better acquired through direct interaction rather than passive observation, particularly for domains requiring multi-step reasoning and strategic planning.
 
 \subsection{Software Engineering Automation}
 
@@ -66,7 +65,7 @@ The demonstration of monotonic improvement through RL training indicates substan
 
 \subsection{Open Science and Democratization}
 
-By providing complete open-source implementations, we enable broader academic investigation of agent-in-the-loop techniques and reduce dependence on proprietary industry research. This democratization could accelerate progress by enabling distributed experimentation and community-driven development of advanced agent training methods.
+By providing complete open-source implementations, we enable broader academic investigation of "tool-mediated" techniques and reduce dependence on proprietary industry research. This democratization could accelerate progress by enabling distributed experimentation and community-driven development of advanced agent training methods.
 
 \subsection{Validation of Fundamental AI Principles}
 
@@ -76,11 +75,11 @@ By providing complete open-source implementations, we enable broader academic in
 
 \subsection{Evaluation Scope Constraints}
 
-Our evaluation focuses primarily on Python debugging tasks with limited cross-language validation. While Java experiments demonstrate positive transfer, comprehensive evaluation across diverse programming paradigms (functional, systems programming, web development) remains incomplete. Additionally, our evaluation emphasizes single-commit bug fixes rather than complex architectural changes or multi-file refactoring tasks.
+Our evaluation focuses exclusively on Python debugging tasks. Comprehensive evaluation across diverse programming paradigms (functional, systems programming, web development) and languages remains for future work. Additionally, our evaluation emphasizes single-commit bug fixes rather than complex architectural changes or multi-file refactoring tasks.
 
 \subsection{Computational Resource Requirements}
 
-Despite optimizations, agent-in-the-loop training remains computationally intensive compared to traditional supervised learning. Training 8B models requires 4×A100 GPUs, while 32B models need 8×A100 GPUs, limiting accessibility for researchers with modest computational budgets. The complexity of distributed training infrastructure also presents implementation barriers for smaller research groups.
+Despite optimizations, "tool-mediated" training remains computationally intensive compared to traditional supervised learning. Training 8B models requires 4×A100 GPUs, while 32B models need 8×A100 GPUs, limiting accessibility for researchers with modest computational budgets. The complexity of distributed training infrastructure also presents implementation barriers for smaller research groups.
 
 \subsection{Reward Function Simplifications}
 
@@ -109,13 +108,13 @@ Future reward functions could incorporate multiple objectives beyond correctness
 
 \subsection{Scaling and Generalization}
 
-\subsubsection{Cross-Language and Cross-Domain Expansion}
+\subsubsection{Broader Domain Expansion}
 
-Systematic evaluation across programming languages, paradigms, and application domains would validate the universality of learned debugging skills. This includes comprehensive evaluation on C/C++, JavaScript, Rust, and domain-specific languages; coverage of functional programming, systems programming, and web development contexts; specialization in security vulnerability fixing and performance optimization; and evaluation on large-scale enterprise codebases.
+Systematic evaluation across different programming contexts and application domains would validate the universality of learned debugging skills. This includes specialized training for security vulnerability fixing and performance optimization; evaluation on large-scale enterprise codebases with complex dependencies; and adaptation to different development workflows and coding conventions.
 
 \subsubsection{Model Architecture Exploration}
 
-Investigation of agent-in-the-loop training across different model architectures could reveal optimal designs for interactive programming tasks, including architecture variants like mixture-of-experts models, systematic study of performance scaling effects, multimodal integration with visual debugging information, and external memory systems for long-term context.
+Investigation of "tool-mediated" training across different model architectures could reveal optimal designs for interactive programming tasks, including architecture variants like mixture-of-experts models, systematic study of performance scaling effects, multimodal integration with visual debugging information, and external memory systems for long-term context.
 
 \subsection{Advanced Agent Architectures}
 
@@ -137,12 +136,12 @@ Educational applications could revolutionize programming instruction through tut
 
 Continued optimization could enable broader access through federated learning across institutions, efficient communication protocols for model updates, robust fault tolerance for distributed systems, and dynamic resource optimization for mixed workloads.
 
-Standardized evaluation frameworks would accelerate progress through comprehensive benchmarks across languages, automated functional correctness assessment, reproducibility tools for research extension, and community platforms for collaborative development.
+Standardized evaluation frameworks would accelerate progress through comprehensive benchmarks for Python debugging tasks, automated functional correctness assessment, reproducibility tools for research extension, and community platforms for collaborative development.
 
 \section{Long-Term Vision}
 \label{sec:long-term-vision}
 
-The ultimate goal of this research direction is developing autonomous software engineering capabilities handling the full spectrum of development tasks. Agent-in-the-loop reinforcement learning represents a crucial step by demonstrating that interactive learning can develop sophisticated reasoning capabilities.
+The ultimate goal of this research direction is developing autonomous software engineering capabilities handling the full spectrum of development tasks. Effective online reinforcement learning on coding agents represents a crucial step by demonstrating that interactive learning can develop sophisticated reasoning capabilities.
 
 Advanced coding agents could democratize software development by enabling non-programmers to create sophisticated applications through natural language interaction. This could accelerate innovation by enabling domain experts to implement ideas directly without extensive programming training.
 
@@ -151,10 +150,10 @@ Automated code generation and debugging could accelerate scientific discovery by
 \section{Final Reflections}
 \label{sec:final-reflections}
 
-This research demonstrates that the convergence of large language models and reinforcement learning opens unprecedented opportunities for developing sophisticated AI systems capable of complex reasoning and interaction. The success of agent-in-the-loop training validates broader principles about learning through environmental interaction and suggests promising directions for advancing AI capabilities across domains requiring multi-step reasoning and strategic planning.
+This research demonstrates that the convergence of large language models and reinforcement learning opens unprecedented opportunities for developing sophisticated AI systems capable of complex reasoning and interaction. The success of "tool-mediated" training validates broader principles about learning through environmental interaction and suggests promising directions for advancing AI capabilities across domains requiring multi-step reasoning and strategic planning.
 
 Perhaps most importantly, our work demonstrates that advanced AI capabilities need not remain confined to well-resourced industry laboratories. Through careful engineering and open-source development, academic researchers can achieve state-of-the-art results and contribute meaningfully to advancing the field. This democratization of AI research capabilities may prove as significant as the technical advances themselves.
 
-The journey from passive pattern matching to active environmental interaction represents a fundamental evolution in how we train AI systems. While significant challenges remain, the clear evidence of improvement through agent-in-the-loop learning suggests that this paradigm will play an increasingly important role in developing AI systems capable of genuine reasoning and problem-solving.
+The journey from passive pattern matching to active environmental interaction represents a fundamental evolution in how we train AI systems. While significant challenges remain, the clear evidence of improvement through "tool-mediated" learning suggests that this paradigm will play an increasingly important role in developing AI systems capable of genuine reasoning and problem-solving.
 
 As we stand at the threshold of increasingly capable AI systems, the principles validated in this work—learning through interaction, the power of computation over engineering, and the importance of open scientific collaboration—will likely guide the development of even more sophisticated AI capabilities. The future of AI may well be shaped by agents that learn through doing, just as humans do.

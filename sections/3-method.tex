@@ -1,12 +1,12 @@
 \chapter{Method}
 \label{ch:method}
 
-This chapter presents our novel approach to training large language models for automated code repair through agent-in-the-loop reinforcement learning. We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the RL training loop improves bug-fixing performance.
+This chapter presents our novel approach to training large language models for automated code repair through "tool-mediated" reinforcement learning. We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the RL training loop improves bug-fixing performance.
 
-\section{Overview of Agent-in-the-Loop Reinforcement Learning}
+\section{Overview of "Tool-Mediated" Reinforcement Learning}
 \label{sec:method-overview}
 
-Traditional approaches to training LLMs for code repair rely on supervised fine-tuning with static datasets of code-patch pairs. In contrast, our method pioneers \textit{agent-in-the-loop reinforcement learning}, where coding agents actively interact with real software repositories during training. This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
+Traditional approaches to training LLMs for code repair rely on supervised fine-tuning with static datasets of code-patch pairs. In contrast, our method pioneers "tool-mediated" reinforcement learning, where coding agents actively interact with real software repositories during training. This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
 
 The core innovation lies in our integration of existing coding agent frameworks directly into the RL training pipeline. Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can:
 \begin{itemize}
@@ -18,12 +18,12 @@ The core innovation lies in our integration of existing coding agent frameworks 
 
 By implementing an OpenAI-compatible API server with asynchronous token streaming capabilities, we enable seamless integration between RL training and agent execution. This allows our Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
 
-Figure~\ref{fig:agent-loop-architecture} illustrates the complete agent-in-the-loop training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation. This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
+Figure~\ref{fig:agent-loop-architecture} illustrates the complete "tool-mediated" training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation. This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
 
 \section{Formal Problem Formulation as a Markov Decision Process}
 \label{sec:mdp-formulation}
 
-To establish rigorous theoretical foundations, we formalize the agent-in-the-loop code repair task as a Markov Decision Process (MDP). This formulation clarifies the relationship between natural language agent interactions and standard reinforcement learning components, enabling principled application of RL algorithms to conversational debugging tasks.
+To establish rigorous theoretical foundations, we formalize the "tool-mediated" code repair task as a Markov Decision Process (MDP). This formulation clarifies the relationship between natural language agent interactions and standard reinforcement learning components, enabling principled application of RL algorithms to conversational debugging tasks.
 
 \subsection{MDP Definition}
 
@@ -146,7 +146,7 @@ SWE-Gym's containerized design makes it ideal for RL training, as agents can fre
 
 \textbf{Primary Evaluation:} SWE-Bench-Verified serves as our main evaluation benchmark, containing approximately 500 carefully validated Python bugs from popular open-source projects. These bugs are notably more challenging than the training set, often requiring multi-file modifications and deep understanding of project structure. This dataset tests whether our agent-trained models can generalize beyond their training distribution.
 
-\textbf{Generalization Testing:} To assess cross-language transfer of learned repair skills, we evaluate on Defects4J v2.0, which contains 835 real Java bugs from mature projects. This tests whether the code repair strategies learned in Python environments transfer to syntactically different languages—directly addressing our research question about the generality of agent-learned skills.
+\textbf{Generalization Testing:} To assess transfer of learned repair skills beyond the training domain, we evaluate on HumanEval, a standard code generation benchmark. This tests whether debugging strategies learned through "tool-mediated" RL improve general programming capabilities.
 
 \subsection{Pretrained Model Selection: Qwen for Tool Calling Excellence}
 
@@ -167,7 +167,7 @@ Qwen models exhibit exceptional structured output generation, critical for relia
 Beyond tool calling, Qwen demonstrates strong foundational coding abilities:
 \begin{itemize}
     \item State-of-the-art performance on HumanEval, MBPP, and CodeContests benchmarks
-    \item Superior multi-language support including Python, JavaScript, Java, and C++
+    \item Superior Python code generation and tool-calling capabilities
     \item Excellent repository-level understanding and cross-file reasoning capabilities
     \item Strong performance on debugging and code repair tasks in baseline evaluations
 \end{itemize}
@@ -228,7 +228,7 @@ This cycle allows the model to learn from both successful and unsuccessful repai
 
 This learning-centric approach embodies the bitter lesson: rather than engineering away the difficulty of code repair through sophisticated tooling, we embrace the challenge and let the model develop its own solutions through extensive experience.
 
-\section{Training-Inference Duality in Agent-in-the-Loop RL}
+\section{Training-Inference Duality in Online RL for LLMs}
 \label{sec:training-inference}
 
 A fundamental innovation in our approach is the collapse of the traditional training-inference boundary. Unlike conventional RL where trajectory collection and policy updates occur in separate phases, our system performs both simultaneously through continuous serving and real-time weight updates.
@@ -241,7 +241,7 @@ In traditional RL, models alternate between:
     \item \textbf{Training phase}: Computing gradients and updating parameters offline
 \end{enumerate}
 
-Our agent-in-the-loop system eliminates this separation. The GRPO process operates as a continuous cycle where:
+Our "tool-mediated" system eliminates this separation. The GRPO process operates as a continuous cycle where:
 \begin{enumerate}
     \item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
     \item \textbf{Trajectory streaming}: Completed agent episodes stream to the training pipeline in real-time
@@ -266,7 +266,7 @@ This unified paradigm enables true online learning where the policy improves con
 
 \subsection{Group Relative Policy Optimization (GRPO)}
 
-We employ Group Relative Policy Optimization (GRPO) as our primary RL algorithm. GRPO offers several advantages for our agent-in-the-loop setting:
+We employ Group Relative Policy Optimization (GRPO) as our primary RL algorithm. GRPO offers several advantages for our "tool-mediated" setting:
 
 \begin{itemize}
     \item \textbf{No value model required:} Unlike traditional actor-critic methods, GRPO estimates advantages using relative performance within a batch, eliminating the need for a separate value network
@@ -360,7 +360,7 @@ These values were selected through preliminary experiments to ensure stable conv
 
 \subsection{Large-Scale Compute Management}
 
-Training and serving 8B to 32B parameter models for agent-in-the-loop RL requires sophisticated compute optimization across the entire pipeline.
+Training and serving 8B to 32B parameter models for "tool-mediated" RL requires sophisticated compute optimization across the entire pipeline.
 
 \subsubsection{Training Optimizations}
 
@@ -372,17 +372,7 @@ Training and serving 8B to 32B parameter models for agent-in-the-loop RL require
 
 \textbf{Communication Optimization:} Overlapped gradient communication during backward passes minimizes the impact of all-reduce operations on training throughput.
 
-\subsubsection{LoRA+ Training Enhancements}
-
-Our extensive experimentation with parameter-efficient training revealed critical insights about preserving model capabilities while learning task-specific behaviors. The key finding: constraining updates to low-rank adaptations in late transformer layers prevents catastrophic forgetting while maintaining learning efficiency.
-
-\textbf{Late-Layer Focus:} We apply LoRA exclusively to the last third of transformer layers (e.g., layers 42-63 for 32B models), preserving early linguistic representations that encode fundamental language understanding.
-
-\textbf{Low-Rank Constraint:} Using rank $r \leq 8$ with $\alpha = 2r$ limits the parameter update magnitude to approximately 1\% of backbone weights, preventing drift while enabling task adaptation.
-
-\textbf{Two-Stage Adaptation:} We employ separate LoRA adapters for SFT and RL phases, enabling fine-grained control over each training stage and preventing interference between supervised and reinforcement learning objectives.
-
-These techniques, detailed comprehensively in Section~\ref{sec:distillation-pipeline}, form the foundation of our stable training pipeline that achieves strong task performance without sacrificing general capabilities.
+\textbf{KL-Divergence Computational Efficiency:} GRPO training often requires computing KL-divergence between the current policy and a reference model to ensure training stability—preventing the model from deviating excessively from its original training objectives while optimizing for the new task. This stability constraint typically necessitates maintaining two complete model instances in memory to compute $D_{KL}(\pi_{\theta}(a|s) \| \pi_{\text{ref}}(a|s))$, effectively doubling GPU memory requirements. LoRA's additive parameter structure provides a natural solution to this computational burden: since base model weights $\mathbf{W}_0$ remain frozen while only low-rank adaptations $\mathbf{W}_0 + \mathbf{BA}$ are trained, the reference policy corresponds exactly to the base model without adapters. We can therefore compute reference policy outputs by temporarily disabling the LoRA adapters on the same model instance, eliminating the need for a separate reference model. This approach reduces memory consumption by approximately 50\% while preserving the distributional constraints essential for stable policy optimization.
 
 \subsubsection{Memory Management Strategies}
 
@@ -403,154 +393,8 @@ The combination of these optimizations enables training of state-of-the-art agen
     \item \textbf{Training speed:} Agent trajectory processing at near real-time rates
 \end{itemize}
 
-These innovations make large-scale agent-in-the-loop RL practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
+These innovations make large-scale "tool-mediated" RL practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
 
-\section{Distillation Challenges and Two-Stage Training Pipeline}
-\label{sec:distillation-pipeline}
-
-Our initial attempts at distilling agent behaviors from synthetic trajectories revealed fundamental challenges in preserving model capabilities while learning task-specific behaviors. These findings led to a refined two-stage training pipeline that carefully balances adaptation with capability preservation.
-
-\subsection{Initial Distillation Attempts: Catastrophic Forgetting}
-
-Our first approach attempted standard supervised fine-tuning (SFT) on synthetic agent trajectories, using full-rank LoRA across all transformer layers. This seemingly straightforward approach produced devastating results, summarized in Table~\ref{tab:distillation-failures}.
-
-\begin{table}[ht]
-\centering
-\caption{Observations during initial SFT/LoRA training and their downstream impacts}
-\label{tab:distillation-failures}
-\begin{tabular}{p{5cm}|p{4cm}|p{5cm}}
-\toprule
-\textbf{Training Observation} & \textbf{Downstream Symptom} & \textbf{Root Cause} \\
-\midrule
-Token-level loss $\downarrow$, per-token accuracy $\uparrow$ & Pass-rate on hold-out SWE-Gym drops by double digits & Catastrophic forgetting: narrow, teacher-forced corpus overwrote circuits handling general reasoning~\cite{allroads2025} \\
-\hline
-Loss curve falls steeply in first few hundred steps & Model becomes verbose, single-style & Update norm in early blocks is largest $\rightarrow$ linguistic prior erased \\
-\hline
-"Good" generations under teacher forcing, but free-run diverges after first tool call & Massive error compounding & Classic exposure bias; student never practiced conditioning on its own imperfect outputs \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The key insight from these failures: the student policy is evaluated in \textit{free-run} mode during deployment, but was only trained to \textit{mimic} teacher tokens. This mismatch, combined with limited model capacity, causes large drift despite small apparent token-level loss.
-
-\subsection{Minimal, High-Leverage Fixes}
-
-Based on these observations, we developed three targeted interventions that dramatically improve distillation outcomes:
-
-\subsubsection{Low-Rank, Late-Layer LoRA}
-
-Rather than updating all parameters, we constrain adaptation to:
-\begin{itemize}
-    \item \textbf{Rank $\leq 8$}: Minimal parameter updates
-    \item \textbf{Layers = last $\frac{1}{3}$ of transformer}: Preserve early linguistic representations
-    \item For Qwen2.5-Coder-7B: layers 22-31
-    \item For Qwen2.5-Coder-32B: layers 42-63
-\end{itemize}
-
-This configuration keeps adapter $\Delta W \lesssim 1\%$ of backbone parameters, limiting drift and reducing forgetting by approximately $\frac{2}{3}$ while retaining almost all task-specific gains.
-
-\subsubsection{KL-Anchored SFT}
-
-We augment the standard cross-entropy loss with a KL divergence term:
-\begin{equation}
-\mathcal{L}_{\text{SFT-KL}} = \mathcal{L}_{\text{CE}} + \lambda \cdot \text{KL}(\pi_{\text{student}} \| \pi_{\text{frozen-base}})
-\end{equation}
-
-where $\lambda \approx 0.05$. This anchor to the base model prevents linguistic drift while allowing task-specific adaptation. Implementation requires no teacher logits—only access to the frozen base model.
-
-\subsubsection{Replay Mixing}
-
-We concatenate 20\% of original instruction-following and general code-chat data to each training epoch, with relative weight $\approx 1:3$ compared to synthetic trajectories. This rehearsal mechanism maintains gradient alignment with the base distribution, recovering an additional 3-4 percentage points on downstream tasks.
-
-\subsection{Two-Stage Training Pipeline v2.0}
-
-These insights led to our refined two-stage pipeline, illustrated in Figure~\ref{fig:training-pipeline-v2}:
-
-\begin{figure}[ht]
-    \centering
-    \fbox{\parbox{0.8\textwidth}{\centering 
-        \textit{[Figure placeholder: Flow diagram showing:
-        1. Pretrained Qwen2.5-Coder
-        2. SFT LoRA (r=8, late blocks) with KL anchor + replay
-        3. Freeze SFT adapter
-        4. Add second LoRA (r=8, late blocks) for GRPO
-        5. GRPO on-policy RL with reward = SWE-Gym bug-fix score
-        6. Merge adapters → final inference model]}
-    }}
-    \caption{Two-stage training pipeline with separate adapters for SFT and RL phases, enabling stable task adaptation while preserving general capabilities.}
-    \label{fig:training-pipeline-v2}
-\end{figure}
-
-\textbf{Stage 1: Supervised Fine-Tuning}
-\begin{itemize}
-    \item Apply LoRA (r=8, $\alpha$=16) to last third of layers
-    \item Train with $\mathcal{L}_{\text{CE}} + 0.05 \cdot \text{KL}$
-    \item Include 20\% replay data per epoch
-    \item Result: SFT checkpoint with task knowledge but preserved general capabilities
-\end{itemize}
-
-\textbf{Stage 2: Reinforcement Learning}
-\begin{itemize}
-    \item Freeze SFT adapter
-    \item Add second LoRA adapter with identical configuration
-    \item Run GRPO with KL penalty to SFT checkpoint (not base)
-    \item KL budget: start at 0.03, anneal when reward plateaus
-    \item Monitor: reward $\uparrow$, KL(new$\|$SFT) $< 0.3$, held-out QA loss drop $< 3$ pp
-\end{itemize}
-
-\subsection{Empirical Results}
-
-Table~\ref{tab:pipeline-results} summarizes the improvements from our refined pipeline:
-
-\begin{table}[ht]
-\centering
-\caption{Performance comparison across training stages (2024-25 ablations)}
-\label{tab:pipeline-results}
-\begin{tabular}{l|l|c|c}
-\toprule
-\textbf{Stage} & \textbf{Configuration} & \textbf{$\Delta$ Pass-Rate (SWE-Gym)} & \textbf{$\Delta$ General QA} \\
-\midrule
-Base $\rightarrow$ SFT (v1) & Full-rank LoRA, all layers & -15 pp & -4 pp \\
-Base $\rightarrow$ SFT (v2) & \textbf{r=8, late; KL + replay} & \textbf{+6 pp} & -1 pp \\
-SFT (v2) $\rightarrow$ RL (GRPO) & New r=8, late adapter & \textbf{+10 pp} & -3 pp \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Net improvement over original pipeline: approximately +19 percentage points on SWE-Gym with only minor regression on broad reasoning tasks.
-
-\subsection{Implementation Details}
-
-\textbf{LoRA Configuration (Hydra/YAML):}
-\begin{verbatim}
-lora_config:
-  r: 8
-  lora_alpha: 16                    # ~2×r
-  layers_pattern: "blocks.{}"
-  layers_to_transform: ${range:42,64}  # Qwen-32B: layers 42-63
-  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj",
-                   "gate_proj", "up_proj", "down_proj"]
-\end{verbatim}
-
-\textbf{Training Modifications:}
-\begin{itemize}
-    \item Replace standard \texttt{SFTTrainer} loss with CE + KL implementation
-    \item Maintain frozen base model for KL computation
-    \item Implement data mixing: 80\% task data, 20\% replay per batch
-    \item Use separate optimizers for each LoRA adapter stage
-\end{itemize}
-
-\textbf{Monitoring Metrics:}
-\begin{itemize}
-    \item Primary: SWE-Gym pass rate on held-out bugs
-    \item Secondary: KL divergence from base/SFT checkpoints
-    \item Sanity check: Performance on HumanEval and MBPP benchmarks
-    \item Memory: Peak GPU utilization should remain stable across stages
-\end{itemize}
-
-\subsection{Key Takeaways}
-
-The initial "lobotomy" effect arose from capacity-limited, teacher-forced SFT that overwrote core linguistic blocks. By constraining parameter updates (low-rank, late-layer), anchoring to the base distribution with KL regularization, and maintaining the original distribution through replay, we achieve stable task adaptation without catastrophic forgetting. These low-overhead modifications fix the fundamental training issues \textit{before} investing substantial compute in on-policy RL, and remain essential biases throughout the full training pipeline.
 
 \section{Reward Design}
 \label{sec:reward-design}
@@ -687,7 +531,7 @@ This NCCL-based approach represents a significant engineering achievement, enabl
 
 \subsection{Integrated System Architecture}
 
-The complete agent-in-the-loop RL system consists of several interconnected components operating in parallel:
+The complete "tool-mediated" RL system consists of several interconnected components operating in parallel:
 
 \begin{enumerate}
     \item \textbf{vLLM Inference Cluster:} Multi-GPU serving infrastructure with KV-cache optimization and real-time weight updates
@@ -753,7 +597,7 @@ Beyond in-domain performance, we evaluate generalization through:
 
 \begin{itemize}
     \item \textbf{Cross-dataset evaluation:} Testing on SWE-Bench-Verified after training on SWE-Gym
-    \item \textbf{Cross-language evaluation:} Applying Python-trained models to Java bugs
+    \item \textbf{Transfer to code generation:} Evaluating on HumanEval to assess whether debugging skills improve general programming capabilities
     \item \textbf{Temporal generalization:} Testing on bugs from time periods not covered in training
 \end{itemize}
 
@@ -778,4 +622,4 @@ All reported improvements are tested for statistical significance using:
     \item Effect size measurements (Cohen's d) to quantify practical significance
 \end{itemize}
 
-This comprehensive evaluation framework ensures that our conclusions about agent-in-the-loop RL are well-supported and reproducible.
+This comprehensive evaluation framework ensures that our conclusions about "tool-mediated" RL are well-supported and reproducible.

@@ -27,6 +27,8 @@ fc-cache -fv  # refresh fontconfig for XeLaTeX fonts
 - `setup/` - LaTeX configuration, title page, and KTH branding
 - `references.bib` - Bibliography (currently minimal, needs expansion)
 - `plotting/` - Python scripts to create the plots in this thesis by using the WandB API
+  - Uses `uv` for dependency management (run `uv sync` to install dependencies)
+  - Execute scripts with `uv run python script.py`
 
 
 Use `\todoinline{}` commands to mark sections needing development with instructive ideas for what should come next

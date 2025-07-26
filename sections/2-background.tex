@@ -1,6 +1,6 @@
 \chapter{Background and Related Work}
 
-This chapter provides the theoretical foundation for agent-in-the-loop reinforcement learning applied to automated code repair. We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
+This chapter provides the theoretical foundation for "tool-mediated" reinforcement learning applied to automated code repair. We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
 
 \section{Automated Code Repair with Language Models}
 
@@ -12,7 +12,7 @@ The transition to learning-based approaches began with Prophet~\cite{prophet2016
 
 The advent of large language models has transformed the landscape entirely. Modern systems leveraging models like Codex~\cite{codex2021}, CodeT5~\cite{codet5}, and more recently CodeLlama~\cite{codellama2023} and DeepSeek-Coder~\cite{deepseek2024} have achieved unprecedented performance on established benchmarks. However, even state-of-the-art models achieve only approximately 20\% success rates on realistic benchmarks like SWE-Bench~\cite{sweBench2024}, highlighting the substantial gap between current capabilities and human-level performance.
 
-Key evaluation datasets have evolved alongside these approaches. Defects4J~\cite{defects4j2014}, containing 835 real bugs from popular Java projects, established the standard for evaluating Java repair tools. CodeXGLUE~\cite{codexglue2021} provides a comprehensive multi-task benchmark including bug fixing across multiple languages. Most recently, SWE-Bench~\cite{sweBench2024} introduced repository-level tasks requiring understanding of entire codebases, representing a significant leap in evaluation complexity.
+Key evaluation datasets have evolved alongside these approaches. CodeXGLUE~\cite{codexglue2021} provides a comprehensive multi-task benchmark including bug fixing across multiple languages. Most recently, SWE-Bench~\cite{sweBench2024} introduced repository-level tasks requiring understanding of entire codebases, representing a significant leap in evaluation complexity.
 
 Current LLM-based approaches exhibit several fundamental limitations that constrain their effectiveness:
 
@@ -62,7 +62,7 @@ Sequence-to-sequence models, even when scaled to billions of parameters, struggl
 
 This mismatch manifests concretely in evaluation results. On SWE-Bench, even the most advanced models achieve less than 25\% success rates, while human developers solving the same tasks achieve over 90\% success rates when given appropriate time and tools. The gap highlights not just a quantitative difference in performance, but a qualitative difference in problem-solving approach.
 
-Addressing this mismatch requires moving beyond supervised learning on static datasets toward interactive learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for agent-in-the-loop reinforcement learning explored in this thesis.
+Addressing this mismatch requires moving beyond supervised learning on static datasets toward interactive learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for "tool-mediated" reinforcement learning explored in this thesis.
 
 \section{Reinforcement Learning for Language Models}
 
@@ -330,9 +330,6 @@ LoRA's benefits become particularly pronounced in RL settings where multiple mod
 
 \textbf{Policy-Reference Separation}: RL algorithms like PPO require keeping both current and reference policies. With LoRA, the reference policy can share the frozen base weights while only the adapter differs.
 
-\textbf{Parallel Training}: Multiple RL experiments can share base model weights while training independent adapters, maximizing resource utilization.
-
-\textbf{Rapid Iteration}: LoRA's small parameter count enables faster experimentation with different reward functions and training configurations.
 
 \subsection{Theoretical Considerations}
 
@@ -346,7 +343,7 @@ Recent research has examined LoRA's representational capacity and limitations:
 
 \subsection{Application to Code Repair}
 
-For agent-in-the-loop code repair training, LoRA offers specific advantages:
+For "tool-mediated" code repair training, LoRA offers specific advantages:
 
 \textbf{Environmental Diversity}: Different repositories and bug types may benefit from specialized adaptations. LoRA enables training multiple task-specific adapters efficiently.
 
@@ -354,7 +351,7 @@ For agent-in-the-loop code repair training, LoRA offers specific advantages:
 
 \textbf{Model Composition}: Multiple LoRA adapters can potentially be combined to handle complex bugs requiring diverse skill sets, though this remains an active research area.
 
-The combination of LoRA's efficiency with agent-in-the-loop RL creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
+The combination of LoRA's efficiency with "tool-mediated" RL creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
 
 \section{Tool-Calling in Large Language Models}
 
@@ -470,7 +467,7 @@ The nano-agent's minimalist design enables models to learn debugging strategies 
 \begin{itemize}
 \item \textbf{Maximum learning opportunity}: By providing minimal assistance, the model must develop fundamental programming skills through trial and error
 \item \textbf{Computational focus}: Simple tools enable scaling to thousands of training interactions where learning can emerge from volume rather than engineering
-\item \textbf{Generalization through simplicity}: Minimal assumptions about programming contexts should enable broader applicability across languages and frameworks
+\item \textbf{Generalization through simplicity}: Minimal assumptions about programming contexts should enable broader applicability across different Python projects and frameworks
 \item \textbf{Clear training signals}: Simple operations produce interpretable action sequences that facilitate reward computation and learning analysis
 \end{itemize}
 
@@ -599,11 +596,11 @@ The nano-agent's simplicity offers several advantages specifically for reinforce
 \textbf{Debugging and Analysis}: When training fails or produces unexpected results, the minimal tool set makes it easier to identify root causes and adjust training procedures accordingly.
 
 
-\section{Agent-in-the-Loop Training}
+\section{Online RL for LLMs}
 
 The integration of agent frameworks directly into model training represents a paradigm shift from traditional supervised learning approaches, enabling models to learn through active interaction rather than passive observation.
 
-Agent-in-the-loop training represents a fundamental reimagining of how language models acquire capabilities for complex, interactive tasks. Rather than learning from static demonstrations followed by inference-time tool integration, this paradigm embeds full agent capabilities—including environment interaction, tool usage, and iterative refinement—directly into the reinforcement learning training process.
+Online RL training represents a fundamental reimagining of how language models acquire capabilities for complex, interactive tasks. Rather than learning from static demonstrations followed by inference-time tool integration, this paradigm embeds full agent capabilities—including environment interaction, tool usage, and iterative refinement—directly into the reinforcement learning training process.
 
 \subsubsection{Paradigm Comparison}
 
@@ -617,19 +614,20 @@ Agent-in-the-loop training represents a fundamental reimagining of how language 
 
 This pipeline treats tool usage as an inference-time adaptation problem. Models must bridge the gap between their training distribution (static text) and deployment requirements (dynamic interaction) without explicit preparation.
 
-\textbf{Agent-in-the-Loop Training}:
+\textbf{Online RL for LLMs}:
 \begin{enumerate}
 \item Start with pre-trained model
 \item Embed model within agent framework
 \item Train through reinforcement learning while using tools
-\item Deploy with the same agent framework used in training
+\item Deploy with the same or similar agent frameworks used in training
 \end{enumerate}
+\todoinline{This is a recurring theme in the industry, Claude -> Claude Code, o3 -> codex, Gemini -> Gemini CLI, Qwen3 coder -> Qwen Coder, etc.}
 
 This approach ensures perfect alignment between training and deployment conditions. The model learns not just task solutions but optimal strategies for tool usage, exploration, and error recovery.
 
 \subsubsection{Technical Novelty and Challenges}
 
-While conceptually straightforward, implementing agent-in-the-loop training presents substantial technical challenges that have limited its adoption:
+While conceptually straightforward, implementing "tool-mediated" training presents substantial technical challenges that have limited its adoption:
 
 \textbf{Asynchronous Orchestration}: Traditional RL training assumes synchronous batch generation—all samples in a batch complete simultaneously. Agent interactions are inherently asynchronous, with different trajectories requiring varying numbers of steps and time to complete. Our implementation required developing custom orchestration layers that:
 \begin{itemize}
@@ -671,9 +669,9 @@ Our solution leverages aggressive batching, environment pooling, and hierarchica
 
 \subsubsection{Open-Source Implementation}
 
-Despite growing evidence that leading AI labs employ agent-in-the-loop training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
+Despite growing evidence that leading AI labs employ "tool-mediated" training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
 
-This work provides the first publicly available implementation of agent-in-the-loop RL training, including:
+This work provides the first publicly available implementation of "tool-mediated" RL training, including:
 \begin{itemize}
 \item Complete training infrastructure built on TRL and vLLM
 \item Integration modules for arbitrary OpenAI-compatible agents  
@@ -684,13 +682,13 @@ This work provides the first publicly available implementation of agent-in-the-l
 
 By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into interactive AI systems.
 
-The significance extends beyond code repair: agent-in-the-loop training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control. This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
+The significance extends beyond code repair: "tool-mediated" training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control. This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
 
 Current research in this area is primarily conducted by industry labs (OpenAI, Anthropic, Cognition Labs) with limited open-source replication, creating a significant knowledge gap in the academic community.
 
 \subsection{Reward Design for Code Repair}
 
-Effective reward design is crucial for agent-in-the-loop training, requiring careful balance between task-specific objectives and general coding principles.
+Effective reward design is crucial for "tool-mediated" training, requiring careful balance between task-specific objectives and general coding principles.
 
 \subsubsection{Reward Engineering for Interactive Code Repair}
 
@@ -805,15 +803,9 @@ This design captures the full complexity of real software development: understan
 
 Human annotators achieve 97\% success on SWE-Bench-Verified compared to 73\% on the original, confirming the removal of problematic instances while maintaining challenging, realistic tasks.
 
-\textbf{Multi-SWE-Bench (2024)}~\cite{multiSWEBench2024}: Extending beyond Python, this variant includes:
-\begin{itemize}
-\item Java: 482 instances from enterprise applications
-\item JavaScript/TypeScript: 567 instances from web frameworks
-\item Go: 312 instances from cloud infrastructure projects
-\item Rust: 189 instances from systems software
-\end{itemize}
+\textbf{SWE-Bench Extensions}: While extensions to other programming languages have been proposed, our work focuses exclusively on the original Python-based benchmark suite, which provides the most mature and extensively validated evaluation framework.
 
-This diversity enables evaluation of cross-language generalization and tests whether learned debugging skills transfer across syntactic boundaries.
+This diversity demonstrates the complexity and realism of the evaluation framework.
 
 \subsubsection{Task Format and Complexity}
 
@@ -875,101 +867,12 @@ Despite rapid progress in LLM capabilities, even state-of-the-art systems achiev
 
 \textbf{Long-tail distribution}: Many bugs involve rare edge cases or unique project-specific patterns absent from training data, testing true generalization rather than memorization.
 
-These challenges make SWE-Bench an ideal testbed for agent-in-the-loop training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
+These challenges make SWE-Bench an ideal testbed for "tool-mediated" training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
 
-\subsection{Cross-Language Generalization}
-
-Evaluating generalization across programming languages provides insights into whether learned debugging skills transfer beyond training environments.
-
-\subsubsection{Java Benchmarks for Cross-Language Evaluation}
-
-Evaluating code repair capabilities across programming languages provides crucial insights into the nature of learned debugging skills. Java benchmarks, with their distinct syntax and ecosystem, offer an ideal test of whether models develop fundamental reasoning capabilities or merely memorize language-specific patterns.
-
-\textbf{Defects4J v2.0}~\cite{defects4j2020}: The most established Java bug benchmark, containing 835 real bugs from 17 popular open-source projects:
-\begin{itemize}
-\item \textit{Project diversity}: Apache Commons, JFreeChart, Mockito, and others representing different domains
-\item \textit{Bug taxonomy}: Comprehensive categorization including logic errors, boundary conditions, and API misuse
-\item \textit{Test infrastructure}: Each bug includes failing tests that expose the defect and pass after repair
-\item \textit{Historical significance}: Enables comparison with a decade of automated repair research
-\end{itemize}
-
-Defects4J's bugs require understanding Java-specific constructs (interfaces, generics, exception handling) while solving problems that transcend language boundaries (algorithmic errors, state management, concurrency).
-
-\textbf{GitBug-Java}~\cite{gitbugJava2023}: A modern complement focusing on contemporary Java development:
-\begin{itemize}
-\item \textit{Recent bugs}: 199 issues from 2020-2023, reflecting modern Java features and frameworks
-\item \textit{Framework diversity}: Spring Boot, Android, microservices architectures
-\item \textit{Real-world complexity}: Multi-module projects with external dependencies
-\item \textit{Modern practices}: Bugs involving lambdas, streams, and reactive programming
-\end{itemize}
-
-GitBug-Java tests whether models can adapt to evolving language features and contemporary development patterns absent from training data.
-
-\subsubsection{Cross-Language Generalization}
-
-Cross-language evaluation tests whether our minimalist agent approach produces generalizable debugging capabilities:
-
-\textbf{Fundamental skill transfer}: Models should exhibit similar debugging strategies across languages:
-\begin{itemize}
-\item Systematic codebase exploration using basic tools (grep, find)
-\item Hypothesis formation through code reading and analysis
-\item Incremental fix development with testing
-\item Error interpretation and recovery strategies
-\end{itemize}
-
-These skills should transfer regardless of syntax differences between Python and Java.
-
-\textbf{Tool usage generalization}: The same Unix utilities work across languages:
-\begin{verbatim}
-# Python debugging
-$ grep -r "DataFrame.apply" --include="*.py"
-$ cat pandas/core/frame.py | grep -A 20 "def apply"
-
-# Java debugging  
-$ grep -r "Collections.sort" --include="*.java"
-$ cat src/main/java/Utils.java | grep -A 20 "public void sort"
-\end{verbatim}
-
-Models trained with basic tools should naturally adapt to different file extensions and naming conventions.
-
-\textbf{Reduced language bias}: Heavily engineered scaffolds often embed language-specific assumptions:
-\begin{itemize}
-\item Python-specific AST parsing tools
-\item Import resolution mechanisms
-\item Test framework integrations
-\end{itemize}
-
-The nano-agent's language-agnostic tools should facilitate better cross-language transfer.
-
-\subsubsection{Empirical Predictions}
-
-Based on our training approach, we predict:
-
-1. \textbf{Relative performance preservation}: Models showing strong Python debugging skills should maintain relative rankings on Java tasks, even with absolute performance drops.
-
-2. \textbf{Strategy transfer}: Successful debugging patterns (systematic search, incremental refinement) should appear in both languages with similar frequency.
-
-3. \textbf{Minimal scaffolding advantage}: The performance gap between minimalist and heavyweight scaffolds should narrow or reverse for cross-language tasks, as engineered features become liabilities.
-
-4. \textbf{Emergent adaptation}: Models should discover language-specific idioms through exploration rather than requiring pre-programmed knowledge.
-
-\subsubsection{Evaluation Methodology}
-
-Cross-language evaluation requires careful methodology to ensure fair comparison:
-
-\textbf{Environment parity}: Both Python and Java tasks execute in equivalent containerized environments with similar tool availability.
-
-\textbf{Normalized metrics}: Success rates are computed relative to language-specific baselines to account for inherent difficulty differences.
-
-\textbf{Qualitative analysis}: Beyond success rates, we analyze action sequences to identify transferred strategies and novel adaptations.
-
-\textbf{Ablation studies}: Comparing performance with and without language-specific hints tests the model's ability to independently recognize and adapt to language differences.
-
-This cross-language evaluation provides a strong test of whether agent-in-the-loop training produces genuinely general debugging capabilities.
 
 \section{Related Work}
 
-This section synthesizes prior research most directly relevant to our agent-in-the-loop approach, highlighting gaps that this thesis addresses.
+This section synthesizes prior research most directly relevant to our "tool-mediated" approach, highlighting gaps that this thesis addresses.
 
 This section synthesizes the most directly relevant prior work across three critical dimensions, highlighting the significant gaps our research addresses.
 
@@ -1014,7 +917,7 @@ The proliferation of coding agents has occurred almost entirely in the inference
 
 Our research addresses three critical gaps in the literature:
 
-\textbf{1. Open-source agent-in-the-loop training}: While rumors suggest industry labs train models interactively (OpenAI's o1, Anthropic's Claude), no public implementation exists. We provide:
+\textbf{1. Open-source "tool-mediated" training}: While rumors suggest industry labs train models interactively (OpenAI's o1, Anthropic's Claude), no public implementation exists. We provide:
 \begin{itemize}
 \item Complete infrastructure for agent-integrated RL
 \item Reproducible training pipelines
@@ -1026,11 +929,11 @@ Our research addresses three critical gaps in the literature:
 
 \textbf{3. Demonstrated learning improvements}: We show monotonic improvement through RL iterations, validating that interactive training produces measurable capability gains beyond static fine-tuning.
 
-These contributions fill a crucial gap between the theoretical promise of interactive learning and practical implementation for software engineering tasks. By open-sourcing our approach, we enable the broader research community to build upon agent-in-the-loop training, potentially transforming how we develop AI systems for programming assistance.
+These contributions fill a crucial gap between the theoretical promise of interactive learning and practical implementation for software engineering tasks. By open-sourcing our approach, we enable the broader research community to build upon "tool-mediated" training, potentially transforming how we develop AI systems for programming assistance.
 
 \section{Summary and Research Positioning}
 
-This chapter has established the theoretical and empirical foundations for agent-in-the-loop reinforcement learning applied to automated code repair. By examining the evolution from rule-based repair systems to modern LLM-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and interactive debugging, the absence of environmental feedback during learning, and the lack of systematic comparison between minimal and engineered scaffolding approaches.
+This chapter has established the theoretical and empirical foundations for "tool-mediated" reinforcement learning applied to automated code repair. By examining the evolution from rule-based repair systems to modern LLM-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and interactive debugging, the absence of environmental feedback during learning, and the lack of systematic comparison between minimal and engineered scaffolding approaches.
 
 Our review of reinforcement learning techniques, particularly the elegant simplification offered by GRPO, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees. The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
 
@@ -1038,12 +941,12 @@ The nano-agent architecture presents an alternative approach to agent design. By
 
 This thesis makes three fundamental contributions to the field:
 
-\textbf{First open-source agent-in-the-loop implementation}: We provide the research community with complete infrastructure for training language models through interactive environmental experience. This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary. Our implementation enables researchers to explore interactive learning across diverse domains beyond code repair.
+\textbf{First open-source "tool-mediated" implementation}: We provide the research community with complete infrastructure for training language models through interactive environmental experience. This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary. Our implementation enables researchers to explore interactive learning across diverse domains beyond code repair.
 
 \textbf{Minimalist agent approach}: We demonstrate that a simple agent design with basic tools can achieve strong performance when combined with reinforcement learning, showing that sophisticated debugging behaviors can emerge from minimal interfaces.
 
 \textbf{Bridge between research and practice}: By demonstrating that models can learn effective debugging strategies through reinforcement learning in realistic environments, we bridge the gap between academic research on program repair and practical tools used by developers. Our approach shows that the future of coding assistance lies not in ever-more-sophisticated prompt engineering, but in models that learn from experience.
 
-The implications extend beyond code repair. Our work demonstrates that effective debugging behaviors can emerge from simple agent designs when combined with reinforcement learning. This provides both the theoretical framework and practical tools to explore agent-in-the-loop training.
+The implications extend beyond code repair. Our work demonstrates that effective debugging behaviors can emerge from simple agent designs when combined with reinforcement learning. This provides both the theoretical framework and practical tools to explore "tool-mediated" training.
 
 As we proceed to describe our method in detail, keep in mind that our goal is not merely to improve performance metrics on benchmarks, but to demonstrate a fundamentally different training approach that enables models to learn from environmental interaction.

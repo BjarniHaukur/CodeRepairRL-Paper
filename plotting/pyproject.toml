@@ -1,0 +1,25 @@
+[project]
+name = "coderepairrl-plotting"
+version = "0.1.0"
+description = "Plotting scripts for CodeRepairRL thesis"
+requires-python = ">=3.8"
+dependencies = [
+    # Core data processing
+    "wandb>=0.16.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    
+    # Visualization
+    "matplotlib>=3.7.0",
+    "seaborn>=0.13.0",
+    
+    # Utilities
+    "tqdm>=4.65.0",         # Progress bars for data fetching
+    "beautifulsoup4>=4.12.0",  # HTML parsing for W&B table data
+    "requests>=2.31.0",     # HTTP requests for downloading tables
+    "plotly>=5.17.0",       # Interactive Sankey diagrams
+    "kaleido>=0.2.1",       # Static image export for plotly
+]
+
+[tool.uv]
+dev-dependencies = []

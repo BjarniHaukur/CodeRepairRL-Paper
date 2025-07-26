@@ -44,3 +44,5 @@ plotting/media/
 plotting/plots/media/
 
 __pycache__/
+
+*.pdf

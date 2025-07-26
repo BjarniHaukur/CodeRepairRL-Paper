@@ -1,14 +1,14 @@
 \chapter{Implementation and Experimental Work}
 \label{ch:work}
 
-This chapter describes the comprehensive implementation effort required to realize agent-in-the-loop reinforcement learning for automated code repair. We detail the engineering challenges, system integration work, and experimental validation that transformed theoretical concepts into a working research platform capable of training large-scale coding agents.
+This chapter describes the comprehensive implementation effort required to realize "tool-mediated" reinforcement learning for automated code repair. We detail the engineering challenges, system integration work, and experimental validation that transformed theoretical concepts into a working research platform capable of training large-scale coding agents.
 
 \section{System Architecture and Implementation}
 \label{sec:system-implementation}
 
 \subsection{Infrastructure Design Challenges}
 
-Implementing agent-in-the-loop RL for code repair presented several unique engineering challenges not addressed by existing frameworks. Traditional RL libraries assume simple observation-action spaces and stateless environments, while our system requires:
+Implementing "tool-mediated" RL for code repair presented several unique engineering challenges not addressed by existing frameworks. Traditional RL libraries assume simple observation-action spaces and stateless environments, while our system requires:
 
 \begin{itemize}
 \item \textbf{Persistent Environment State}: Agent sessions maintain complex file system states, command histories, and repository contexts across multiple interaction steps
@@ -19,7 +19,7 @@ Implementing agent-in-the-loop RL for code repair presented several unique engin
 
 \subsection{Core System Components}
 
-Our implementation comprises several interconnected subsystems, each addressing specific aspects of the agent-in-the-loop paradigm:
+Our implementation comprises several interconnected subsystems, each addressing specific aspects of the "tool-mediated" paradigm:
 
 \subsubsection{Agent Framework Integration}
 
@@ -175,15 +175,6 @@ Preparing SWE-Bench-Verified for evaluation required several processing steps:
 
 \textbf{Baseline Establishment}: Running baseline evaluations to establish performance floors and validate evaluation infrastructure.
 
-\subsubsection{Cross-Language Dataset Preparation}
-
-Extending evaluation to Java environments required additional infrastructure:
-
-\textbf{Java Environment Setup}: Automated setup of Java development environments with appropriate JDK versions, build tools, and dependencies.
-
-\textbf{Tool Adaptation}: Adapting the nano-agent's tool set for Java development, including appropriate search patterns and compilation commands.
-
-\textbf{Evaluation Metric Adaptation}: Adjusting evaluation metrics and reward functions for Java-specific debugging patterns and conventions.
 
 \section{Experimental Execution and Validation}
 \label{sec:experimental-execution}
@@ -235,7 +226,7 @@ Validating experimental results required multiple validation approaches:
 \section{Open Source Contributions}
 \label{sec:open-source}
 
-A key objective of this work was providing open-source implementations to democratize access to agent-in-the-loop RL techniques. Our contributions include:
+A key objective of this work was providing open-source implementations to democratize access to "tool-mediated" RL techniques. Our contributions include:
 
 \subsection{CodeRepairRL Framework}
 
@@ -286,7 +277,7 @@ This comprehensive open-source contribution represents a significant step toward
 \section{Lessons Learned and Engineering Insights}
 \label{sec:lessons-learned}
 
-The implementation process revealed several important insights about the practical challenges of agent-in-the-loop RL:
+The implementation process revealed several important insights about the practical challenges of "tool-mediated" RL:
 
 \subsection{Distributed Systems Challenges}
 
@@ -312,4 +303,4 @@ The implementation process revealed several important insights about the practic
 
 \textbf{Sample Efficiency Challenges}: Agent interactions are expensive compared to traditional RL environments, making sample efficiency critical for practical training. This constraint significantly influenced our algorithmic and infrastructure choices.
 
-These insights provide valuable guidance for future research in agent-in-the-loop training and highlight the substantial engineering effort required to make theoretical advances practical and reproducible.
+These insights provide valuable guidance for future research in "tool-mediated" training and highlight the substantial engineering effort required to make theoretical advances practical and reproducible.
