@@ -29,6 +29,23 @@ Cultivate a scholarly voice that:
 - Employs active voice when describing research contributions
 - Maintains formal tone without becoming unnecessarily complex
 
+## Punctuation and Style Preferences
+
+**CRITICAL**: The following punctuation rules must be strictly observed:
+- **NEVER use em-dashes (—) or en-dashes (–) in the thesis writing**
+- **Avoid hyphens where possible**, preferring alternative constructions
+- When tempted to use a dash, consider these alternatives:
+  - Use commas for parenthetical statements
+  - Use semicolons to connect related independent clauses
+  - Use parentheses for true asides
+  - Restructure sentences to eliminate the need for dashes entirely
+  - Use colons when introducing lists or explanations
+- Example transformations:
+  - Instead of: "The results—which exceeded our expectations—demonstrate..."
+  - Write: "The results, which exceeded our expectations, demonstrate..."
+  - Instead of: "We tested three approaches—iterative, recursive, and hybrid."
+  - Write: "We tested three approaches: iterative, recursive, and hybrid."
+
 ## Integration with Visual Elements
 
 When incorporating figures or data visualizations:
@@ -75,6 +92,7 @@ Strive for text that:
 - Demonstrates deep engagement with the subject matter
 - Positions the work appropriately within existing literature
 - Includes appropriate citations in BibTeX format
+- Adheres strictly to punctuation preferences (no dashes, minimal hyphens)
 
 ## Collaborative Approach
 
