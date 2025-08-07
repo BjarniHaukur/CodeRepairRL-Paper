@@ -1,7 +1,7 @@
 \chapter{Experimental Results and Analysis}
 \label{ch:results}
 
-This chapter presents comprehensive experimental results addressing our research questions about "tool-mediated" reinforcement learning for automated code repair. We demonstrate statistically significant improvements over baseline approaches and evaluate the generalization of learned debugging capabilities.
+This chapter presents comprehensive experimental results addressing our research questions about interactive reinforcement learning for automated code repair. We demonstrate statistically significant improvements over baseline approaches and evaluate the generalization of learned debugging capabilities.
 
 \section{Training Dynamics and Convergence}
 \label{sec:training-dynamics}
@@ -20,7 +20,7 @@ Training begins with near-zero success rates as the pre-trained model, despite i
 \item \textbf{Convergence Phase (2000+ episodes)}: Gradual refinement with occasional breakthrough improvements on specific bug categories
 \end{itemize}
 
-The learning curves demonstrate monotonic improvement throughout training, validating our hypothesis that "tool-mediated" RL can successfully enhance coding capabilities through environmental interaction.
+The learning curves demonstrate monotonic improvement throughout training, validating our hypothesis that interactive RL can successfully enhance coding capabilities through environmental interaction.
 
 \subsubsection{Training Stability}
 
@@ -38,12 +38,12 @@ Our training-inference duality architecture achieves significant computational e
 
 The NCCL-based weight synchronization enables near real-time policy updates with minimal overhead (< 200ms latency for LoRA adapter updates), contributing significantly to these efficiency gains.
 
-\section{Main Results: Tool-Mediated RL vs. Baselines}
+\section{Main Results: Interactive RL vs. Baselines}
 \label{sec:main-results}
 
 \subsection{SWE-Bench-Verified Performance}
 
-Table~\ref{tab:main-results} presents our primary experimental results on SWE-Bench-Verified, comparing "tool-mediated" RL training against multiple baseline approaches.
+Table~\ref{tab:main-results} presents our primary experimental results on SWE-Bench-Verified, comparing interactive RL training against multiple baseline approaches.
 
 \begin{table}[h]
 \centering
@@ -76,7 +76,7 @@ All improvements are statistically significant at p < 0.01 using McNemar's test 
 \item \textbf{Effect Size}: Cohen's d = 0.84 for 8B, 0.91 for 32B (large effect sizes)
 \end{itemize}
 
-These results provide strong evidence that "tool-mediated" RL produces substantial and statistically significant improvements over both pre-trained models and supervised fine-tuning approaches.
+These results provide strong evidence that interactive RL produces substantial and statistically significant improvements over both pre-trained models and supervised fine-tuning approaches.
 
 \subsubsection{Qualitative Improvement Analysis}
 
@@ -299,7 +299,7 @@ Our system demonstrates strong scalability characteristics:
 
 \subsection{Cost-Effectiveness Analysis}
 
-The computational costs of "tool-mediated" training compare favorably to alternative approaches:
+The computational costs of interactive training compare favorably to alternative approaches:
 
 \begin{itemize}
 \item \textbf{Training Cost}: Approximately \$2,400 for full 8B model training (including compute and infrastructure)
@@ -317,7 +317,7 @@ Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers}
 
-\textbf{RQ1 ("Tool-Mediated" RL Effectiveness)}: "Tool-mediated" RL produces statistically significant improvements (7-10 percentage points) over both pretrained models and supervised fine-tuning, validating the core hypothesis.
+\textbf{RQ1 (Interactive RL Effectiveness)}: Interactive RL produces statistically significant improvements (7-10 percentage points) over both pretrained models and supervised fine-tuning, validating the core hypothesis.
 
 \textbf{Generalization and Transfer}: Debugging skills learned through RL training demonstrate positive transfer to general code generation (4\% improvement on HumanEval), suggesting that the approach develops transferable problem-solving capabilities.
 
@@ -330,4 +330,4 @@ These results have several important implications for the field:
 \item \textbf{Future Potential}: Monotonic improvement throughout training suggests substantial room for further advancement through longer training and larger models
 \end{itemize}
 
-These findings establish "tool-mediated" reinforcement learning as a promising direction for advancing automated software engineering capabilities.
+These findings establish interactive reinforcement learning as a promising direction for advancing automated software engineering capabilities.

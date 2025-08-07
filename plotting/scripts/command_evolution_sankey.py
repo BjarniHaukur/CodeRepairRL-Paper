@@ -14,8 +14,8 @@ from wandb_utils import get_run, get_history, extract_shell_commands
 from plot_config import get_command_color, ENTITY, PROJECT, RUN_ID, get_output_filename
 from utils.table_parser import TableExtractor
 
-# Time steps for evolution
-T = 25 # Number of time steps - good tradeoff point
+# Time steps for evolution - now configurable
+DEFAULT_T = 25  # Default number of time steps
 
 # We'll build the states list dynamically based on actual command usage
 
@@ -246,7 +246,13 @@ def main():
     parser = argparse.ArgumentParser(description='Create Sankey diagrams for command evolution')
     parser.add_argument('--run-id', type=str, default=RUN_ID, 
                         help=f'WandB run ID (default: {RUN_ID})')
+    parser.add_argument('--T', type=int, default=DEFAULT_T,
+                        help=f'Time horizon (number of time steps, default: {DEFAULT_T})')
     args = parser.parse_args()
+    
+    # Set global T from command line argument
+    global T
+    T = args.T
     
     print("="*60)
     print("Proper Sankey Diagrams: Command Time Evolution")
@@ -292,7 +298,7 @@ def main():
         early_transitions,
         early_all_states,
         f"{run.name}: Early Training Command Evolution (First 20%)",
-        get_output_filename("early_training_sankey", args.run_id, plot_type="sankey")
+        get_output_filename(f"early_training_sankey_T{T}", args.run_id, plot_type="sankey")
     )
     
     # Late training Sankey  
@@ -301,7 +307,7 @@ def main():
         late_transitions,
         late_all_states,
         f"{run.name}: Late Training Command Evolution (Last 20%)",
-        get_output_filename("late_training_sankey", args.run_id, plot_type="sankey")
+        get_output_filename(f"late_training_sankey_T{T}", args.run_id, plot_type="sankey")
     )
     
     print(f"\n✅ Created proper time-evolution Sankey diagrams!")

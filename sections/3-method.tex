@@ -1,12 +1,12 @@
 \chapter{Method}
 \label{ch:method}
 
-This chapter presents our novel approach to training large language models for automated code repair through "tool-mediated" reinforcement learning. We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the RL training loop improves bug-fixing performance.
+This chapter presents our novel approach to training large language models for automated code repair through interactive reinforcement learning. We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the RL training loop improves bug-fixing performance.
 
-\section{Overview of "Tool-Mediated" Reinforcement Learning}
+\section{Overview of Interactive Reinforcement Learning}
 \label{sec:method-overview}
 
-Traditional approaches to training LLMs for code repair rely on supervised fine-tuning with static datasets of code-patch pairs. In contrast, our method pioneers "tool-mediated" reinforcement learning, where coding agents actively interact with real software repositories during training. This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
+Traditional approaches to training LLMs for code repair rely on supervised fine-tuning with static datasets of code-patch pairs. In contrast, our method pioneers interactive reinforcement learning, where coding agents actively interact with real software repositories during training. This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
 
 The core innovation lies in our integration of existing coding agent frameworks directly into the RL training pipeline. Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can:
 \begin{itemize}
@@ -18,12 +18,12 @@ The core innovation lies in our integration of existing coding agent frameworks 
 
 By implementing an OpenAI-compatible API server with asynchronous token streaming capabilities, we enable seamless integration between RL training and agent execution. This allows our Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
 
-Figure~\ref{fig:agent-loop-architecture} illustrates the complete "tool-mediated" training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation. This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
+Figure~\ref{fig:agent-loop-architecture} illustrates the complete training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation. This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
 
 \section{Formal Problem Formulation as a Markov Decision Process}
 \label{sec:mdp-formulation}
 
-To establish rigorous theoretical foundations, we formalize the "tool-mediated" code repair task as a Markov Decision Process (MDP). This formulation clarifies the relationship between natural language agent interactions and standard reinforcement learning components, enabling principled application of RL algorithms to conversational debugging tasks.
+To establish rigorous theoretical foundations, we formalize the interactive code repair task as a Markov Decision Process (MDP). This formulation clarifies the relationship between natural language agent interactions and standard reinforcement learning components, enabling principled application of RL algorithms to conversational debugging tasks.
 
 \subsection{MDP Definition}
 
@@ -146,7 +146,7 @@ SWE-Gym's containerized design makes it ideal for RL training, as agents can fre
 
 \textbf{Primary Evaluation:} SWE-Bench-Verified serves as our main evaluation benchmark, containing approximately 500 carefully validated Python bugs from popular open-source projects. These bugs are notably more challenging than the training set, often requiring multi-file modifications and deep understanding of project structure. This dataset tests whether our agent-trained models can generalize beyond their training distribution.
 
-\textbf{Generalization Testing:} To assess transfer of learned repair skills beyond the training domain, we evaluate on HumanEval, a standard code generation benchmark. This tests whether debugging strategies learned through "tool-mediated" RL improve general programming capabilities.
+\textbf{Generalization Testing:} To assess transfer of learned repair skills beyond the training domain, we evaluate on HumanEval, a standard code generation benchmark. This tests whether debugging strategies learned through interactive RL improve general programming capabilities.
 
 \subsection{Pretrained Model Selection: Qwen for Tool Calling Excellence}
 
@@ -241,7 +241,7 @@ In traditional RL, models alternate between:
     \item \textbf{Training phase}: Computing gradients and updating parameters offline
 \end{enumerate}
 
-Our "tool-mediated" system eliminates this separation. The GRPO process operates as a continuous cycle where:
+Our interactive system eliminates this separation. The GRPO process operates as a continuous cycle where:
 \begin{enumerate}
     \item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
     \item \textbf{Trajectory streaming}: Completed agent episodes stream to the training pipeline in real-time
@@ -266,7 +266,7 @@ This unified paradigm enables true online learning where the policy improves con
 
 \subsection{Group Relative Policy Optimization (GRPO)}
 
-We employ Group Relative Policy Optimization (GRPO) as our primary RL algorithm. GRPO offers several advantages for our "tool-mediated" setting:
+We employ Group Relative Policy Optimization (GRPO) as our primary RL algorithm. GRPO offers several advantages for our interactive setting:
 
 \begin{itemize}
     \item \textbf{No value model required:} Unlike traditional actor-critic methods, GRPO estimates advantages using relative performance within a batch, eliminating the need for a separate value network
@@ -360,7 +360,7 @@ These values were selected through preliminary experiments to ensure stable conv
 
 \subsection{Large-Scale Compute Management}
 
-Training and serving 8B to 32B parameter models for "tool-mediated" RL requires sophisticated compute optimization across the entire pipeline.
+Training and serving 8B to 32B parameter models for interactive RL requires sophisticated compute optimization across the entire pipeline.
 
 \subsubsection{Training Optimizations}
 
@@ -393,7 +393,7 @@ The combination of these optimizations enables training of state-of-the-art agen
     \item \textbf{Training speed:} Agent trajectory processing at near real-time rates
 \end{itemize}
 
-These innovations make large-scale "tool-mediated" RL practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
+These innovations make large-scale interactive RL practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
 
 
 \section{Reward Design}
@@ -531,7 +531,7 @@ This NCCL-based approach represents a significant engineering achievement, enabl
 
 \subsection{Integrated System Architecture}
 
-The complete "tool-mediated" RL system consists of several interconnected components operating in parallel:
+The complete interactive RL system consists of several interconnected components operating in parallel:
 
 \begin{enumerate}
     \item \textbf{vLLM Inference Cluster:} Multi-GPU serving infrastructure with KV-cache optimization and real-time weight updates
@@ -622,4 +622,4 @@ All reported improvements are tested for statistical significance using:
     \item Effect size measurements (Cohen's d) to quantify practical significance
 \end{itemize}
 
-This comprehensive evaluation framework ensures that our conclusions about "tool-mediated" RL are well-supported and reproducible.
+This comprehensive evaluation framework ensures that our conclusions about interactive RL are well-supported and reproducible.

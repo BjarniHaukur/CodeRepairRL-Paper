@@ -1,6 +1,6 @@
 \chapter{Background and Related Work}
 
-This chapter provides the theoretical foundation for "tool-mediated" reinforcement learning applied to automated code repair. We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
+This chapter provides the theoretical foundation for interactive reinforcement learning applied to automated code repair. We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
 
 \section{Automated Code Repair with Language Models}
 
@@ -62,7 +62,7 @@ Sequence-to-sequence models, even when scaled to billions of parameters, struggl
 
 This mismatch manifests concretely in evaluation results. On SWE-Bench, even the most advanced models achieve less than 25\% success rates, while human developers solving the same tasks achieve over 90\% success rates when given appropriate time and tools. The gap highlights not just a quantitative difference in performance, but a qualitative difference in problem-solving approach.
 
-Addressing this mismatch requires moving beyond supervised learning on static datasets toward interactive learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for "tool-mediated" reinforcement learning explored in this thesis.
+Addressing this mismatch requires moving beyond supervised learning on static datasets toward interactive learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for interactive reinforcement learning explored in this thesis.
 
 \section{Reinforcement Learning for Language Models}
 
@@ -343,7 +343,7 @@ Recent research has examined LoRA's representational capacity and limitations:
 
 \subsection{Application to Code Repair}
 
-For "tool-mediated" code repair training, LoRA offers specific advantages:
+For interactive code repair training, LoRA offers specific advantages:
 
 \textbf{Environmental Diversity}: Different repositories and bug types may benefit from specialized adaptations. LoRA enables training multiple task-specific adapters efficiently.
 
@@ -351,7 +351,7 @@ For "tool-mediated" code repair training, LoRA offers specific advantages:
 
 \textbf{Model Composition}: Multiple LoRA adapters can potentially be combined to handle complex bugs requiring diverse skill sets, though this remains an active research area.
 
-The combination of LoRA's efficiency with "tool-mediated" RL creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
+The combination of LoRA's efficiency with interactive RL creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
 
 \section{Tool-Calling in Large Language Models}
 
@@ -627,7 +627,7 @@ This approach ensures perfect alignment between training and deployment conditio
 
 \subsubsection{Technical Novelty and Challenges}
 
-While conceptually straightforward, implementing "tool-mediated" training presents substantial technical challenges that have limited its adoption:
+While conceptually straightforward, implementing interactive training presents substantial technical challenges that have limited its adoption:
 
 \textbf{Asynchronous Orchestration}: Traditional RL training assumes synchronous batch generation—all samples in a batch complete simultaneously. Agent interactions are inherently asynchronous, with different trajectories requiring varying numbers of steps and time to complete. Our implementation required developing custom orchestration layers that:
 \begin{itemize}
@@ -669,9 +669,9 @@ Our solution leverages aggressive batching, environment pooling, and hierarchica
 
 \subsubsection{Open-Source Implementation}
 
-Despite growing evidence that leading AI labs employ "tool-mediated" training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
+Despite growing evidence that leading AI labs employ interactive training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
 
-This work provides the first publicly available implementation of "tool-mediated" RL training, including:
+This work provides the first publicly available implementation of interactive RL training, including:
 \begin{itemize}
 \item Complete training infrastructure built on TRL and vLLM
 \item Integration modules for arbitrary OpenAI-compatible agents  
@@ -682,13 +682,13 @@ This work provides the first publicly available implementation of "tool-mediated
 
 By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into interactive AI systems.
 
-The significance extends beyond code repair: "tool-mediated" training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control. This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
+The significance extends beyond code repair: interactive training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control. This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
 
 Current research in this area is primarily conducted by industry labs (OpenAI, Anthropic, Cognition Labs) with limited open-source replication, creating a significant knowledge gap in the academic community.
 
 \subsection{Reward Design for Code Repair}
 
-Effective reward design is crucial for "tool-mediated" training, requiring careful balance between task-specific objectives and general coding principles.
+Effective reward design is crucial for interactive training, requiring careful balance between task-specific objectives and general coding principles.
 
 \subsubsection{Reward Engineering for Interactive Code Repair}
 
@@ -867,12 +867,12 @@ Despite rapid progress in LLM capabilities, even state-of-the-art systems achiev
 
 \textbf{Long-tail distribution}: Many bugs involve rare edge cases or unique project-specific patterns absent from training data, testing true generalization rather than memorization.
 
-These challenges make SWE-Bench an ideal testbed for "tool-mediated" training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
+These challenges make SWE-Bench an ideal testbed for interactive training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
 
 
 \section{Related Work}
 
-This section synthesizes prior research most directly relevant to our "tool-mediated" approach, highlighting gaps that this thesis addresses.
+This section synthesizes prior research most directly relevant to our interactive approach, highlighting gaps that this thesis addresses.
 
 This section synthesizes the most directly relevant prior work across three critical dimensions, highlighting the significant gaps our research addresses.
 
@@ -917,7 +917,7 @@ The proliferation of coding agents has occurred almost entirely in the inference
 
 Our research addresses three critical gaps in the literature:
 
-\textbf{1. Open-source "tool-mediated" training}: While rumors suggest industry labs train models interactively (OpenAI's o1, Anthropic's Claude), no public implementation exists. We provide:
+\textbf{1. Open-source interactive training}: While rumors suggest industry labs train models interactively (OpenAI's o1, Anthropic's Claude), no public implementation exists. We provide:
 \begin{itemize}
 \item Complete infrastructure for agent-integrated RL
 \item Reproducible training pipelines
@@ -929,11 +929,11 @@ Our research addresses three critical gaps in the literature:
 
 \textbf{3. Demonstrated learning improvements}: We show monotonic improvement through RL iterations, validating that interactive training produces measurable capability gains beyond static fine-tuning.
 
-These contributions fill a crucial gap between the theoretical promise of interactive learning and practical implementation for software engineering tasks. By open-sourcing our approach, we enable the broader research community to build upon "tool-mediated" training, potentially transforming how we develop AI systems for programming assistance.
+These contributions fill a crucial gap between the theoretical promise of interactive learning and practical implementation for software engineering tasks. By open-sourcing our approach, we enable the broader research community to build upon interactive training, potentially transforming how we develop AI systems for programming assistance.
 
 \section{Summary and Research Positioning}
 
-This chapter has established the theoretical and empirical foundations for "tool-mediated" reinforcement learning applied to automated code repair. By examining the evolution from rule-based repair systems to modern LLM-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and interactive debugging, the absence of environmental feedback during learning, and the lack of systematic comparison between minimal and engineered scaffolding approaches.
+This chapter has established the theoretical and empirical foundations for interactive reinforcement learning applied to automated code repair. By examining the evolution from rule-based repair systems to modern LLM-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and interactive debugging, the absence of environmental feedback during learning, and the lack of systematic comparison between minimal and engineered scaffolding approaches.
 
 Our review of reinforcement learning techniques, particularly the elegant simplification offered by GRPO, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees. The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
 
@@ -941,12 +941,12 @@ The nano-agent architecture presents an alternative approach to agent design. By
 
 This thesis makes three fundamental contributions to the field:
 
-\textbf{First open-source "tool-mediated" implementation}: We provide the research community with complete infrastructure for training language models through interactive environmental experience. This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary. Our implementation enables researchers to explore interactive learning across diverse domains beyond code repair.
+\textbf{First open-source interactive implementation}: We provide the research community with complete infrastructure for training language models through interactive environmental experience. This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary. Our implementation enables researchers to explore interactive learning across diverse domains beyond code repair.
 
 \textbf{Minimalist agent approach}: We demonstrate that a simple agent design with basic tools can achieve strong performance when combined with reinforcement learning, showing that sophisticated debugging behaviors can emerge from minimal interfaces.
 
 \textbf{Bridge between research and practice}: By demonstrating that models can learn effective debugging strategies through reinforcement learning in realistic environments, we bridge the gap between academic research on program repair and practical tools used by developers. Our approach shows that the future of coding assistance lies not in ever-more-sophisticated prompt engineering, but in models that learn from experience.
 
-The implications extend beyond code repair. Our work demonstrates that effective debugging behaviors can emerge from simple agent designs when combined with reinforcement learning. This provides both the theoretical framework and practical tools to explore "tool-mediated" training.
+The implications extend beyond code repair. Our work demonstrates that effective debugging behaviors can emerge from simple agent designs when combined with reinforcement learning. This provides both the theoretical framework and practical tools to explore interactive training.
 
 As we proceed to describe our method in detail, keep in mind that our goal is not merely to improve performance metrics on benchmarks, but to demonstrate a fundamentally different training approach that enables models to learn from environmental interaction.

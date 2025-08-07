@@ -1,7 +1,7 @@
 \chapter{Conclusions and Future Work}
 \label{ch:conclusions}
 
-This thesis presents the first comprehensive open-source implementation of "tool-mediated" reinforcement learning for automated code repair, demonstrating significant advances in both theoretical understanding and practical capabilities. Through rigorous experimental validation, we establish this paradigm as a viable and superior alternative to traditional supervised learning approaches for training interactive programming agents.
+This thesis presents the first comprehensive open-source implementation of interactive reinforcement learning for automated code repair, demonstrating significant advances in both theoretical understanding and practical capabilities. Through rigorous experimental validation, we establish this paradigm as a viable and superior alternative to traditional supervised learning approaches for training interactive programming agents.
 
 \section{Summary of Contributions}
 \label{sec:summary-contributions}
@@ -29,16 +29,16 @@ Our work makes several significant contributions to the field of automated softw
 
 \textbf{Scalable Distributed Training}: Our implementation successfully scales agent training to 32B parameter models across 8 GPUs while maintaining >90\% memory utilization and linear throughput scaling, demonstrating the practical feasibility of large-scale agent training.
 
-\textbf{Open-Source Democratization}: Complete open-source release of training infrastructure, agent implementations, and evaluation protocols reduces barriers to academic research and enables reproducible investigation of "tool-mediated" techniques previously available only to industry laboratories.
+\textbf{Open-Source Democratization}: Complete open-source release of training infrastructure, agent implementations, and evaluation protocols reduces barriers to academic research and enables reproducible investigation of interactive techniques previously available only to industry laboratories.
 
 \section{Research Question Answers}
 \label{sec:research-answers}
 
 Our experimental evaluation provides definitive answers to the research question motivating this investigation:
 
-\subsection{RQ1: Effectiveness of "Tool-Mediated" RL}
+\subsection{RQ1: Effectiveness of Interactive RL}
 
-\textbf{Finding}: "Tool-mediated" reinforcement learning produces substantial and statistically significant improvements over both pretrained models and supervised fine-tuning approaches.
+\textbf{Finding}: Interactive reinforcement learning produces substantial and statistically significant improvements over both pretrained models and supervised fine-tuning approaches.
 
 \textbf{Evidence}: Our best models achieve 31.8\% success rates on SWE-Bench-Verified compared to 22.2\% for supervised fine-tuning on identical data, representing a 43\% relative improvement. All improvements are statistically significant at p < 0.01 with large effect sizes (Cohen's d > 0.8).
 
@@ -46,7 +46,7 @@ Our experimental evaluation provides definitive answers to the research question
 
 \subsection{Generalization and Transfer}
 
-\textbf{Finding}: Debugging capabilities learned through "tool-mediated" RL demonstrate positive transfer across multiple dimensions, indicating acquisition of fundamental rather than narrow skills.
+\textbf{Finding}: Debugging capabilities learned through interactive RL demonstrate positive transfer across multiple dimensions, indicating acquisition of fundamental rather than narrow skills.
 
 \textbf{Evidence}: General coding capabilities improve by 4\% on HumanEval despite no direct training on code generation tasks, demonstrating that debugging-specific training enhances broader programming competencies.
 
@@ -57,7 +57,7 @@ Our experimental evaluation provides definitive answers to the research question
 
 \subsection{Paradigm Shift in AI Training}
 
-Our results support a fundamental shift from static dataset-based training to interactive environment-based learning for complex reasoning tasks. The success of "tool-mediated" RL suggests that many AI capabilities may be better acquired through direct interaction rather than passive observation, particularly for domains requiring multi-step reasoning and strategic planning.
+Our results support a fundamental shift from static dataset-based training to interactive environment-based learning for complex reasoning tasks. The success of interactive RL suggests that many AI capabilities may be better acquired through direct interaction rather than passive observation, particularly for domains requiring multi-step reasoning and strategic planning.
 
 \subsection{Software Engineering Automation}
 
@@ -65,7 +65,7 @@ The demonstration of monotonic improvement through RL training indicates substan
 
 \subsection{Open Science and Democratization}
 
-By providing complete open-source implementations, we enable broader academic investigation of "tool-mediated" techniques and reduce dependence on proprietary industry research. This democratization could accelerate progress by enabling distributed experimentation and community-driven development of advanced agent training methods.
+By providing complete open-source implementations, we enable broader academic investigation of interactive techniques and reduce dependence on proprietary industry research. This democratization could accelerate progress by enabling distributed experimentation and community-driven development of advanced agent training methods.
 
 \subsection{Validation of Fundamental AI Principles}
 
@@ -79,7 +79,7 @@ Our evaluation focuses exclusively on Python debugging tasks. Comprehensive eval
 
 \subsection{Computational Resource Requirements}
 
-Despite optimizations, "tool-mediated" training remains computationally intensive compared to traditional supervised learning. Training 8B models requires 4×A100 GPUs, while 32B models need 8×A100 GPUs, limiting accessibility for researchers with modest computational budgets. The complexity of distributed training infrastructure also presents implementation barriers for smaller research groups.
+Despite optimizations, interactive training remains computationally intensive compared to traditional supervised learning. Training 8B models requires 4×A100 GPUs, while 32B models need 8×A100 GPUs, limiting accessibility for researchers with modest computational budgets. The complexity of distributed training infrastructure also presents implementation barriers for smaller research groups.
 
 \subsection{Reward Function Simplifications}
 
@@ -114,7 +114,7 @@ Systematic evaluation across different programming contexts and application doma
 
 \subsubsection{Model Architecture Exploration}
 
-Investigation of "tool-mediated" training across different model architectures could reveal optimal designs for interactive programming tasks, including architecture variants like mixture-of-experts models, systematic study of performance scaling effects, multimodal integration with visual debugging information, and external memory systems for long-term context.
+Investigation of interactive training across different model architectures could reveal optimal designs for interactive programming tasks, including architecture variants like mixture-of-experts models, systematic study of performance scaling effects, multimodal integration with visual debugging information, and external memory systems for long-term context.
 
 \subsection{Advanced Agent Architectures}
 
@@ -150,10 +150,10 @@ Automated code generation and debugging could accelerate scientific discovery by
 \section{Final Reflections}
 \label{sec:final-reflections}
 
-This research demonstrates that the convergence of large language models and reinforcement learning opens unprecedented opportunities for developing sophisticated AI systems capable of complex reasoning and interaction. The success of "tool-mediated" training validates broader principles about learning through environmental interaction and suggests promising directions for advancing AI capabilities across domains requiring multi-step reasoning and strategic planning.
+This research demonstrates that the convergence of large language models and reinforcement learning opens unprecedented opportunities for developing sophisticated AI systems capable of complex reasoning and interaction. The success of interactive training validates broader principles about learning through environmental interaction and suggests promising directions for advancing AI capabilities across domains requiring multi-step reasoning and strategic planning.
 
 Perhaps most importantly, our work demonstrates that advanced AI capabilities need not remain confined to well-resourced industry laboratories. Through careful engineering and open-source development, academic researchers can achieve state-of-the-art results and contribute meaningfully to advancing the field. This democratization of AI research capabilities may prove as significant as the technical advances themselves.
 
-The journey from passive pattern matching to active environmental interaction represents a fundamental evolution in how we train AI systems. While significant challenges remain, the clear evidence of improvement through "tool-mediated" learning suggests that this paradigm will play an increasingly important role in developing AI systems capable of genuine reasoning and problem-solving.
+The journey from passive pattern matching to active environmental interaction represents a fundamental evolution in how we train AI systems. While significant challenges remain, the clear evidence of improvement through interactive learning suggests that this paradigm will play an increasingly important role in developing AI systems capable of genuine reasoning and problem-solving.
 
 As we stand at the threshold of increasingly capable AI systems, the principles validated in this work—learning through interaction, the power of computation over engineering, and the importance of open scientific collaboration—will likely guide the development of even more sophisticated AI capabilities. The future of AI may well be shaped by agents that learn through doing, just as humans do.

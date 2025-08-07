@@ -5,7 +5,7 @@
 { \setstretch{1.1}
 	\subsection*{Authors}
 	Bjarni Haukur Bjarnason <bhbj@kth.se>\\
-	Information and Communication Technology\\
+	Electrical Engineering and Computer Science\\
 	KTH Royal Institute of Technology
 	
 	\subsection*{Place for Project}
@@ -46,16 +46,16 @@ This thesis presents \textit{one of the first fully open training recipes} for c
 We implement this through a two-stage pipeline combining supervised fine-tuning with Group Relative Policy Optimization (GRPO), where models actively debug real repositories during training. The key technical innovation lies in our training-inference duality: a custom integration layer enables simultaneous model training and serving, with NCCL facilitating live weight synchronization across distributed GPUs [expand: specific throughput numbers, latency implications]. Our ``nano-agent'' architecture provides essential bash and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning.
 
 % Evidence / Secondary Contribution
-Experiments on [X training instances, Y compute hours] demonstrate that "tool-mediated" training yields models exhibiting sophisticated debugging behaviors: systematic hypothesis testing, incremental code modification, and test-guided exploration [specific examples needed]. On SWE-Bench-Verified, our approach achieves [X\% resolve rate], representing [Y\% improvement over baselines]. Secondary findings include positive transfer to general code generation (4\% improvement on HumanEval), emergent systematic debugging strategies, and significant computational efficiency gains through training-inference duality.
+Experiments on [X training instances, Y compute hours] demonstrate that interactive training yields models exhibiting sophisticated debugging behaviors: systematic hypothesis testing, incremental code modification, and test-guided exploration [specific examples needed]. On SWE-Bench-Verified, our approach achieves [X\% resolve rate], representing [Y\% improvement over baselines]. Secondary findings include positive transfer to general code generation (4\% improvement on HumanEval), emergent systematic debugging strategies, and significant computational efficiency gains through training-inference duality.
 
 % Weaker Result
 [Preliminary results on cross-dataset generalization / specific failure modes / computational cost analysis - expand based on actual findings]
 
 % Narrow Impact
-For automated program repair, this work establishes that "tool-mediated" training is critical for developing effective debugging capabilities. Our results suggest [specific implications for future code repair systems, importance of interactive training].
+For automated program repair, this work establishes that interactive training is critical for developing effective debugging capabilities. Our results suggest [specific implications for future code repair systems, importance of interactive training].
 
 % Broad Impact
-Beyond code repair, "tool-mediated" RL offers a general framework for training AI systems on interactive tasks where static datasets poorly capture deployment complexity. By demonstrating that models can learn rich environmental interactions through reinforcement learning—rather than requiring hand-crafted reasoning chains—this work points toward [future possibilities: self-improving coding assistants, autonomous software development, general interactive AI training].
+Beyond code repair, interactive RL offers a general framework for training AI systems on interactive tasks where static datasets poorly capture deployment complexity. By demonstrating that models can learn rich environmental interactions through reinforcement learning—rather than requiring hand-crafted reasoning chains—this work points toward [future possibilities: self-improving coding assistants, autonomous software development, general interactive AI training].
 
 
 
