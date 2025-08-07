@@ -271,6 +271,58 @@ For code repair specifically, we adopt a multi-pronged approach:
 
 Understanding and mitigating variance collapse remains an active area of research, with implications extending beyond code repair to all applications of RL-based language model training. The trade-off between exploitation of successful strategies and exploration of alternatives represents a fundamental challenge in making these systems both effective and robust.
 
+\subsection{Group Sequence Policy Optimization (GSPO)}
+
+While \ac{GRPO} offers computational efficiency over traditional PPO, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool-use scenarios~\cite{zheng2025groupsequencepolicyoptimization}. \ac{GSPO} addresses these fundamental limitations through a theoretically grounded reformulation of the importance sampling mechanism.
+
+\subsubsection{The Stability Problem in GRPO}
+
+The core instability in GRPO stems from its token-level importance ratios. When training models for multi-turn interactions with coding agents, this becomes especially problematic due to numerical discrepancies between logits generated during fast inference (using engines like vLLM) and those computed during training. These discrepancies compound across long sequences, creating high-variance training noise that progressively destabilizes the model.
+
+For our specific use case—training models to use tools iteratively across multiple turns—this instability manifests as:
+\begin{itemize}
+\item Catastrophic forgetting of tool-use patterns mid-training
+\item Divergence between inference and training behavior
+\item Irreversible model collapse when sequences exceed typical lengths
+\end{itemize}
+
+\subsubsection{Sequence-Level Importance Sampling}
+
+GSPO's key innovation lies in defining importance ratios at the sequence level rather than token level. For a response $y$ to query $x$, the sequence-level importance ratio is:
+\begin{equation}
+w(y|x; \theta) = \frac{\pi_\theta(y|x)}{\pi_{\theta_{old}}(y|x)} = \prod_{t=1}^{|y|} \frac{\pi_\theta(y_t|x, y_{<t})}{\pi_{\theta_{old}}(y_t|x, y_{<t})}
+\end{equation}
+
+This aligns with the fundamental principle of importance sampling and provides more stable gradient estimates, particularly crucial when responses involve multiple tool invocations with complex dependencies.
+
+\subsubsection{The GSPO Objective}
+
+GSPO optimizes the following objective:
+\begin{equation}
+J_{GSPO}(\theta) = \mathbb{E}_{x \sim D, \{y_i\}_{i=1}^G \sim \pi_{\theta_{old}}(\cdot|x)} \left[ \frac{1}{G} \sum_{i=1}^G \min\left( w(y_i|x; \theta) A_i, \text{clip}(w(y_i|x; \theta), 1-\epsilon, 1+\epsilon) A_i \right) \right]
+\end{equation}
+
+where advantages $A_i$ are computed as normalized rewards across the group:
+\begin{equation}
+A_i = \frac{r(x, y_i) - \mu_r}{\sigma_r}
+\end{equation}
+
+The critical difference is that clipping, rewarding, and optimization all operate at the sequence level, maintaining consistency throughout the learning process.
+
+\subsubsection{Advantages for Multi-Turn Tool Use}
+
+For our coding agent training scenario, GSPO provides several crucial benefits:
+
+\textbf{Numerical Stability}: Sequence-level operations are more robust to the logit discrepancies between vLLM inference and training computation, preventing the accumulation of numerical errors that plague token-level methods.
+
+\textbf{Coherent Tool Sequences}: By treating entire tool-use sequences as atomic units, GSPO better preserves the logical flow of multi-step debugging processes, avoiding the fragmentation that can occur with token-level optimization.
+
+\textbf{Simplified Infrastructure}: GSPO's design eliminates several complex stabilization strategies required by GRPO, reducing the engineering overhead of our training pipeline.
+
+\textbf{MoE Compatibility}: The Qwen team demonstrated that GSPO inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.
+
+Empirical results from the Qwen3 models show that GSPO not only stabilizes training but also achieves superior final performance compared to GRPO, validating its theoretical advantages in practice. For our work, adopting GSPO represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
+
 \section{Low-Rank Adaptation (LoRA)}
 
 Parameter-efficient fine-tuning has become essential for adapting large language models to specific tasks without the computational overhead of full fine-tuning. Low-Rank Adaptation (LoRA) represents one of the most successful approaches in this domain.
