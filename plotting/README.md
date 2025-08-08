@@ -49,7 +49,7 @@ plot_loss_curves(
 ### Available Plots
 
 1. **Loss Curves** (`loss_curves.py`)
-   - Compares training loss between nano-agent and heavyweight scaffolding
+   - Compares training loss between Nano agent and heavyweight scaffolding
    - Shows mean and standard deviation across seeds
    - Outputs: `figures/plots/loss_curves.png`
 

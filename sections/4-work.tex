@@ -25,7 +25,7 @@ Our implementation comprises several interconnected subsystems, each addressing 
 
 \subsubsection{Agent Framework Integration}
 
-\textbf{OpenAI API Compatibility}: The nano-agent originally designed for commercial LLM APIs was adapted to work with our vLLM serving infrastructure through a compatibility layer that translates between API formats while preserving all agent capabilities.
+\textbf{OpenAI API Compatibility}: The Nano agent originally designed for commercial LLM APIs was adapted to work with our vLLM serving infrastructure through a compatibility layer that translates between API formats while preserving all agent capabilities.
 
 \textbf{Trajectory Serialization}: Agent interactions produce complex nested data structures (commands, outputs, file states, error messages) that must be serialized into formats suitable for RL training.
 Our serialization protocol preserves all interaction details while maintaining computational efficiency.
@@ -246,9 +246,9 @@ The complete training framework has been released as open source, including:
 	\item Complete evaluation and benchmarking suites
 \end{itemize}
 
-\subsection{Nano-Agent Implementation}
+\subsection{Nano Agent Implementation}
 
-The nano-agent framework is provided as a standalone library that can be integrated with other training systems or used for inference-only applications.
+The Nano agent framework is provided as a standalone library that can be integrated with other training systems or used for inference-only applications.
 Key features include:
 
 \begin{itemize}

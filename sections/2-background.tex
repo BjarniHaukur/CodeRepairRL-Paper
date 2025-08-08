@@ -550,14 +550,14 @@ This enables:
 
 This training-time integration represents the core innovation of our approach, potentially bridging the gap between current agent capabilities and human-level performance on complex software engineering tasks.
 
-\subsection{The Nano-Agent: A Minimalist Approach}
+\subsection{The Nano Agent: A Minimalist Approach}
 
-The nano-agent represents a minimalist approach to coding agent design, providing only the most essential tools needed for code interaction.
+The Nano agent represents a minimalist approach to coding agent design, providing only the most essential tools needed for code interaction.
 This design philosophy allows models to develop their own debugging strategies through reinforcement learning rather than relying on pre-engineered solutions.
 
 \subsubsection{Design Philosophy}
 
-The nano-agent's minimalist design enables models to learn debugging strategies from experience through:
+The Nano agent's minimalist design enables models to learn debugging strategies from experience through:
 
 \begin{itemize}
 	\item \textbf{Maximum learning opportunity}: By providing minimal assistance, the model must develop fundamental programming skills through trial and error
@@ -568,7 +568,7 @@ The nano-agent's minimalist design enables models to learn debugging strategies 
 
 \subsubsection{Tool Interface}
 
-The nano-agent provides exactly two primary tools for interacting with codebases:
+The Nano agent provides exactly two primary tools for interacting with codebases:
 
 \textbf{Shell Command Execution} (\texttt{shell(cmd)}): This tool allows the agent to execute terminal commands within a restricted bash environment (rbash).
 Available commands include standard Unix utilities for navigation and inspection:
@@ -589,7 +589,7 @@ Available commands include standard Unix utilities for navigation and inspection
 
 \subsubsection{Architectural Elegance: Sidestepping the Diff Generation Problem}
 
-A critical design decision in the nano-agent architecture demonstrates how thoughtful tool design can eliminate entire classes of errors.
+A critical design decision in the Nano agent architecture demonstrates how thoughtful tool design can eliminate entire classes of errors.
 Generating valid unified diffs represents one of the most challenging output formatting tasks for language models.
 The unified diff format requires:
 
@@ -619,7 +619,7 @@ This format demands precise coordination of:
 Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers, incorrect context, or formatting errors that prevent patch application.
 Studies show that up to 40\% of LLM-generated diffs fail to apply due to formatting issues alone~\cite{diffGeneration2024}.
 
-The nano-agent completely sidesteps this challenge through an elegant architectural choice.
+The Nano agent completely sidesteps this challenge through an elegant architectural choice.
 Instead of requiring diff generation, it provides a simple \texttt{apply\_patch} interface:
 
 \begin{verbatim}
@@ -650,12 +650,12 @@ This separation of concerns yields multiple benefits:
 \textbf{Improved success rates}: Empirical testing shows this approach reduces tool-usage errors by over 60\% compared to systems requiring diff generation.
 
 This architectural decision exemplifies a broader principle in agent design: rather than training models to overcome complex formatting requirements, we can often redesign the interface to be more naturally suited to language model capabilities.
-The nano-agent's apply\_patch mechanism demonstrates how thoughtful tool design can dramatically simplify the learning problem while maintaining full functionality.
+The Nano agent's apply\_patch mechanism demonstrates how thoughtful tool design can dramatically simplify the learning problem while maintaining full functionality.
 
 \subsubsection{Safety and Isolation}
 
 Security is paramount when allowing language models to execute arbitrary commands.
-The nano-agent employs several safety mechanisms:
+The Nano agent employs several safety mechanisms:
 
 \textbf{Restricted Bash (rbash)}: All shell commands execute within a restricted bash environment that prevents:
 \begin{itemize}
@@ -676,7 +676,7 @@ The nano-agent employs several safety mechanisms:
 
 \subsubsection{Learning Through Constraints}
 
-By constraining the available tools to only the most fundamental operations, the nano-agent creates an environment where sophisticated behaviors must emerge from learning rather than engineering.
+By constraining the available tools to only the most fundamental operations, the Nano agent creates an environment where sophisticated behaviors must emerge from learning rather than engineering.
 This approach tests whether language models can develop robust debugging skills when forced to work with basic primitives:
 
 \textbf{Self-Directed Exploration}: Models must learn to navigate unfamiliar codebases using standard Unix commands, developing systematic approaches to understanding project structure.
@@ -689,7 +689,7 @@ This approach tests whether language models can develop robust debugging skills 
 
 \subsubsection{Advantages for RL Training}
 
-The nano-agent's simplicity offers several advantages specifically for reinforcement learning applications:
+The Nano agent's simplicity offers several advantages specifically for reinforcement learning applications:
 
 \textbf{Complete Action Logging}: Every agent interaction produces clear, interpretable logs that can be analyzed to understand learning dynamics and failure modes.
 There are no hidden internal operations or black-box processing steps.
@@ -1056,7 +1056,7 @@ We provide:
 \end{itemize}
 
 \textbf{2.
-	Minimalist agent design}: Our nano-agent demonstrates that effective debugging behaviors can emerge from simple tools combined with reinforcement learning.
+	Minimalist agent design}: Our Nano agent demonstrates that effective debugging behaviors can emerge from simple tools combined with reinforcement learning.
 
 \textbf{3.
 	Demonstrated learning improvements}: We show monotonic improvement through RL iterations, validating that interactive training produces measurable capability gains beyond static fine-tuning.
@@ -1072,7 +1072,7 @@ By examining the evolution from rule-based repair systems to modern LLM-based ap
 Our review of reinforcement learning techniques, particularly the elegant simplification offered by GRPO, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees.
 The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
 
-The nano-agent architecture presents an alternative approach to agent design.
+The Nano agent architecture presents an alternative approach to agent design.
 By providing only essential tools and relying on learning, we demonstrate that effective debugging capabilities can emerge from simple interfaces.
 
 This thesis makes three fundamental contributions to the field:

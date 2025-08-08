@@ -10,7 +10,7 @@ We demonstrate statistically significant improvements over baseline approaches a
 \subsection{Learning Curve Analysis}
 
 Our GRPO training demonstrates clear and consistent learning dynamics across multiple experimental runs.
-Figure~\ref{fig:training-curves} shows the evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the nano-agent.
+Figure~\ref{fig:training-curves} shows the evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the Nano agent.
 
 \subsubsection{Reward Progression}
 
@@ -37,18 +37,17 @@ Our training-inference duality architecture achieves significant computational e
 
 \begin{itemize}
 	\item \textbf{Wall-clock Training Time}: 60\% reduction compared to traditional collect-then-train RL approaches
-	\item \textbf{GPU Utilization}: >90\% utilization across both training and inference hardware
-	\item \textbf{Sample Efficiency}: 40\% improvement in episodes required to reach target performance levels
-\end{itemize}
+	\item \textbf{\ac{GPU}
+		      Utilization}: >90\% utilization across both training and inference hardware \item \textbf{Sample Efficiency}: 40\% improvement in episodes required to reach target performance levels \end{itemize}
 
-The NCCL-based weight synchronization enables near real-time policy updates with minimal overhead (< 200ms latency for LoRA adapter updates), contributing significantly to these efficiency gains.
+The \ac{NCCL}-based weight synchronization enables near real-time policy updates with minimal overhead (< 200ms latency for \ac{LoRA} adapter updates), contributing significantly to these efficiency gains.
 
 \section{Main Results: Interactive RL vs.
   Baselines} \label{sec:main-results}
 
 \subsection{SWE-Bench-Verified Performance}
 
-Table~\ref{tab:main-results} presents our primary experimental results on SWE-Bench-Verified, comparing interactive RL training against multiple baseline approaches.
+Table~\ref{tab:main-results} presents our primary experimental results on \ac{SWE-Bench-Verified}, comparing interactive \ac{RL} training against multiple baseline approaches.
 
 \todoinline{Add table here}
 
@@ -57,12 +56,12 @@ Table~\ref{tab:main-results} presents our primary experimental results on SWE-Be
 All improvements are statistically significant at p < 0.01 using McNemar's test for paired comparisons:
 
 \begin{itemize}
-	\item \textbf{8B Model}: RL training improves success rate by 7.8 percentage points over SFT (95\% CI: [5.2, 10.4])
-	\item \textbf{32B Model}: RL training improves success rate by 9.6 percentage points over SFT (95\% CI: [6.8, 12.4])
+	\item \textbf{8B Model}: \ac{RL} training improves success rate by 7.8 percentage points over \ac{SFT} (95\% CI: [5.2, 10.4])
+	\item \textbf{32B Model}: \ac{RL} training improves success rate by 9.6 percentage points over \ac{SFT} (95\% CI: [6.8, 12.4])
 	\item \textbf{Effect Size}: Cohen's d = 0.84 for 8B, 0.91 for 32B (large effect sizes)
 \end{itemize}
 
-These results provide strong evidence that interactive RL produces substantial and statistically significant improvements over both pre-trained models and supervised fine-tuning approaches.
+These results provide strong evidence that interactive \ac{RL} produces substantial and statistically significant improvements over both pre-trained models and supervised fine-tuning approaches.
 
 \subsubsection{Qualitative Improvement Analysis}
 
@@ -92,15 +91,17 @@ We analyze harness adaptation through tool success rate, invalid tool calls, and
 \section{RQ2: Multiple Base Models}
 \label{sec:rq2-multi-base}
 
-We evaluate whether the training recipe and nano harness transfer to alternative base models.
+We evaluate whether the training recipe and Nano harness transfer to alternative base models.
 \todoinline{Add table comparing Qwen vs SmolLM3 (or chosen models) on SWE-Bench-Verified, with same budgets and prompts.
 	Include tool success metrics.
 }
 
-\section{RQ3: SWE-Gym Training vs.
-  SWE-Bench/Multi-SWE-Bench Evaluation} \label{sec:rq3-overfit}
+\section{RQ3: \ac{SWE-Gym}
+  Training vs.
+  \ac{SWE-Bench}/\ac{Multi-SWE-Bench}
+  Evaluation} \label{sec:rq3-overfit}
 
-We test for overfitting by training on \ac{SWE-Gym} and evaluating on \ac{SWE-Bench} and Multi-SWE-Bench.
+We test for overfitting by training on \ac{SWE-Gym} and evaluating on \ac{SWE-Bench} and \ac{Multi-SWE-Bench}.
 \todoinline{Add cross-dataset results, gap analysis vs.
 	SFT, and discussion of overfitting indicators.
 }
@@ -303,10 +304,10 @@ Our infrastructure achievements enable practical large-scale agent training:
 	\label{tab:training-performance}
 	\begin{tabular}{lccccc}
 		\toprule
-		\textbf{Model Size} & \textbf{GPUs} & \textbf{Episodes/Hour} & \textbf{Memory Usage} & \textbf{Update Latency} & \textbf{Throughput} \\
+\textbf{Model Size} & \textbf{\acp{GPU}} & \textbf{Episodes/Hour} & \textbf{Memory Usage} & \textbf{Update Latency} & \textbf{Throughput} \\
 		\midrule
-		8B (LoRA r=32)      & 4×A100        & 245                    & 68GB                  & 180ms                   & 0.95 episodes/s     \\
-		32B (LoRA r=64)     & 8×A100        & 127                    & 312GB                 & 340ms                   & 0.51 episodes/s     \\
+8B (\ac{LoRA} r=32)      & 4×A100        & 245                    & 68GB                  & 180ms                   & 0.95 episodes/s     \\
+32B (\ac{LoRA} r=64)     & 8×A100        & 127                    & 312GB                 & 340ms                   & 0.51 episodes/s     \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -316,9 +317,9 @@ Our infrastructure achievements enable practical large-scale agent training:
 Our system demonstrates strong scalability characteristics:
 
 \begin{itemize}
-	\item \textbf{Linear GPU Scaling}: Training throughput scales approximately linearly with additional GPUs up to tested limits
-	\item \textbf{Memory Efficiency}: Achieved >90\% GPU memory utilization through careful optimization
-	\item \textbf{Network Efficiency}: NCCL-based updates consume <5\% of available network bandwidth
+	\item \textbf{Linear \ac{GPU} Scaling}: Training throughput scales approximately linearly with additional \acp{GPU} up to tested limits
+	\item \textbf{Memory Efficiency}: Achieved >90\% \ac{GPU} memory utilization through careful optimization
+	\item \textbf{Network Efficiency}: \ac{NCCL}-based updates consume <5\% of available network bandwidth
 	\item \textbf{Fault Tolerance}: System maintains operation through individual component failures with graceful degradation
 \end{itemize}
 
@@ -328,7 +329,7 @@ The computational costs of interactive training compare favorably to alternative
 
 \begin{itemize}
 	\item \textbf{Training Cost}: Approximately \$2,400 for full 8B model training (including compute and infrastructure)
-	\item \textbf{Inference Cost}: 60\% lower per-episode cost compared to commercial API-based training
+	\item \textbf{Inference Cost}: 60\% lower per-episode cost compared to commercial \ac{API}-based training
 	\item \textbf{Development Cost}: Open-source implementation reduces barrier to entry for academic research
 	\item \textbf{Maintenance Cost}: Robust infrastructure requires minimal manual intervention during training
 \end{itemize}
@@ -342,12 +343,12 @@ Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers}
 
-\textbf{RQ1 (Harness Adaptation)}: RL training improves adaptation to the nano harness, increasing tool success and reducing invalid calls, with improved action efficiency.
+\textbf{RQ1 (Harness Adaptation)}: RL training improves adaptation to the Nano harness, increasing tool success and reducing invalid calls, with improved action efficiency.
 \todoinline{Cite Sec.~\ref{sec:rq1-harness} and insert concrete deltas.}
 
 \textbf{RQ2 (Multiple Base Models)}: The training recipe and harness are portable across base models, yielding consistent gains over SFT. \todoinline{Add table reference to Sec.~\ref{sec:rq2-multi-base}.}
 
-\textbf{RQ3 (Cross-Dataset Generalization)}: Training on SWE-Gym yields improvements on \ac{SWE-Bench} and Multi-SWE-Bench without clear overfitting. \todoinline{Add quantitative results and CIs from Sec.~\ref{sec:rq3-overfit}.}
+\textbf{RQ3 (Cross-Dataset Generalization)}: Training on SWE-Gym yields improvements on \ac{SWE-Bench} and \ac{Multi-SWE-Bench} without clear overfitting. \todoinline{Add quantitative results and CIs from Sec.~\ref{sec:rq3-overfit}.}
 
 \textbf{RQ4 (Cross-Harness/Task Generalization)}: The trained model exhibits promising zero-shot transfer to Aider/OpenHands-style harnesses and TauBench/TerminalBench. \todoinline{Summarize findings from Sec.~\ref{sec:rq4-cross}.}
 

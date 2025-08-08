@@ -33,7 +33,7 @@ Our work bridges the gap between closed-source frontier capabilities and open re
 % Detail/Nuance
 We implement this through a two-stage pipeline combining supervised fine-tuning with Group Relative Policy Optimization (GRPO), where models actively debug real repositories during training.
 The key technical innovation lies in our training-inference duality: a custom integration layer enables simultaneous model training and serving, with NCCL facilitating live weight synchronization across distributed GPUs [expand: specific throughput numbers, latency implications].
-Our ``nano-agent'' architecture provides essential bash and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning.
+Our \textit{Nano-agent} architecture provides essential bash and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning.
 
 % Evidence / Secondary Contribution
 Experiments on [X training instances, Y compute hours] demonstrate that interactive training yields models exhibiting sophisticated debugging behaviors: systematic hypothesis testing, incremental code modification, and test-guided exploration [specific examples needed].

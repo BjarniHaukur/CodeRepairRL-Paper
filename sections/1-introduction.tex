@@ -91,7 +91,7 @@ This thesis makes several significant contributions to the field of automated pr
 This approach represents a fundamental departure from static supervised learning, enabling models to learn debugging strategies through direct experience.
 Our implementation demonstrates the feasibility of this paradigm at scale, handling the computational and engineering challenges of simultaneous training and environment interaction.
 
-\textbf{Nano-Agent Implementation}: We develop a minimalist "nano-agent" that utilizes only essential terminal commands and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning.
+\textbf{Nano Agent Implementation}: We develop a minimalist "Nano agent" that utilizes only essential terminal commands and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning.
 This clean-slate approach validates that effective code repair capabilities arise from learning rather than engineered complexity.
 
 \textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient reinforcement learning with interactive agents.
@@ -102,13 +102,13 @@ The infrastructure supports both Group Relative Policy Optimization (GRPO) and c
 This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of interactive training approaches.
 
 \textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community.
-This includes the nano-agent implementation and the reinforcement learning training pipeline.
+This includes the Nano agent implementation and the reinforcement learning training pipeline.
 
 \section{Research Questions}
 
-This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (nano) and practical generalization:
+This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
 
-\textbf{RQX: Does the trained model adapt to the harness (tools and prompts)?
+\textbf{RQ1: Does the trained model adapt to the harness (tools and prompts)?
 }
 \begin{itemize}
 	\item Primary indicators: tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity, action efficiency (files viewed, commands per episode), prompt-format sensitivity.
@@ -116,14 +116,14 @@ This investigation is organized around four research questions aligned to our cu
 	\item \todoinline{Insert concrete numbers and plots from training logs: tool success, invalid calls, retries, length-of-trajectory, KL to reference prompts.}
 \end{itemize}
 
-\textbf{RQ?: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?}
+\textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?}
 \begin{itemize}
-	\item Goal: assess portability of the training recipe and nano-harness to alternative backbones with different tool-calling priors.
+	\item Goal: assess portability of the training recipe and Nano agent to alternative backbones with different tool-calling priors.
 	\item Design: repeat core experiments with at least one additional base model of comparable scale.
-	\item \todoinline{Add chosen models, training budgets, and any harness-specific adjustments needed (if any).}
+	\item \todoinline{Add chosen models, training budgets, and any agent-specific adjustments needed (if any).}
 \end{itemize}
 
-\textbf{RQZ: Does training on SWE-Gym overfit? (Train on SWE-Gym, evaluate on SWE-Bench and Multi-SWE-Bench)}
+\textbf{RQ3: Does training on SWE-Gym overfit? (Train on SWE-Gym, evaluate on SWE-Bench and Multi-SWE-Bench)}
 \begin{itemize}
 	\item Measure cross-dataset generalization and potential overfitting to training environments.
 	\item \todoinline{Report SWE-Gym train curves vs.
@@ -131,7 +131,7 @@ This investigation is organized around four research questions aligned to our cu
 	      }
 \end{itemize}
 
-\textbf{RQY: Does the trained model generalize to other agentic code harnesses and tasks?}
+\textbf{RQ4: Does the trained model generalize to other agentic code harnesses and tasks?}
 \begin{itemize}
 	\item Cross-harness: evaluate with Aider and OpenHands-style harnesses without re-training (prompt shim only if needed).
 	\item Cross-task: evaluate on TauBench and TerminalBench to probe terminal-oriented generalization.
@@ -185,7 +185,7 @@ The reinforcement learning approach demands substantial computational resources 
 While this approach aligns with established benchmarks and enables large-scale experiments, it may occasionally miss functionally equivalent but syntactically different solutions.
 Additionally, our evaluation emphasizes single-commit bug fixes rather than complex multi-stage refactoring or architectural changes.
 
-\textbf{Agent Implementation}: Our nano-agent represents a deliberately minimalist approach to agent design, providing only essential terminal commands and file operations.
+\textbf{Agent Implementation}: Our Nano agent represents a deliberately minimalist approach to agent design, providing only essential terminal commands and file operations.
 While this simplicity enables clean experimental validation of the reinforcement learning approach, more sophisticated tool sets could potentially yield different performance characteristics.
 
 \section{Thesis Organization}
@@ -197,7 +197,7 @@ We examine the evolution of automated program repair approaches, from rule-based
 The chapter introduces key concepts including agent scaffolding, reward design for code repair, and the training-inference duality that characterizes our approach.
 
 \textbf{Chapter 3: Methodology and System Design} presents our technical approach in detail, beginning with the scaffolded training paradigm and its implementation. \todoinline{Add section on MDP formulation and tool usage patterns here}
-We describe the architecture of our nano-agent, explaining design decisions and rationale for the minimalist approach.
+We describe the architecture of our Nano agent, explaining design decisions and rationale for the minimalist approach.
 The chapter details our two-stage training pipeline, reward formulation, and the engineering innovations that enable efficient large-scale training.
 Particular attention is given to the integration of vLLM inference servers with reinforcement learning trainers and the NCCL-based weight synchronization system.
 
