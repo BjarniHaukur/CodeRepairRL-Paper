@@ -7,22 +7,22 @@ We review key concepts in reinforcement learning for language models, automated 
 
 Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
 
-The evolution of automated program repair (APR) can be traced through three distinct paradigms.
+The evolution of automated program repair (\ac{APR}) can be traced through three distinct paradigms.
 Early search-based approaches like GenProg~\cite{genProg2012} and PAR~\cite{PAR2013} employed genetic programming and pattern-based transformations to search for valid patches within a predefined space of mutations.
 These systems demonstrated the feasibility of automated repair but suffered from low precision and limited generalization capabilities.
 
-The transition to learning-based approaches began with Prophet~\cite{prophet2016} and DeepFix~\cite{deepfix2017}, which introduced machine learning to rank patch candidates and fix compilation errors respectively.
+The transition to learning-based approaches began with Prophet~\cite{prophet2016} and DeepFix~\cite{deepfix2017}, which introduced \ac{ML} to rank patch candidates and fix compilation errors respectively.
 The emergence of neural sequence-to-sequence models marked a fundamental shift, with works like SequenceR~\cite{sequencer2019} and CoCoNuT~\cite{coconut2020} treating program repair as a neural machine translation task.
 
 The advent of large language models has transformed the landscape entirely.
 Modern systems leveraging models like Codex~\cite{codex2021}, CodeT5~\cite{codet5}, and more recently CodeLlama~\cite{codellama2023} and DeepSeek-Coder~\cite{deepseek2024} have achieved unprecedented performance on established benchmarks.
-However, even state-of-the-art models achieve only approximately 20\% success rates on realistic benchmarks like SWE-Bench~\cite{sweBench2024}, highlighting the substantial gap between current capabilities and human-level performance.
+However, even state-of-the-art models achieve only approximately 20\% success rates on realistic benchmarks like \ac{SWE-Bench}~\cite{sweBench2024}, highlighting the substantial gap between current capabilities and human-level performance.
 
 Key evaluation datasets have evolved alongside these approaches.
 CodeXGLUE~\cite{codexglue2021} provides a comprehensive multi-task benchmark including bug fixing across multiple languages.
-Most recently, SWE-Bench~\cite{sweBench2024} introduced repository-level tasks requiring understanding of entire codebases, representing a significant leap in evaluation complexity.
+Most recently, \ac{SWE-Bench}~\cite{sweBench2024} introduced repository-level tasks requiring understanding of entire codebases, representing a significant leap in evaluation complexity.
 
-Current LLM-based approaches exhibit several fundamental limitations that constrain their effectiveness:
+Current \ac{LLM}-based approaches exhibit several fundamental limitations that constrain their effectiveness:
 
 \textbf{Single-step generation}: Most models generate patches in a single forward pass without the ability to explore the codebase, test hypotheses, or iteratively refine solutions based on feedback.
 
@@ -63,7 +63,7 @@ This exploratory process cannot be captured in static input-output pairs.
 \textbf{Dynamic information gathering}: Debugging often requires examining stack traces, variable values at runtime, test outputs, and log files—information absent from static training data but crucial for understanding bug manifestations.
 
 \textbf{Repository-level reasoning}: Real bugs exist within complex codebases where understanding requires tracing dependencies, examining calling contexts, and maintaining consistency across module boundaries.
-The average SWE-Bench task involves understanding code spread across 6.3 files with complex interdependencies.
+The average \ac{SWE-Bench} task involves understanding code spread across 6.3 files with complex interdependencies.
 
 \textbf{Iterative refinement}: Professional debugging rarely produces correct fixes on the first attempt.
 Developers test partial solutions, observe failures, and refine their approach—a fundamentally different process from single-shot generation.
@@ -77,7 +77,7 @@ Sequence-to-sequence models, even when scaled to billions of parameters, struggl
 \textbf{Absence of verification mechanisms}: Without the ability to execute code and observe outcomes, models cannot verify their proposed solutions or learn from failed attempts.
 
 This mismatch manifests concretely in evaluation results.
-On SWE-Bench, even the most advanced models achieve less than 25\% success rates, while human developers solving the same tasks achieve over 90\% success rates when given appropriate time and tools.
+On \ac{SWE-Bench}, even the most advanced models achieve less than 25\% success rates, while human developers solving the same tasks achieve over 90\% success rates when given appropriate time and tools.
 The gap highlights not just a quantitative difference in performance, but a qualitative difference in problem-solving approach.
 
 Addressing this mismatch requires moving beyond supervised learning on static datasets toward interactive learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for interactive reinforcement learning explored in this thesis.
@@ -85,11 +85,11 @@ Addressing this mismatch requires moving beyond supervised learning on static da
 \section{Reinforcement Learning for Language Models}
 
 Reinforcement learning has emerged as a powerful technique for improving language model performance beyond what supervised learning alone can achieve, particularly for tasks requiring sequential decision-making and optimization of complex objectives.
-Unlike supervised learning, which relies on fixed input-output pairs, RL enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
+Unlike supervised learning, which relies on fixed input-output pairs, \ac{RL} enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
 
 \subsection{Policy Gradient Foundations}
 
-The foundation of RL for language models lies in treating text generation as a Markov Decision Process (MDP).
+The foundation of \ac{RL} for language models lies in treating text generation as a Markov Decision Process (\ac{MDP}).
 In this formulation, the language model serves as a policy $\pi_\theta(a_t|s_t)$ that selects actions (tokens) $a_t$ given states (context sequences) $s_t$, parameterized by model weights $\theta$.
 
 The objective is to maximize the expected cumulative reward: \begin{equation}
@@ -106,11 +106,11 @@ This limitation becomes particularly problematic for language models, where sequ
 \subsection{Proximal Policy Optimization (PPO)}
 
 Proximal Policy Optimization has emerged as the dominant algorithm for fine-tuning large language models due to its ability to stabilize training while maintaining sample efficiency.
-PPO addresses the fundamental challenge of policy optimization: making meaningful progress without taking overly large steps that destabilize learning.
+\ac{PPO} addresses the fundamental challenge of policy optimization: making meaningful progress without taking overly large steps that destabilize learning.
 
 \subsubsection{The Clipping Mechanism}
 
-PPO introduces a clipped objective function that prevents destructive policy updates: \begin{equation}
+\ac{PPO} introduces a clipped objective function that prevents destructive policy updates: \begin{equation}
 L^{CLIP}(\theta) = \mathbb{E}_t\left[\min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right)\right]
 \end{equation} where: \begin{align}
 r_t(\theta) &= \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)} \\
@@ -122,36 +122,36 @@ The clipping parameter $\epsilon$ (typically 0.2) constrains policy updates to p
 
 \subsubsection{Value Function Training}
 
-PPO employs a separate value network $V_\phi(s)$ trained to predict expected returns, enabling more accurate advantage estimation: \begin{equation}
+\ac{PPO} employs a separate value network $V_\phi(s)$ trained to predict expected returns, enabling more accurate advantage estimation: \begin{equation}
 L^{VF}(\phi) = \mathbb{E}_t\left[(V_\phi(s_t) - R_t)^2\right]
 \end{equation}
 
-The complete PPO objective combines policy and value losses: \begin{equation}
+The complete \ac{PPO} objective combines policy and value losses: \begin{equation}
 L(\theta, \phi) = L^{CLIP}(\theta) - c_1 L^{VF}(\phi) + c_2 S[\pi_\theta](s_t)
 \end{equation} where $S[\pi_\theta]$ is an entropy bonus encouraging exploration, and $c_1, c_2$ are weighting coefficients.
 
 \subsubsection{Success in Language Model Fine-tuning}
 
-PPO's success in language model applications, particularly in Reinforcement Learning from Human Feedback (RLHF), stems from several key properties:
+\ac{PPO}'s success in language model applications, particularly in \ac{RLHF}, stems from several key properties:
 
 \textbf{Stable Learning}: The clipping mechanism prevents the policy from changing too rapidly, which is crucial when fine-tuning large pre-trained models where dramatic changes can destroy learned representations.
 
-\textbf{Sample Efficiency}: By reusing data for multiple gradient steps and employing importance sampling correction, PPO achieves better sample efficiency than simpler policy gradient methods.
+\textbf{Sample Efficiency}: By reusing data for multiple gradient steps and employing importance sampling correction, \ac{PPO} achieves better sample efficiency than simpler policy gradient methods.
 
-\textbf{Scalability}: PPO's architecture separates policy and value training, enabling distributed training across multiple GPUs with different computational loads for each component.
+\textbf{Scalability}: \ac{PPO}'s architecture separates policy and value training, enabling distributed training across multiple \acp{GPU} with different computational loads for each component.
 
-However, PPO also introduces significant computational overhead through the separate value network training and the need for multiple gradient updates per batch of experience.
+However, \ac{PPO} also introduces significant computational overhead through the separate value network training and the need for multiple gradient updates per batch of experience.
 
 \subsection{Group Relative Policy Optimization (GRPO)}
 
-Group Relative Policy Optimization is fundamentally PPO with a crucial simplification: instead of training a separate value network to estimate advantages, GRPO computes advantages directly from relative performance within sampled action groups.
-This elegant modification preserves PPO's theoretical guarantees while dramatically reducing computational overhead.
+Group Relative Policy Optimization is fundamentally \ac{PPO} with a crucial simplification: instead of training a separate value network to estimate advantages, \ac{GRPO} computes advantages directly from relative performance within sampled action groups.
+This elegant modification preserves \ac{PPO}'s theoretical guarantees while dramatically reducing computational overhead.
 
 \subsubsection{The Core Simplification}
 
-The key insight behind GRPO is that for each state $s$, rather than estimating $V(s)$ with a separate network, we can sample multiple actions $a_1, \ldots, a_G$ from the current policy $\pi_{\theta_t}$ and use their reward distribution to compute relative advantages.
+The key insight behind \ac{GRPO} is that for each state $s$, rather than estimating $V(s)$ with a separate network, we can sample multiple actions $a_1, \ldots, a_G$ from the current policy $\pi_{\theta_t}$ and use their reward distribution to compute relative advantages.
 
-For a given state $s$, GRPO samples $G$ actions from the policy and computes the group-relative advantage as: \begin{equation}
+For a given state $s$, \ac{GRPO} samples $G$ actions from the policy and computes the group-relative advantage as: \begin{equation}
 A^{\pi_{\theta_t}}(s, a_j) = \frac{r(s, a_j) - \mu}{\sigma}
 \end{equation} where $\mu$ and $\sigma$ are the mean and standard deviation of the rewards $r(s, a_1), \ldots, r(s, a_G)$.
 This is simply the standard score (z-score) of the rewards, providing a normalized measure of relative performance.
@@ -164,7 +164,7 @@ A^{\pi_{\theta_t}}(s, a_j) &= \frac{r(s, a_j) - \mu}{\sigma}
 
 \subsubsection{PPO Objective with Group-Relative Advantages}
 
-GRPO then maximizes the standard PPO objective, but using these group-relative advantages instead of value-network-based estimates.
+\ac{GRPO} then maximizes the standard \ac{PPO} objective, but using these group-relative advantages instead of value-network-based estimates.
 The objective becomes: \begin{equation}
 \max_\theta \frac{1}{G}\sum_{i=1}^G \mathbb{E}_{(s,a_1,\ldots,a_G) \sim \pi_{\theta_t}}\left[
 \begin{cases}
@@ -174,15 +174,15 @@ The objective becomes: \begin{equation}
 \right]
 \end{equation}
 
-This formulation preserves PPO's asymmetric clipping behavior: when advantages are positive (indicating good actions), we clip the importance ratio from above at $(1+\epsilon)$ to prevent over-optimization.
+This formulation preserves \ac{PPO}'s asymmetric clipping behavior: when advantages are positive (indicating good actions), we clip the importance ratio from above at $(1+\epsilon)$ to prevent over-optimization.
 When advantages are negative (indicating poor actions), we clip from below at $(1-\epsilon)$ to avoid excessive penalization.
 
 \subsubsection{Intuitive Understanding}
 
-The intuition behind GRPO is elegantly simple: each policy update makes the model more likely to produce actions that performed relatively better than other actions tried at the same state, and less likely to produce actions that performed relatively worse.
+The intuition behind \ac{GRPO} is elegantly simple: each policy update makes the model more likely to produce actions that performed relatively better than other actions tried at the same state, and less likely to produce actions that performed relatively worse.
 This creates a natural competitive dynamic where actions are evaluated against their peers rather than against an absolute baseline.
 
-Consider a concrete example: if for a given coding problem, the model generates five different debugging approaches with rewards $[0.1, 0.8, 0.3, 0.9, 0.2]$, GRPO will:
+Consider a concrete example: if for a given coding problem, the model generates five different debugging approaches with rewards $[0.1, 0.8, 0.3, 0.9, 0.2]$, \ac{GRPO} will:
 \begin{itemize}
 	\item Strongly reinforce the action with reward $0.9$ (highest z-score)
 	\item Moderately reinforce the action with reward $0.8$ (second highest z-score)
@@ -193,7 +193,7 @@ This relative ranking approach is particularly powerful for code repair where ab
 
 \subsubsection{Relationship to PPO}
 
-It's crucial to understand that GRPO is not a fundamentally different algorithm from PPO—it is PPO with a specific choice of advantage estimation.
+It's crucial to understand that \ac{GRPO} is not a fundamentally different algorithm from \ac{PPO}—it is \ac{PPO} with a specific choice of advantage estimation.
 The clipping mechanism, importance sampling, and optimization dynamics remain identical.
 The only change is replacing:
 \begin{equation}
@@ -214,41 +214,41 @@ This substitution eliminates the need for:
 
 \subsubsection{Computational and Practical Advantages}
 
-The computational benefits of GRPO are substantial:
+The computational benefits of \ac{GRPO} are substantial:
 
 \textbf{Memory Efficiency}: Eliminating the value network reduces GPU memory requirements by approximately 50\%, enabling larger batch sizes or model sizes within the same hardware constraints.
 
 \textbf{Training Simplicity}: The training loop becomes significantly simpler, reducing implementation complexity and potential sources of bugs.
 There are no value network updates to coordinate or balance against policy updates.
 
-\textbf{Hyperparameter Robustness}: With fewer moving parts, GRPO exhibits reduced sensitivity to hyperparameter choices, making it more reliable across different tasks and model architectures.
+\textbf{Hyperparameter Robustness}: With fewer moving parts, \ac{GRPO} exhibits reduced sensitivity to hyperparameter choices, making it more reliable across different tasks and model architectures.
 
-\textbf{Batch Processing Efficiency}: GRPO can naturally handle variable batch sizes and sequence lengths without the complications introduced by value network training, which often requires careful batch construction.
+\textbf{Batch Processing Efficiency}: \ac{GRPO} can naturally handle variable batch sizes and sequence lengths without the complications introduced by value network training, which often requires careful batch construction.
 
 \subsubsection{Advantages for Code Repair}
 
-GRPO's design makes it particularly well-suited for code repair applications:
+\ac{GRPO}'s design makes it particularly well-suited for code repair applications:
 
 \textbf{Natural Handling of Sparse Rewards}: Code repair often produces binary success/failure outcomes or sparse quality metrics.
-GRPO's relative comparison approach handles this naturally, as the standard score normalization adapts to the reward distribution within each group.
+\ac{GRPO}'s relative comparison approach handles this naturally, as the standard score normalization adapts to the reward distribution within each group.
 
 \textbf{Problem Diversity}: Different coding problems require vastly different solution approaches and have different inherent difficulty levels.
-GRPO's group-relative baseline automatically adjusts to each problem's context, whereas a global value function would struggle to capture this diversity.
+\ac{GRPO}'s group-relative baseline automatically adjusts to each problem's context, whereas a global value function would struggle to capture this diversity.
 
-\textbf{Exploration Encouragement}: By comparing actions against their immediate peers rather than a global baseline, GRPO encourages exploration of diverse solution strategies, which is crucial for learning robust debugging skills.
+\textbf{Exploration Encouragement}: By comparing actions against their immediate peers rather than a global baseline, \ac{GRPO} encourages exploration of diverse solution strategies, which is crucial for learning robust debugging skills.
 
 \textbf{Computational Scaling}: Code repair training requires processing thousands of agent interactions across diverse repositories and bug types.
-GRPO's computational efficiency makes this scale of training practically feasible.
+\ac{GRPO}'s computational efficiency makes this scale of training practically feasible.
 
-The mathematical elegance of GRPO lies in its ability to preserve all of PPO's theoretical guarantees while dramatically simplifying the implementation.
+The mathematical elegance of \ac{GRPO} lies in its ability to preserve all of \ac{PPO}'s theoretical guarantees while dramatically simplifying the implementation.
 For code repair, where relative solution quality matters more than absolute reward prediction, this approach provides an optimal balance of performance, simplicity, and computational efficiency.
 
 \subsubsection{Variance Collapse: A Fundamental Challenge}
 
-Despite GRPO's computational advantages, it shares with other policy gradient methods a fundamental challenge known as variance collapse or mode collapse~\cite{varianceCollapse2023}.
+Despite \ac{GRPO}'s computational advantages, it shares with other policy gradient methods a fundamental challenge known as variance collapse or mode collapse~\cite{varianceCollapse2023}.
 This phenomenon occurs when the policy gradient optimization inadvertently incentivizes the model to reduce output variance, leading to increasingly deterministic and less exploratory behavior over training iterations.
 
-The mechanism behind variance collapse in GRPO can be understood through the optimization dynamics.
+The mechanism behind variance collapse in \ac{GRPO} can be understood through the optimization dynamics.
 When computing group-relative advantages, actions with consistently high rewards relative to their peers receive positive reinforcement, while those with lower relative rewards are penalized.
 Over time, this creates a positive feedback loop:
 
@@ -276,11 +276,11 @@ Several mitigation strategies have been proposed in the literature:
 L_{total} = L_{GRPO} + \beta H(\pi_\theta)
 \end{equation} where $H(\pi_\theta) = -\mathbb{E}_{a \sim \pi_\theta}[\log \pi_\theta(a|s)]$ measures policy entropy.
 
-\textbf{KL Divergence Constraints}~\cite{klConstraints2023}: Constraining the KL divergence between successive policies prevents rapid mode collapse:
+\textbf{\ac{KL} Divergence Constraints}~\cite{klConstraints2023}: Constraining the \ac{KL} divergence between successive policies prevents rapid mode collapse:
 \begin{equation}
-\text{KL}(\pi_\theta || \pi_{ref}) \leq \delta
+\text{\ac{KL}}(\pi_\theta || \pi_{ref}) \leq \delta
 \end{equation}
-This approach is already partially addressed by PPO's clipping mechanism but can be strengthened with explicit penalties.
+This approach is already partially addressed by \ac{PPO}'s clipping mechanism but can be strengthened with explicit penalties.
 
 \textbf{Diverse Sampling Strategies}~\cite{diverseSampling2024}: Instead of sampling all actions from the current policy, hybrid approaches sample from mixtures of the current policy and exploration distributions, maintaining diversity in the action groups used for advantage computation.
 
@@ -299,12 +299,12 @@ The trade-off between exploitation of successful strategies and exploration of a
 
 \subsection{Group Sequence Policy Optimization (GSPO)}
 
-While \ac{GRPO} offers computational efficiency over traditional PPO, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool-use scenarios~\cite{zheng2025groupsequencepolicyoptimization}.
+While \ac{GRPO} offers computational efficiency over traditional \ac{PPO}, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool-use scenarios~\cite{zheng2025groupsequencepolicyoptimization}.
 \ac{GSPO} addresses these fundamental limitations through a theoretically grounded reformulation of the importance sampling mechanism.
 
 \subsubsection{The Stability Problem in GRPO}
 
-The core instability in GRPO stems from its token-level importance ratios.
+The core instability in \ac{GRPO} stems from its token-level importance ratios.
 When training models for multi-turn interactions with coding agents, this becomes especially problematic due to numerical discrepancies between logits generated during fast inference (using engines like vLLM) and those computed during training.
 These discrepancies compound across long sequences, creating high-variance training noise that progressively destabilizes the model.
 
@@ -317,7 +317,7 @@ For our specific use case—training models to use tools iteratively across mult
 
 \subsubsection{Sequence-Level Importance Sampling}
 
-GSPO's key innovation lies in defining importance ratios at the sequence level rather than token level.
+\ac{GSPO}'s key innovation lies in defining importance ratios at the sequence level rather than token level.
 For a response $y$ to query $x$, the sequence-level importance ratio is: \begin{equation}
 w(y|x; \theta) = \frac{\pi_\theta(y|x)}{\pi_{\theta_{old}}(y|x)} = \prod_{t=1}^{|y|} \frac{\pi_\theta(y_t|x, y_{<t})}{\pi_{\theta_{old}}(y_t|x, y_{<t})}
 \end{equation}
@@ -326,7 +326,7 @@ This aligns with the fundamental principle of importance sampling and provides m
 
 \subsubsection{The GSPO Objective}
 
-GSPO optimizes the following objective: \begin{equation}
+\ac{GSPO} optimizes the following objective: \begin{equation}
 J_{GSPO}(\theta) = \mathbb{E}_{x \sim D, \{y_i\}_{i=1}^G \sim \pi_{\theta_{old}}(\cdot|x)} \left[ \frac{1}{G} \sum_{i=1}^G \min\left( w(y_i|x; \theta) A_i, \text{clip}(w(y_i|x; \theta), 1-\epsilon, 1+\epsilon) A_i \right) \right]
 \end{equation}
 
@@ -338,28 +338,28 @@ The critical difference is that clipping, rewarding, and optimization all operat
 
 \subsubsection{Advantages for Multi-Turn Tool Use}
 
-For our coding agent training scenario, GSPO provides several crucial benefits:
+For our coding agent training scenario, \ac{GSPO} provides several crucial benefits:
 
 \textbf{Numerical Stability}: Sequence-level operations are more robust to the logit discrepancies between vLLM inference and training computation, preventing the accumulation of numerical errors that plague token-level methods.
 
-\textbf{Coherent Tool Sequences}: By treating entire tool-use sequences as atomic units, GSPO better preserves the logical flow of multi-step debugging processes, avoiding the fragmentation that can occur with token-level optimization.
+\textbf{Coherent Tool Sequences}: By treating entire tool-use sequences as atomic units, \ac{GSPO} better preserves the logical flow of multi-step debugging processes, avoiding the fragmentation that can occur with token-level optimization.
 
-\textbf{Simplified Infrastructure}: GSPO's design eliminates several complex stabilization strategies required by GRPO, reducing the engineering overhead of our training pipeline.
+\textbf{Simplified Infrastructure}: \ac{GSPO}'s design eliminates several complex stabilization strategies required by \ac{GRPO}, reducing the engineering overhead of our training pipeline.
 
-\textbf{MoE Compatibility}: The Qwen team demonstrated that GSPO inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.
+\textbf{MoE Compatibility}: The Qwen team demonstrated that \ac{GSPO} inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.
 
-Empirical results from the Qwen3 models show that GSPO not only stabilizes training but also achieves superior final performance compared to GRPO, validating its theoretical advantages in practice.
-For our work, adopting GSPO represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
+Empirical results from the Qwen3 models show that \ac{GSPO} not only stabilizes training but also achieves superior final performance compared to \ac{GRPO}, validating its theoretical advantages in practice.
+For our work, adopting \ac{GSPO} represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
 
 \section{Low-Rank Adaptation (LoRA)}
 
 Parameter-efficient fine-tuning has become essential for adapting large language models to specific tasks without the computational overhead of full fine-tuning.
-Low-Rank Adaptation (LoRA) represents one of the most successful approaches in this domain.
+Low-Rank Adaptation (\ac{LoRA}) represents one of the most successful approaches in this domain.
 
 \subsection{Mathematical Foundation}
 
-LoRA is based on the hypothesis that weight updates during fine-tuning have low intrinsic rank.
-For a pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, LoRA represents the update $\Delta W$ as:
+\ac{LoRA} is based on the hypothesis that weight updates during fine-tuning have low intrinsic rank.
+For a pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, \ac{LoRA} represents the update $\Delta W$ as:
 
 \begin{equation}
 \Delta W = BA
@@ -379,7 +379,7 @@ This dramatically reduces the number of trainable parameters from $dk$ to $r(d+k
 
 \subsubsection{Initialization Strategy}
 
-LoRA uses a specific initialization scheme to ensure training stability:
+\ac{LoRA} uses a specific initialization scheme to ensure training stability:
 \begin{itemize}
 	\item Matrix $A$ is initialized using random Gaussian values
 	\item Matrix $B$ is initialized to zero, ensuring $\Delta W = BA = 0$ at the start
@@ -388,7 +388,7 @@ LoRA uses a specific initialization scheme to ensure training stability:
 
 \subsubsection{Scaling Factor}
 
-The LoRA update is typically scaled by a factor $\alpha/r$ where $\alpha$ is a hyperparameter:
+The \ac{LoRA} update is typically scaled by a factor $\alpha/r$ where $\alpha$ is a hyperparameter:
 
 \begin{equation}
 W = W_0 + \frac{\alpha}{r}BA
@@ -398,59 +398,59 @@ This scaling allows for consistent learning rates across different rank values a
 
 \subsection{Computational Advantages}
 
-LoRA offers substantial practical benefits for RL training:
+\ac{LoRA} offers substantial practical benefits for \ac{RL} training:
 
-\textbf{Memory Efficiency}: With typical rank values $r = 8$ to $64$, LoRA reduces trainable parameters by 99\%+ for large models, dramatically lowering GPU memory requirements.
+\textbf{Memory Efficiency}: With typical rank values $r = 8$ to $64$, \ac{LoRA} reduces trainable parameters by 99\%+ for large models, dramatically lowering \ac{GPU} memory requirements.
 
 \textbf{Training Speed}: Fewer parameters mean faster gradient computation and reduced communication overhead in distributed training setups.
 
-\textbf{Storage Efficiency}: LoRA adapters are small (typically <100MB vs multi-GB full models), enabling efficient storage and distribution of task-specific adaptations.
+\textbf{Storage Efficiency}: \ac{LoRA} adapters are small (typically <100MB vs multi-GB full models), enabling efficient storage and distribution of task-specific adaptations.
 
-\textbf{Modularity}: Multiple LoRA adapters can be trained for different tasks and dynamically loaded, enabling flexible model deployment.
+\textbf{Modularity}: Multiple \ac{LoRA} adapters can be trained for different tasks and dynamically loaded, enabling flexible model deployment.
 
 \subsection{Integration with Reinforcement Learning}
 
-LoRA's benefits become particularly pronounced in RL settings where multiple model instances must be maintained:
+\ac{LoRA}'s benefits become particularly pronounced in \ac{RL} settings where multiple model instances must be maintained:
 
-\textbf{Policy-Reference Separation}: RL algorithms like PPO require keeping both current and reference policies.
-With LoRA, the reference policy can share the frozen base weights while only the adapter differs.
+\textbf{Policy-Reference Separation}: \ac{RL} algorithms like \ac{PPO} require keeping both current and reference policies.
+With \ac{LoRA}, the reference policy can share the frozen base weights while only the adapter differs.
 
 \subsection{Theoretical Considerations}
 
-Recent research has examined LoRA's representational capacity and limitations:
+Recent research has examined \ac{LoRA}'s representational capacity and limitations:
 
-\textbf{Expressiveness}: While LoRA cannot represent arbitrary weight updates, empirical evidence suggests that many fine-tuning scenarios do indeed have low-rank structure, making LoRA's constraints reasonable.
+\textbf{Expressiveness}: While \ac{LoRA} cannot represent arbitrary weight updates, empirical evidence suggests that many fine-tuning scenarios do indeed have low-rank structure, making \ac{LoRA}'s constraints reasonable.
 
-\textbf{Task Transfer}: LoRA adapters learned for related tasks can serve as initialization for new tasks, potentially accelerating learning through transfer.
+\textbf{Task Transfer}: \ac{LoRA} adapters learned for related tasks can serve as initialization for new tasks, potentially accelerating learning through transfer.
 
 \textbf{Rank Selection}: Choosing appropriate rank values requires balancing expressiveness against efficiency.
 Higher ranks provide more flexibility but reduce computational savings.
 
 \subsection{Application to Code Repair}
 
-For interactive code repair training, LoRA offers specific advantages:
+For interactive code repair training, \ac{LoRA} offers specific advantages:
 
 \textbf{Environmental Diversity}: Different repositories and bug types may benefit from specialized adaptations.
-LoRA enables training multiple task-specific adapters efficiently.
+\ac{LoRA} enables training multiple task-specific adapters efficiently.
 
-\textbf{Continual Learning}: As new bug patterns emerge, LoRA adapters can be incrementally trained without catastrophic forgetting of previous skills.
+\textbf{Continual Learning}: As new bug patterns emerge, \ac{LoRA} adapters can be incrementally trained without catastrophic forgetting of previous skills.
 
-\textbf{Model Composition}: Multiple LoRA adapters can potentially be combined to handle complex bugs requiring diverse skill sets, though this remains an active research area.
+\textbf{Model Composition}: Multiple \ac{LoRA} adapters can potentially be combined to handle complex bugs requiring diverse skill sets, though this remains an active research area.
 
-The combination of LoRA's efficiency with interactive RL creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
+The combination of \ac{LoRA}'s efficiency with interactive \ac{RL} creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
 
 \section{Tool-Calling in Large Language Models}
 
-The ability for language models to interact with external tools and APIs represents a fundamental shift from purely generative models to interactive agents capable of performing complex, multi-step tasks in real environments.
+The ability for language models to interact with external tools and \acp{API} represents a fundamental shift from purely generative models to interactive agents capable of performing complex, multi-step tasks in real environments.
 
 \subsection{Function Calling Mechanisms}
 
-Modern LLMs implement tool calling through structured output generation, where models learn to produce specially formatted function calls that can be parsed and executed by external systems.
+Modern \acp{LLM} implement tool calling through structured output generation, where models learn to produce specially formatted function calls that can be parsed and executed by external systems.
 This capability emerged from training models on datasets containing examples of tool usage patterns, enabling them to understand when and how to invoke external functions.
 
-\subsubsection{JSON-Based Function Calling}
+\subsubsection{\ac{JSON}-Based Function Calling}
 
-The dominant paradigm uses JSON-formatted function calls embedded within model outputs:
+The dominant paradigm uses \ac{JSON}-formatted function calls embedded within model outputs:
 
 \begin{verbatim}
 {
@@ -463,13 +463,13 @@ The dominant paradigm uses JSON-formatted function calls embedded within model o
 }
 \end{verbatim}
 
-This approach offers several advantages: (1) structured parsing that reduces ambiguity, (2) type safety through schema validation, and (3) compatibility with existing API frameworks.
+This approach offers several advantages: (1) structured parsing that reduces ambiguity, (2) type safety through schema validation, and (3) compatibility with existing \ac{API} frameworks.
 
 \subsubsection{Training for Tool Use}
 
 Tool-calling capabilities are typically acquired through multi-stage training:
 
-\textbf{Function Schema Learning}: Models learn to understand function signatures, parameter types, and expected behaviors through exposure to API documentation and usage examples.
+\textbf{Function Schema Learning}: Models learn to understand function signatures, parameter types, and expected behaviors through exposure to \ac{API} documentation and usage examples.
 
 \textbf{Execution Context Modeling}: Training includes examples of function calls with their subsequent outputs, enabling models to predict the effects of tool usage and plan multi-step interactions.
 
@@ -477,7 +477,7 @@ Tool-calling capabilities are typically acquired through multi-stage training:
 
 \subsection{Implications for Agent Training}
 
-Tool calling fundamentally changes the RL training dynamics by introducing:
+Tool calling fundamentally changes the \ac{RL} training dynamics by introducing:
 
 \textbf{Discrete Action Spaces}: Unlike continuous text generation, tool calls represent discrete actions with clear semantic meanings, simplifying reward attribution and policy learning.
 
@@ -485,7 +485,7 @@ Tool calling fundamentally changes the RL training dynamics by introducing:
 
 \textbf{Compositional Reasoning}: Models must learn to combine multiple tool calls into coherent strategies, developing higher-level planning capabilities beyond single-step generation.
 
-The integration of tool calling with RL training enables models to learn not just what tools to use, but when and how to use them effectively within complex problem-solving workflows.
+The integration of tool calling with \ac{RL} training enables models to learn not just what tools to use, but when and how to use them effectively within complex problem-solving workflows.
 
 \section{Agent-Based Programming Environments}
 
@@ -495,13 +495,13 @@ The integration of language models with interactive programming environments has
 
 Modern coding agents combine language models with tool access, allowing them to navigate codebases, execute commands, and iteratively refine solutions.
 
-Several sophisticated coding agent frameworks have emerged, each representing different philosophies in agent design and human-AI collaboration:
+Several sophisticated coding agent frameworks have emerged, each representing different philosophies in agent design and human-\ac{AI} collaboration:
 
 \textbf{GitHub Copilot Workspace}~\cite{copilotWorkspace2024} extends the original Copilot paradigm beyond code completion to full task planning and execution.
 It employs a multi-agent architecture where specialized agents handle different aspects of software development—understanding requirements, generating implementations, and managing version control.
 On proprietary evaluations, it achieves approximately 30\% task completion rates for well-specified programming tasks.
 
-\textbf{Cursor}~\cite{cursor2024} pioneered the IDE-integrated agent approach, providing context-aware code generation within the development environment.
+\textbf{Cursor}~\cite{cursor2024} pioneered the \ac{IDE}-integrated agent approach, providing context-aware code generation within the development environment.
 Its key innovation lies in automatic context retrieval, using embedding-based search to identify relevant code sections across large codebases.
 This approach achieves strong performance on code completion tasks but has not been formally evaluated on repair benchmarks.
 
@@ -667,7 +667,7 @@ The Nano agent employs several safety mechanisms:
 
 \textbf{Sandboxed Execution}: Each agent session runs in an isolated container with:
 \begin{itemize}
-	\item Limited computational resources (CPU, memory, time)
+	\item Limited computational resources (\ac{CPU}, memory, time)
 	\item No persistent state between sessions
 	\item Comprehensive logging of all actions and outputs
 \end{itemize}
@@ -704,8 +704,8 @@ There are no hidden internal operations or black-box processing steps.
 
 The integration of agent frameworks directly into model training represents a paradigm shift from traditional supervised learning approaches, enabling models to learn through active interaction rather than passive observation.
 
-Online RL training represents a fundamental reimagining of how language models acquire capabilities for complex, interactive tasks.
-Rather than learning from static demonstrations followed by inference-time tool integration, this paradigm embeds full agent capabilities—including environment interaction, tool usage, and iterative refinement—directly into the reinforcement learning training process.
+Online \ac{RL} training represents a fundamental reimagining of how language models acquire capabilities for complex, interactive tasks.
+Rather than learning from static demonstrations followed by inference-time tool integration, this paradigm embeds full agent capabilities—including environment interaction, tool usage, and iterative refinement—directly into the \ac{RL} training process.
 
 \subsubsection{Paradigm Comparison}
 
@@ -720,14 +720,14 @@ Rather than learning from static demonstrations followed by inference-time tool 
 This pipeline treats tool usage as an inference-time adaptation problem.
 Models must bridge the gap between their training distribution (static text) and deployment requirements (dynamic interaction) without explicit preparation.
 
-\textbf{Online RL for LLMs}:
+\textbf{Online \ac{RL} for \acp{LLM}}:
 \begin{enumerate}
 	\item Start with pre-trained model
 	\item Embed model within agent framework
-	\item Train through reinforcement learning while using tools
+	\item Train through \ac{RL} while using tools
 	\item Deploy with the same or similar agent frameworks used in training
 \end{enumerate}
-\todoinline{This is a recurring theme in the industry, Claude -> Claude Code, o3 -> codex, Gemini -> Gemini CLI, Qwen3 coder -> Qwen Coder, etc.}
+\todoinline{This is a recurring theme in the industry, Claude -> Claude Code, o3 -> codex, Gemini -> Gemini \ac{CLI}, Qwen3 coder -> Qwen Coder, etc.}
 
 This approach ensures perfect alignment between training and deployment conditions.
 The model learns not just task solutions but optimal strategies for tool usage, exploration, and error recovery.
@@ -736,7 +736,7 @@ The model learns not just task solutions but optimal strategies for tool usage, 
 
 While conceptually straightforward, implementing interactive training presents substantial technical challenges that have limited its adoption:
 
-\textbf{Asynchronous Orchestration}: Traditional RL training assumes synchronous batch generation—all samples in a batch complete simultaneously.
+\textbf{Asynchronous Orchestration}: Traditional \ac{RL} training assumes synchronous batch generation—all samples in a batch complete simultaneously.
 Agent interactions are inherently asynchronous, with different trajectories requiring varying numbers of steps and time to complete.
 Our implementation required developing custom orchestration layers that:
 \begin{itemize}
@@ -778,9 +778,9 @@ Our solution leverages aggressive batching, environment pooling, and hierarchica
 
 \subsubsection{Open-Source Implementation}
 
-Despite growing evidence that leading AI labs employ interactive training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
+Despite growing evidence that leading \ac{AI} labs employ interactive training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
 
-This work provides the first publicly available implementation of interactive RL training, including:
+This work provides the first publicly available implementation of interactive \ac{RL} training, including:
 \begin{itemize}
 	\item Complete training infrastructure built on TRL and vLLM
 	\item Integration modules for arbitrary OpenAI-compatible agents
@@ -789,7 +789,7 @@ This work provides the first publicly available implementation of interactive RL
 	\item Reproducible configurations for key experiments
 \end{itemize}
 
-By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into interactive AI systems.
+By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into interactive \ac{AI} systems.
 
 The significance extends beyond code repair: interactive training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control.
 This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
@@ -820,8 +820,8 @@ However, this approach faces significant practical challenges:
 
 \textit{Similarity-based evaluation} compares generated patches against known-good solutions using various metrics:
 \begin{itemize}
-	\item Tree-edit distance: Measures syntactic similarity at the AST level
-	\item Token-based metrics: BLEU, CodeBLEU scores adapted from NLP
+	\item Tree-edit distance: Measures syntactic similarity at the \ac{AST} level
+	\item Token-based metrics: BLEU, CodeBLEU scores adapted from \ac{NLP}
 	\item Semantic embeddings: Learned representations capturing code functionality
 	\item Exact match: Binary indicator of identical solutions
 \end{itemize}
@@ -895,13 +895,13 @@ Rigorous evaluation of automated code repair systems requires diverse, realistic
 
 \subsection{SWE-Bench Family}
 
-The SWE-Bench benchmark series has emerged as the gold standard for evaluating coding agents on realistic software engineering tasks.
+The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluating coding agents on realistic software engineering tasks.
 
-The SWE-Bench family of benchmarks has revolutionized evaluation of code generation and repair systems by introducing repository-scale tasks that mirror real-world software development challenges.
+The \ac{SWE-Bench} family of benchmarks has revolutionized evaluation of code generation and repair systems by introducing repository-scale tasks that mirror real-world software development challenges.
 
 \subsubsection{Evolution of SWE-Bench}
 
-\textbf{Original SWE-Bench (2023)}~\cite{sweBench2024}: The foundational dataset introduced 2,294 task instances drawn from 12 popular Python repositories. Each instance consists of:
+\textbf{Original \ac{SWE-Bench} (2023)}~\cite{sweBench2024}: The foundational dataset introduced 2,294 task instances drawn from 12 popular Python repositories. Each instance consists of:
 \begin{itemize}
 	\item A GitHub issue describing a bug or feature request
 	\item The repository state at issue creation time
@@ -911,7 +911,7 @@ The SWE-Bench family of benchmarks has revolutionized evaluation of code generat
 
 This design captures the full complexity of real software development: understanding natural language descriptions, navigating large codebases, and implementing solutions that satisfy existing tests.
 
-\textbf{SWE-Bench-Verified (2024)}~\cite{sweBenchVerified2024}: Addressing quality concerns in the original dataset, this refined version includes 500 carefully validated instances that:
+\textbf{\ac{SWE-Bench-Verified} (2024)}~\cite{sweBenchVerified2024}: Addressing quality concerns in the original dataset, this refined version includes 500 carefully validated instances that:
 \begin{itemize}
 	\item Eliminate ambiguous issue descriptions
 	\item Ensure deterministic test outcomes
@@ -920,15 +920,15 @@ This design captures the full complexity of real software development: understan
 	\item Balance difficulty across different problem types
 \end{itemize}
 
-Human annotators achieve 97\% success on SWE-Bench-Verified compared to 73\% on the original, confirming the removal of problematic instances while maintaining challenging, realistic tasks.
+Human annotators achieve 97\% success on \ac{SWE-Bench-Verified} compared to 73\% on the original, confirming the removal of problematic instances while maintaining challenging, realistic tasks.
 
-\textbf{SWE-Bench Extensions}: While extensions to other programming languages have been proposed, our work focuses exclusively on the original Python-based benchmark suite, which provides the most mature and extensively validated evaluation framework.
+\textbf{\ac{SWE-Bench} Extensions}: While extensions to other programming languages have been proposed, our work focuses exclusively on the original Python-based benchmark suite, which provides the most mature and extensively validated evaluation framework.
 
 This diversity demonstrates the complexity and realism of the evaluation framework.
 
 \subsubsection{Task Format and Complexity}
 
-Each SWE-Bench instance presents a naturalistic debugging scenario:
+Each \ac{SWE-Bench} instance presents a naturalistic debugging scenario:
 
 \begin{verbatim}
 ISSUE DESCRIPTION:
@@ -963,7 +963,7 @@ This requires:
 
 \subsubsection{Evaluation Methodology}
 
-SWE-Bench employs rigorous evaluation protocols:
+\ac{SWE-Bench} employs rigorous evaluation protocols:
 
 \textbf{Functional verification}: Patches are evaluated by running the full test suite, not through textual comparison.
 This allows semantically equivalent but syntactically different solutions.
@@ -976,7 +976,7 @@ This allows semantically equivalent but syntactically different solutions.
 
 \subsubsection{Why Success Rates Remain Low}
 
-Despite rapid progress in LLM capabilities, even state-of-the-art systems achieve only ~20-25\% success rates on SWE-Bench.
+Despite rapid progress in \ac{LLM} capabilities, even state-of-the-art systems achieve only ~20-25\% success rates on \ac{SWE-Bench}.
 This persistent challenge stems from several factors:
 
 \textbf{Repository complexity}: The average task requires understanding code distributed across 6.3 files, with deep call chains and complex dependencies.
@@ -991,7 +991,7 @@ Models must infer substantial context.
 
 \textbf{Long-tail distribution}: Many bugs involve rare edge cases or unique project-specific patterns absent from training data, testing true generalization rather than memorization.
 
-These challenges make SWE-Bench an ideal testbed for interactive training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
+These challenges make \ac{SWE-Bench} an ideal testbed for interactive training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
 
 \section{Related Work}
 
@@ -1001,9 +1001,9 @@ This section synthesizes the most directly relevant prior work across three crit
 
 \subsubsection{Reinforcement Learning for Code Tasks}
 
-Despite the natural fit between RL and interactive programming tasks, surprisingly little work has explored this intersection:
+Despite the natural fit between \ac{RL} and interactive programming tasks, surprisingly little work has explored this intersection:
 
-\textbf{CodeRL}~\cite{codeRL2022} pioneered applying RL to code generation, using unit test execution as rewards.
+\textbf{CodeRL}~\cite{codeRL2022} pioneered applying \ac{RL} to code generation, using unit test execution as rewards.
 However, it focused on single-function synthesis rather than repository-scale debugging, and critically, used traditional synchronous generation without environmental interaction.
 
 \textbf{PPOCoder}~\cite{ppoCoder2023} extended CodeRL with proximal policy optimization but maintained the limitation of single-file, single-step generation.
@@ -1024,8 +1024,8 @@ While innovative, it still operated on isolated functions without repository con
 
 The proliferation of coding agents has occurred almost entirely in the inference domain:
 
-\textbf{AutoCodeRover}~\cite{autoCodeRover2024} combines code search, static analysis, and LLM-based patch generation.
-While effective (achieving 15\% on SWE-Bench), it operates purely at inference time with no learning from experience.
+\textbf{AutoCodeRover}~\cite{autoCodeRover2024} combines code search, static analysis, and \ac{LLM}-based patch generation.
+While effective (achieving 15\% on \ac{SWE-Bench}), it operates purely at inference time with no learning from experience.
 
 \textbf{AgentCoder}~\cite{agentCoder2024} introduces multi-agent collaboration with specialized roles (test writer, debugger, coder).
 Despite sophisticated orchestration, each agent uses a frozen model without improvement mechanisms.
@@ -1049,7 +1049,7 @@ Our research addresses three critical gaps in the literature:
 	Open-source interactive training}: While rumors suggest industry labs train models interactively (OpenAI's o1, Anthropic's Claude), no public implementation exists.
 We provide:
 \begin{itemize}
-	\item Complete infrastructure for agent-integrated RL
+	\item Complete infrastructure for agent-integrated \ac{RL}
 	\item Reproducible training pipelines
 	\item Extensive ablation capabilities
 	\item Detailed instrumentation for analysis
@@ -1059,10 +1059,10 @@ We provide:
 	Minimalist agent design}: Our Nano agent demonstrates that effective debugging behaviors can emerge from simple tools combined with reinforcement learning.
 
 \textbf{3.
-	Demonstrated learning improvements}: We show monotonic improvement through RL iterations, validating that interactive training produces measurable capability gains beyond static fine-tuning.
+	Demonstrated learning improvements}: We show monotonic improvement through \ac{RL} iterations, validating that interactive training produces measurable capability gains beyond static fine-tuning.
 
 These contributions fill a crucial gap between the theoretical promise of interactive learning and practical implementation for software engineering tasks.
-By open-sourcing our approach, we enable the broader research community to build upon interactive training, potentially transforming how we develop AI systems for programming assistance.
+By open-sourcing our approach, we enable the broader research community to build upon interactive training, potentially transforming how we develop \ac{AI} systems for programming assistance.
 
 \section{Summary and Research Positioning}
 

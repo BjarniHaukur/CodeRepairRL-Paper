@@ -1,7 +1,7 @@
 \chapter{Experimental Results and Analysis}
 \label{ch:results}
 
-This chapter presents comprehensive experimental results addressing our research questions (RQ1/RQ2/RQ3/RQ4) about interactive reinforcement learning for automated code repair.
+This chapter presents comprehensive experimental results addressing our research questions (RQ1/RQ2/RQ3/RQ4) about interactive \ac{RL} for automated code repair.
 We demonstrate statistically significant improvements over baseline approaches and evaluate the generalization of learned debugging capabilities.
 
 \section{Training Dynamics and Convergence}
@@ -9,7 +9,7 @@ We demonstrate statistically significant improvements over baseline approaches a
 
 \subsection{Learning Curve Analysis}
 
-Our GRPO training demonstrates clear and consistent learning dynamics across multiple experimental runs.
+Our \ac{GRPO} training demonstrates clear and consistent learning dynamics across multiple experimental runs.
 Figure~\ref{fig:training-curves} shows the evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the Nano agent.
 
 \subsubsection{Reward Progression}
@@ -23,11 +23,11 @@ However, within the first 500 training episodes, we observe rapid improvement:
 	\item \textbf{Convergence Phase (2000+ episodes)}: Gradual refinement with occasional breakthrough improvements on specific bug categories
 \end{itemize}
 
-The learning curves demonstrate monotonic improvement throughout training, validating our hypothesis that interactive RL can successfully enhance coding capabilities through environmental interaction.
+The learning curves demonstrate monotonic improvement throughout training, validating our hypothesis that interactive \ac{RL} can successfully enhance coding capabilities through environmental interaction.
 
 \subsubsection{Training Stability}
 
-GRPO training exhibits remarkable stability compared to traditional PPO implementations.
+\ac{GRPO} training exhibits remarkable stability compared to traditional \ac{PPO} implementations.
 The group-relative advantage estimation effectively reduces gradient variance, leading to smooth convergence without the oscillations typically observed in policy gradient methods.
 Standard deviation across training runs remains consistently low (σ < 0.03 success rate) throughout the training process.
 
@@ -36,7 +36,7 @@ Standard deviation across training runs remains consistently low (σ < 0.03 succ
 Our training-inference duality architecture achieves significant computational efficiency improvements:
 
 \begin{itemize}
-	\item \textbf{Wall-clock Training Time}: 60\% reduction compared to traditional collect-then-train RL approaches
+	\item \textbf{Wall-clock Training Time}: 60\% reduction compared to traditional collect-then-train \ac{RL} approaches
 	\item \textbf{\ac{GPU}
 		      Utilization}: >90\% utilization across both training and inference hardware \item \textbf{Sample Efficiency}: 40\% improvement in episodes required to reach target performance levels \end{itemize}
 
@@ -67,7 +67,7 @@ These results provide strong evidence that interactive \ac{RL} produces substant
 
 Beyond quantitative metrics, agent-trained models demonstrate qualitatively different debugging behaviors:
 
-\textbf{Strategic Exploration}: RL-trained agents develop systematic repository exploration strategies, typically examining project structure, documentation, and related test files before attempting fixes.
+\textbf{Strategic Exploration}: \ac{RL}-trained agents develop systematic repository exploration strategies, typically examining project structure, documentation, and related test files before attempting fixes.
 
 \textbf{Context Awareness}: Agents learn to gather sufficient context about bug locations, including understanding function signatures, variable scopes, and dependency relationships.
 
@@ -103,7 +103,7 @@ We evaluate whether the training recipe and Nano harness transfer to alternative
 
 We test for overfitting by training on \ac{SWE-Gym} and evaluating on \ac{SWE-Bench} and \ac{Multi-SWE-Bench}.
 \todoinline{Add cross-dataset results, gap analysis vs.
-	SFT, and discussion of overfitting indicators.
+	\ac{SFT}, and discussion of overfitting indicators.
 }
 
 \section{RQ4: Cross-Harness and Cross-Task Generalization}
@@ -129,18 +129,18 @@ To assess whether debugging-specific training affects general coding capabilitie
 		\midrule
 		Qwen-8B (Base)        & 42.7\%          & --                       \\
 		Qwen-8B (Python SFT)  & 44.1\%          & +1.4\%                   \\
-		Qwen-8B (Python RL)   & 46.8\%          & +4.1\%                   \\
+		Qwen-8B (Python \ac{RL})   & 46.8\%          & +4.1\%                   \\
 		\midrule
 		Qwen-32B (Base)       & 58.3\%          & --                       \\
 		Qwen-32B (Python SFT) & 59.7\%          & +1.4\%                   \\
-		Qwen-32B (Python RL)  & 62.1\%          & +3.8\%                   \\
+		Qwen-32B (Python \ac{RL})  & 62.1\%          & +3.8\%                   \\
 		\bottomrule
 	\end{tabular}
 \end{table}
 
 \subsubsection{Positive Transfer to Code Generation}
 
-RL training for debugging produces modest but consistent improvements in general code generation tasks:
+\ac{RL} training for debugging produces modest but consistent improvements in general code generation tasks:
 
 \begin{itemize}
 	\item \textbf{Consistent Improvement}: Both model sizes show similar magnitude improvements (3.8-4.1 percentage points)
@@ -152,7 +152,7 @@ RL training for debugging produces modest but consistent improvements in general
 
 Several factors likely contribute to improved general coding performance:
 
-\textbf{Enhanced Code Understanding}: RL training requires deep understanding of code structure, variable relationships, and control flow, skills that benefit general programming tasks.
+\textbf{Enhanced Code Understanding}: \ac{RL} training requires deep understanding of code structure, variable relationships, and control flow, skills that benefit general programming tasks.
 
 \textbf{Improved Error Analysis}: Learning to interpret and respond to error messages during debugging transfers to writing more robust code from scratch.
 
@@ -175,10 +175,10 @@ To understand the contribution of different system components, we conducted syst
 		\midrule
 		Full System (Nano-RL)          & 26.8\%                & --                         \\
 		\midrule
-		Without RL (SFT only)          & 18.2\%                & -8.6\%                     \\
+		Without \ac{RL} (\ac{SFT} only)          & 18.2\%                & -8.6\%                     \\
 		Without Agent Scaffold         & 15.4\%                & -11.4\%                    \\
 		Without Multi-step Interaction & 14.1\%                & -12.7\%                    \\
-		Traditional PPO (vs. GRPO)     & 21.3\%                & -5.5\%                     \\
+		Traditional \ac{PPO} (vs. \ac{GRPO})     & 21.3\%                & -5.5\%                     \\
 		Without Real-time Updates      & 22.7\%                & -4.1\%                     \\
 		\bottomrule
 	\end{tabular}
@@ -192,10 +192,10 @@ The ablation results highlight several critical system components:
 
 \textbf{Agent Scaffold Integration (11.4\% impact)}: Embedding tools directly into training provides substantial benefits over direct generation approaches.
 
-\textbf{Reinforcement Learning (8.6\% impact)}: RL training provides significant benefits over supervised fine-tuning alone, even with identical training data.
+\textbf{Reinforcement Learning (8.6\% impact)}: \ac{RL} training provides significant benefits over supervised fine-tuning alone, even with identical training data.
 
-\textbf{GRPO vs.
-	PPO (5.5\% impact)}: GRPO's group-relative advantages provide meaningful improvements over traditional actor-critic methods.
+\textbf{\ac{GRPO} vs.
+	\ac{PPO} (5.5\% impact)}: \ac{GRPO}'s group-relative advantages provide meaningful improvements over traditional actor-critic methods.
 
 \textbf{Real-time Updates (4.1\% impact)}: Training-inference duality contributes to final performance through improved sample efficiency.
 
@@ -216,7 +216,7 @@ Performance plateaus at 8K tokens, suggesting this provides sufficient context f
 \subsubsection{Batch Size Effects}
 
 Batch sizes from 16 to 64 trajectories per update were tested.
-Performance improves with larger batches up to 32 trajectories, then plateaus, indicating optimal reward signal averaging for GRPO.
+Performance improves with larger batches up to 32 trajectories, then plateaus, indicating optimal reward signal averaging for \ac{GRPO}.
 
 \section{Error Analysis and Failure Modes}
 \label{sec:error-analysis}
@@ -227,7 +227,7 @@ To understand current limitations and guide future improvements, we analyzed fai
 
 \begin{table}[h]
 	\centering
-	\caption{Failure mode analysis on failed SWE-Bench-Verified tasks (Qwen-8B Nano-RL)}
+	\caption{Failure mode analysis on failed \ac{SWE-Bench-Verified} tasks (Qwen-8B Nano-\ac{RL})}
 	\label{tab:failure-modes}
 	\begin{tabular}{lcc}
 		\toprule

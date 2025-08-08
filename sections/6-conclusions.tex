@@ -1,34 +1,34 @@
 \chapter{Conclusions and Future Work}
 \label{ch:conclusions}
 
-This thesis presents the first comprehensive open-source implementation of interactive reinforcement learning for automated code repair, demonstrating significant advances in both theoretical understanding and practical capabilities.
+This thesis presents the first comprehensive open-source implementation of interactive \ac{RL} for automated code repair, demonstrating significant advances in both theoretical understanding and practical capabilities.
 Through rigorous experimental validation, we establish this paradigm as a viable and superior alternative to traditional supervised learning approaches for training interactive programming agents.
 
 \section{Summary of Contributions}
 \label{sec:summary-contributions}
 
-Our work makes several significant contributions to the field of automated software engineering and reinforcement learning for code generation:
+Our work makes several significant contributions to the field of automated software engineering and \ac{RL} for code generation:
 
 \subsection{Methodological Innovation}
 
 \textbf{Training-Inference Duality}: Our implementation collapses the conventional boundary between training and inference phases through continuous serving and real-time weight updates.
 This unified approach reduces training time by 60\% while improving sample efficiency by 40\%, making large-scale agent training practically feasible within academic research budgets.
 
-\textbf{GRPO Optimization for Agents}: We demonstrate that Group Relative Policy Optimization provides substantial advantages over traditional actor-critic methods for coding agents, achieving 5.5\% performance improvements while dramatically reducing computational overhead through elimination of value network training.
+\textbf{\ac{GRPO} Optimization for Agents}: We demonstrate that Group Relative Policy Optimization provides substantial advantages over traditional actor-critic methods for coding agents, achieving 5.5\% performance improvements while dramatically reducing computational overhead through elimination of value network training.
 
 \subsection{Empirical Validation}
 
-\textbf{Significant Performance Improvements}: Experimental results on SWE-Bench-Verified demonstrate statistically significant improvements of 7-10 percentage points over supervised fine-tuning baselines, with our best models achieving 31.8\% success rates compared to 22.2\% for supervised approaches on the same data.
+\textbf{Significant Performance Improvements}: Experimental results on \ac{SWE-Bench-Verified} demonstrate statistically significant improvements of 7-10 percentage points over supervised fine-tuning baselines, with our best models achieving 31.8\% success rates compared to 22.2\% for supervised approaches on the same data.
 
-\textbf{Minimalist Agent Success}: Our Nano agent implementation demonstrates that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning, achieving strong performance with only basic terminal commands and file operations.
+\textbf{Minimalist Agent Success}: Our Nano agent implementation demonstrates that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}, achieving strong performance with only basic terminal commands and file operations.
 
 \textbf{Transfer Learning}: Models trained on Python debugging tasks demonstrate positive transfer to general code generation (4\% improvement on HumanEval), indicating that learned debugging strategies generalize beyond training contexts.
 
 \subsection{Technical Infrastructure}
 
-\textbf{NCCL-Based Weight Synchronization}: We develop novel infrastructure for real-time weight synchronization between training and inference processes using NVIDIA Collective Communications Library, achieving update latencies of 150-300ms for LoRA adapters while maintaining <5\% inference throughput degradation.
+\textbf{\ac{NCCL}-Based Weight Synchronization}: We develop novel infrastructure for real-time weight synchronization between training and inference processes using NVIDIA Collective Communications Library, achieving update latencies of 150-300ms for \ac{LoRA} adapters while maintaining <5\% inference throughput degradation.
 
-\textbf{Scalable Distributed Training}: Our implementation successfully scales agent training to 32B parameter models across 8 GPUs while maintaining >90\% memory utilization and linear throughput scaling, demonstrating the practical feasibility of large-scale agent training.
+\textbf{Scalable Distributed Training}: Our implementation successfully scales agent training to 32B parameter models across 8 \acp{GPU} while maintaining >90\% memory utilization and linear throughput scaling, demonstrating the practical feasibility of large-scale agent training.
 
 \textbf{Open-Source Democratization}: Complete open-source release of training infrastructure, agent implementations, and evaluation protocols reduces barriers to academic research and enables reproducible investigation of interactive techniques previously available only to industry laboratories.
 
@@ -39,7 +39,7 @@ Our experimental evaluation provides answers aligned with the revised research q
 
 \subsection{RQ1: Adaptation to the Harness}
 
-\textbf{Finding}: Interactive reinforcement learning improves adaptation to the Nano harness—tool success increases while invalid calls decrease over training, with improved action efficiency.
+\textbf{Finding}: Interactive \ac{RL} improves adaptation to the Nano harness—tool success increases while invalid calls decrease over training, with improved action efficiency.
 
 \textbf{Evidence}: \todoinline{Insert concrete metrics: tool success rate delta, invalid call rate reduction, actions per solved task; reference relevant figures.}
 
@@ -55,9 +55,9 @@ Our experimental evaluation provides answers aligned with the revised research q
 
 \subsection{RQ3: Cross-Dataset Generalization}
 
-\textbf{Finding}: Models trained on SWE-Gym predictably improve on \ac{SWE-Bench} but they also generalize to \ac{Multi-SWE-Bench} without signs of severe overfitting. \todoinline{Add actual results here}
+\textbf{Finding}: Models trained on \ac{SWE-Gym} predictably improve on \ac{SWE-Bench} but they also generalize to \ac{Multi-SWE-Bench} without signs of severe overfitting. \todoinline{Add actual results here}
 
-\textbf{Evidence}: \todoinline{Provide cross-dataset deltas vs SFT, include confidence intervals.}
+\textbf{Evidence}: \todoinline{Provide cross-dataset deltas vs \ac{SFT}, include confidence intervals.}
 
 \textbf{Significance}: Supports the thesis that interactive training yields broadly applicable debugging skills.
 
@@ -72,14 +72,14 @@ Our experimental evaluation provides answers aligned with the revised research q
 \section{Broader Implications}
 \label{sec:broader-implications}
 
-\subsection{Paradigm Shift in AI Training}
+\subsection{Paradigm Shift in \ac{AI} Training}
 
 Our results support a fundamental shift from static dataset-based training to interactive environment-based learning for complex reasoning tasks.
-The success of interactive RL suggests that many AI capabilities may be better acquired through direct interaction rather than passive observation, particularly for domains requiring multi-step reasoning and strategic planning.
+The success of interactive \ac{RL} suggests that many \ac{AI} capabilities may be better acquired through direct interaction rather than passive observation, particularly for domains requiring multi-step reasoning and strategic planning.
 
 \subsection{Software Engineering Automation}
 
-The demonstration of monotonic improvement through RL training indicates substantial potential for further advancement.
+The demonstration of monotonic improvement through \ac{RL} training indicates substantial potential for further advancement.
 Current success rates of ~30\% on realistic debugging tasks, while impressive relative to baselines, suggest significant room for improvement through longer training, larger models, and enhanced reward engineering.
 The trajectory points toward eventual practical deployment of autonomous debugging systems.
 
@@ -88,7 +88,7 @@ The trajectory points toward eventual practical deployment of autonomous debuggi
 By providing complete open-source implementations, we enable broader academic investigation of interactive techniques and reduce dependence on proprietary industry research.
 This democratization could accelerate progress by enabling distributed experimentation and community-driven development of advanced agent training methods.
 
-\subsection{Validation of Fundamental AI Principles}
+\subsection{Validation of Fundamental \ac{AI} Principles}
 
 \section{Limitations and Constraints}
 \label{sec:limitations}
@@ -102,7 +102,7 @@ Additionally, our evaluation emphasizes single-commit bug fixes rather than comp
 \subsection{Computational Resource Requirements}
 
 Despite optimizations, interactive training remains computationally intensive compared to traditional supervised learning.
-Training 8B models requires 3×A100 GPUs, while 32B models need 6×A100 GPUs, limiting accessibility for researchers with modest computational budgets.
+Training 8B models requires 3×A100 \acp{GPU}, while 32B models need 6×A100 \acp{GPU}, limiting accessibility for researchers with modest computational budgets.
 The complexity of distributed training infrastructure also presents implementation barriers for smaller research groups.
 
 \subsection{Reward Function Simplifications}
@@ -158,9 +158,9 @@ Future agent designs could incorporate hierarchical planning with high-level str
 
 Agents that rapidly adapt to new environments represent an important frontier, including few-shot adaptation to new programming environments, continual learning without catastrophic forgetting, systematic transfer learning approaches, and self-improvement through reflection on debugging experiences.
 
-\subsection{Human-AI Collaboration}
+\subsection{Human-\ac{AI} Collaboration}
 
-Rather than fully autonomous agents, future systems could focus on human-AI partnerships through explanatory debugging that shares reasoning, incremental assistance adapting to developer preferences, learning from natural human feedback, and preference learning for individual coding styles.
+Rather than fully autonomous agents, future systems could focus on human-\ac{AI} partnerships through explanatory debugging that shares reasoning, incremental assistance adapting to developer preferences, learning from natural human feedback, and preference learning for individual coding styles.
 
 Educational applications could revolutionize programming instruction through tutoring systems that teach debugging skills, adaptive curricula based on individual weaknesses, automated skill assessment and improvement, and code review training through interactive analysis.
 
@@ -179,20 +179,20 @@ Effective online reinforcement learning on coding agents represents a crucial st
 Advanced coding agents could democratize software development by enabling non-programmers to create sophisticated applications through natural language interaction.
 This could accelerate innovation by enabling domain experts to implement ideas directly without extensive programming training.
 
-Automated code generation and debugging could accelerate scientific discovery by enabling rapid prototyping of computational hypotheses, allowing researchers to focus on conceptual innovation while AI handles implementation details.
+Automated code generation and debugging could accelerate scientific discovery by enabling rapid prototyping of computational hypotheses, allowing researchers to focus on conceptual innovation while \ac{AI} handles implementation details.
 
 \section{Final Reflections}
 \label{sec:final-reflections}
 
-This research demonstrates that the convergence of large language models and reinforcement learning opens unprecedented opportunities for developing sophisticated AI systems capable of complex reasoning and interaction.
-The success of interactive training validates broader principles about learning through environmental interaction and suggests promising directions for advancing AI capabilities across domains requiring multi-step reasoning and strategic planning.
+This research demonstrates that the convergence of large language models and \ac{RL} opens unprecedented opportunities for developing sophisticated \ac{AI} systems capable of complex reasoning and interaction.
+The success of interactive training validates broader principles about learning through environmental interaction and suggests promising directions for advancing \ac{AI} capabilities across domains requiring multi-step reasoning and strategic planning.
 
-Perhaps most importantly, our work demonstrates that advanced AI capabilities need not remain confined to well-resourced industry laboratories.
+Perhaps most importantly, our work demonstrates that advanced \ac{AI} capabilities need not remain confined to well-resourced industry laboratories.
 Through careful engineering and open-source development, academic researchers can achieve state-of-the-art results and contribute meaningfully to advancing the field.
-This democratization of AI research capabilities may prove as significant as the technical advances themselves.
+This democratization of \ac{AI} research capabilities may prove as significant as the technical advances themselves.
 
-The journey from passive pattern matching to active environmental interaction represents a fundamental evolution in how we train AI systems.
-While significant challenges remain, the clear evidence of improvement through interactive learning suggests that this paradigm will play an increasingly important role in developing AI systems capable of genuine reasoning and problem-solving.
+The journey from passive pattern matching to active environmental interaction represents a fundamental evolution in how we train \ac{AI} systems.
+While significant challenges remain, the clear evidence of improvement through interactive learning suggests that this paradigm will play an increasingly important role in developing \ac{AI} systems capable of genuine reasoning and problem-solving.
 
-As we stand at the threshold of increasingly capable AI systems, the principles validated in this work—learning through interaction, the power of computation over engineering, and the importance of open scientific collaboration—will likely guide the development of even more sophisticated AI capabilities.
-The future of AI may well be shaped by agents that learn through doing, just as humans do.
+As we stand at the threshold of increasingly capable \ac{AI} systems, the principles validated in this work—learning through interaction, the power of computation over engineering, and the importance of open scientific collaboration—will likely guide the development of even more sophisticated \ac{AI} capabilities.
+The future of \ac{AI} may well be shaped by agents that learn through doing, just as humans do.

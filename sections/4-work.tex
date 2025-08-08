@@ -1,7 +1,7 @@
 \chapter{Implementation and Experimental Work}
 \label{ch:work}
 
-This chapter describes the comprehensive implementation effort required to realize interactive reinforcement learning for automated code repair.
+This chapter describes the comprehensive implementation effort required to realize interactive \ac{RL} for automated code repair.
 We detail the engineering challenges, system integration work, and experimental validation that transformed theoretical concepts into a working research platform capable of training large-scale coding agents.
 
 \section{System Architecture and Implementation}
@@ -9,8 +9,8 @@ We detail the engineering challenges, system integration work, and experimental 
 
 \subsection{Infrastructure Design Challenges}
 
-Implementing interactive RL for code repair presented several unique engineering challenges not addressed by existing frameworks.
-Traditional RL libraries assume simple observation-action spaces and stateless environments, while our system requires:
+Implementing interactive \ac{RL} for code repair presented several unique engineering challenges not addressed by existing frameworks.
+Traditional \ac{RL} libraries assume simple observation-action spaces and stateless environments, while our system requires:
 
 \begin{itemize}
 	\item \textbf{Persistent Environment State}: Agent sessions maintain complex file system states, command histories, and repository contexts across multiple interaction steps
@@ -25,12 +25,12 @@ Our implementation comprises several interconnected subsystems, each addressing 
 
 \subsubsection{Agent Framework Integration}
 
-\textbf{OpenAI API Compatibility}: The Nano agent originally designed for commercial LLM APIs was adapted to work with our vLLM serving infrastructure through a compatibility layer that translates between API formats while preserving all agent capabilities.
+\textbf{OpenAI \ac{API} Compatibility}: The Nano agent originally designed for commercial \ac{LLM} \acp{API} was adapted to work with our vLLM serving infrastructure through a compatibility layer that translates between \ac{API} formats while preserving all agent capabilities.
 
-\textbf{Trajectory Serialization}: Agent interactions produce complex nested data structures (commands, outputs, file states, error messages) that must be serialized into formats suitable for RL training.
+\textbf{Trajectory Serialization}: Agent interactions produce complex nested data structures (commands, outputs, file states, error messages) that must be serialized into formats suitable for \ac{RL} training.
 Our serialization protocol preserves all interaction details while maintaining computational efficiency.
 
-\textbf{Action Space Mapping}: The agent's tool calls are mapped to discrete actions in the RL formulation, with careful attention to maintaining gradient flow through the policy network to the underlying token generation process.
+\textbf{Action Space Mapping}: The agent's tool calls are mapped to discrete actions in the \ac{RL} formulation, with careful attention to maintaining gradient flow through the policy network to the underlying token generation process.
 
 \subsubsection{Containerized Execution Environment}
 
@@ -38,7 +38,7 @@ Safety and reproducibility requirements necessitated a sophisticated containeriz
 
 \textbf{Isolated Workspaces}: Each agent session operates in a completely isolated Docker container with its own file system, preventing cross-contamination between concurrent training episodes.
 
-\textbf{Resource Management}: Containers are allocated specific CPU, memory, and storage quotas to ensure fair resource distribution and prevent resource exhaustion attacks from malformed agent behavior.
+\textbf{Resource Management}: Containers are allocated specific \ac{CPU}, memory, and storage quotas to ensure fair resource distribution and prevent resource exhaustion attacks from malformed agent behavior.
 
 \textbf{Network Isolation}: Containers operate in isolated network namespaces with no external connectivity, preventing potential security issues while maintaining necessary communication with the host system for model inference.
 
@@ -48,10 +48,10 @@ Safety and reproducibility requirements necessitated a sophisticated containeriz
 
 \subsubsection{GRPO Implementation}
 
-While existing implementations of GRPO existed in the TRL library \cite{trl2020}, they were not designed for the complex interaction patterns required by coding agents.
+While existing implementations of \ac{GRPO} existed in the TRL library \cite{trl2020}, they were not designed for the complex interaction patterns required by coding agents.
 Our custom implementation addresses several limitations:
 
-\textbf{Variable-Length Trajectories}: Standard GRPO assumes fixed-length sequences, while agent interactions vary dramatically in length depending on problem complexity and exploration strategy.
+\textbf{Variable-Length Trajectories}: Standard \ac{GRPO} assumes fixed-length sequences, while agent interactions vary dramatically in length depending on problem complexity and exploration strategy.
 Our implementation handles variable-length trajectories through sophisticated padding and masking schemes.
 
 \textbf{Multi-Turn Conversations}: Agent interactions involve multiple tool calls and responses, requiring careful attention to conversation structure and context management during gradient computation.
@@ -62,7 +62,7 @@ Our implementation handles variable-length trajectories through sophisticated pa
 
 Large-scale agent training required sophisticated distributed computing infrastructure:
 
-\textbf{Multi-GPU Training}: Model training utilizes DeepSpeed ZeRO-3 for efficient parameter and gradient sharding across multiple GPUs, with careful attention to load balancing given the variable computational costs of different agent interactions.
+\textbf{Multi-\ac{GPU} Training}: Model training utilizes DeepSpeed ZeRO-3 for efficient parameter and gradient sharding across multiple \acp{GPU}, with careful attention to load balancing given the variable computational costs of different agent interactions.
 
 \textbf{Parallel Agent Execution}: Dozens of agent instances execute concurrently across multiple compute nodes, with sophisticated scheduling to maximize resource utilization while maintaining training batch consistency.
 
@@ -72,15 +72,15 @@ Large-scale agent training required sophisticated distributed computing infrastr
 
 \subsubsection{Custom vLLM Modifications}
 
-Adapting vLLM for RL training required several modifications to the base serving infrastructure:
+Adapting vLLM for \ac{RL} training required several modifications to the base serving infrastructure:
 
 \textbf{Streaming Trajectory Collection}: We implemented custom request handlers that stream completed agent trajectories directly to the training pipeline without buffering, enabling real-time training data collection.
 
 \textbf{Model Hot-Swapping}: Custom model management code enables live weight updates without service interruption.
-This required careful coordination of CUDA memory management, request routing, and state consistency.
+This required careful coordination of \ac{CUDA} memory management, request routing, and state consistency.
 
-\textbf{Multi-Model Serving}: GRPO requires serving both the current policy and a reference policy simultaneously.
-Our implementation shares base model weights while maintaining separate LoRA adapters, optimizing memory usage and inference throughput.
+\textbf{Multi-Model Serving}: \ac{GRPO} requires serving both the current policy and a reference policy simultaneously.
+Our implementation shares base model weights while maintaining separate \ac{LoRA} adapters, optimizing memory usage and inference throughput.
 
 \subsubsection{Performance Optimizations}
 
@@ -88,26 +88,26 @@ Several optimizations were necessary to achieve acceptable training throughput:
 
 \textbf{KV-Cache Optimization}: Intelligent caching of conversation prefixes reduces redundant computation in multi-turn agent interactions, providing significant latency improvements for exploration-heavy episodes.
 
-\textbf{Batch Processing Optimizations}: Custom batching algorithms pack variable-length agent requests to maximize GPU utilization while respecting memory constraints and conversation coherence requirements.
+\textbf{Batch Processing Optimizations}: Custom batching algorithms pack variable-length agent requests to maximize \ac{GPU} utilization while respecting memory constraints and conversation coherence requirements.
 
 \textbf{Memory Pool Management}: Sophisticated memory management prevents fragmentation and out-of-memory conditions during concurrent training and inference workloads.
 
 \section{NCCL Communication Layer Implementation}
 \label{sec:nccl-implementation}
 
-The real-time weight synchronization system represents one of the most technically challenging aspects of the implementation, requiring deep integration with CUDA programming and distributed systems concepts.
+The real-time weight synchronization system represents one of the most technically challenging aspects of the implementation, requiring deep integration with \ac{CUDA} programming and distributed systems concepts.
 
 \subsection{Technical Architecture}
 
 \subsubsection{NCCL Integration Design}
 
-Our NCCL-based communication system operates through several layers:
+Our \ac{NCCL}-based communication system operates through several layers:
 
 \textbf{Process Group Management}: Custom process group initialization and management code coordinates between training processes and multiple inference servers, handling dynamic membership and failure recovery.
 
 \textbf{Collective Communication Patterns}: We implemented optimized broadcast patterns for distributing weight updates, with ring and tree topologies for different cluster configurations and network characteristics.
 
-\textbf{Memory Management}: Sophisticated CUDA memory management coordinates between training and inference processes, utilizing unified memory and peer-to-peer access where available.
+\textbf{Memory Management}: Sophisticated \ac{CUDA} memory management coordinates between training and inference processes, utilizing unified memory and peer-to-peer access where available.
 
 \subsubsection{Synchronization Protocol}
 
@@ -116,20 +116,20 @@ The synchronization protocol addresses several critical challenges:
 \textbf{Consistency Guarantees}: All tokens within a single generation use consistent model weights, even if updates occur during generation.
 This required careful request tracking and version management.
 
-\textbf{Asynchronous Operations}: Weight broadcasts occur asynchronously with respect to inference requests, utilizing CUDA streams and events to prevent blocking of ongoing inference work.
+\textbf{Asynchronous Operations}: Weight broadcasts occur asynchronously with respect to inference requests, utilizing \ac{CUDA} streams and events to prevent blocking of ongoing inference work.
 
 \textbf{Error Handling}: Robust error detection and recovery mechanisms handle network failures, process crashes, and other distributed systems challenges that arise in long-running training jobs.
 
 \subsection{Engineering Challenges and Solutions}
 
-\subsubsection{CUDA Memory Coordination}
+\subsubsection{\ac{CUDA} Memory Coordination}
 
-Coordinating CUDA memory across multiple processes presented several unique challenges:
+Coordinating \ac{CUDA} memory across multiple processes presented several unique challenges:
 
-\textbf{Memory Fragmentation}: Long-running training jobs tend to fragment GPU memory, leading to allocation failures.
+\textbf{Memory Fragmentation}: Long-running training jobs tend to fragment \ac{GPU} memory, leading to allocation failures.
 We implemented custom memory pools and defragmentation strategies to maintain stable operation.
 
-\textbf{Inter-Process Communication}: Efficient weight sharing required implementing custom IPC mechanisms using CUDA unified memory and peer-to-peer access, with fallbacks to CPU memory for compatibility.
+\textbf{Inter-Process Communication}: Efficient weight sharing required implementing custom IPC mechanisms using \ac{CUDA} unified memory and peer-to-peer access, with fallbacks to \ac{CPU} memory for compatibility.
 
 \textbf{Memory Bandwidth Optimization}: Careful optimization of memory access patterns and communication protocols maximizes bandwidth utilization during weight broadcasts.
 
@@ -148,11 +148,11 @@ Distributed training at scale requires robust fault tolerance mechanisms:
 
 \subsection{SWE-Gym Integration}
 
-Adapting SWE-Gym for RL training required significant data processing and infrastructure work:
+Adapting \ac{SWE-Gym} for \ac{RL} training required significant data processing and infrastructure work:
 
 \subsubsection{Container Environment Setup}
 
-Each SWE-Gym task required careful containerization to ensure reproducible and safe execution:
+Each \ac{SWE-Gym} task required careful containerization to ensure reproducible and safe execution:
 
 \textbf{Dependency Management}: Automated installation and configuration of project dependencies within containers, with careful attention to version compatibility and isolation.
 
@@ -162,7 +162,7 @@ Each SWE-Gym task required careful containerization to ensure reproducible and s
 
 \subsubsection{Data Processing Pipeline}
 
-Converting SWE-Gym tasks into RL training episodes required sophisticated data processing:
+Converting \ac{SWE-Gym} tasks into \ac{RL} training episodes required sophisticated data processing:
 
 \textbf{Issue Description Processing}: Natural language issue descriptions were processed and formatted consistently for agent consumption, with attention to maintaining all relevant context while removing potential training data leakage.
 
@@ -174,7 +174,7 @@ Converting SWE-Gym tasks into RL training episodes required sophisticated data p
 
 \subsubsection{SWE-Bench-Verified Processing}
 
-Preparing SWE-Bench-Verified for evaluation required several processing steps:
+Preparing \ac{SWE-Bench-Verified} for evaluation required several processing steps:
 
 \textbf{Task Filtering}: Systematic filtering of tasks to remove those that would be unsuitable for agent evaluation, including tasks requiring external dependencies or human judgment.
 
@@ -232,7 +232,7 @@ Validating experimental results required multiple validation approaches:
 \section{Open Source Contributions}
 \label{sec:open-source}
 
-A key objective of this work was providing open-source implementations to democratize access to interactive RL techniques.
+A key objective of this work was providing open-source implementations to democratize access to interactive \ac{RL} techniques.
 Our contributions include:
 
 \subsection{CodeRepairRL Framework}
@@ -292,7 +292,7 @@ The implementation process revealed several important insights about the practic
 \textbf{Complexity Underestimation}: The engineering effort required for stable distributed training was significantly underestimated initially.
 Real-world deployment revealed numerous edge cases and failure modes not apparent in smaller-scale testing.
 
-\textbf{Debugging Difficulty}: Debugging distributed agent systems is substantially more complex than traditional ML training, requiring sophisticated logging and monitoring infrastructure to identify root causes of failures.
+\textbf{Debugging Difficulty}: Debugging distributed agent systems is substantially more complex than traditional \ac{ML} training, requiring sophisticated logging and monitoring infrastructure to identify root causes of failures.
 
 \textbf{Performance Sensitivity}: Small inefficiencies in the training pipeline compound significantly at scale, making optimization of every system component critical for practical training speeds.
 
