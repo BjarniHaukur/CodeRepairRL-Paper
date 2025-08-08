@@ -1,18 +1,26 @@
 \chapter{Background and Related Work}
 
-This chapter provides the theoretical foundation for interactive reinforcement learning applied to automated code repair. We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
+This chapter provides the theoretical foundation for interactive reinforcement learning applied to automated code repair.
+We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
 
 \section{Automated Code Repair with Language Models}
 
 Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
 
-The evolution of automated program repair (APR) can be traced through three distinct paradigms. Early search-based approaches like GenProg~\cite{genProg2012} and PAR~\cite{PAR2013} employed genetic programming and pattern-based transformations to search for valid patches within a predefined space of mutations. These systems demonstrated the feasibility of automated repair but suffered from low precision and limited generalization capabilities.
+The evolution of automated program repair (APR) can be traced through three distinct paradigms.
+Early search-based approaches like GenProg~\cite{genProg2012} and PAR~\cite{PAR2013} employed genetic programming and pattern-based transformations to search for valid patches within a predefined space of mutations.
+These systems demonstrated the feasibility of automated repair but suffered from low precision and limited generalization capabilities.
 
-The transition to learning-based approaches began with Prophet~\cite{prophet2016} and DeepFix~\cite{deepfix2017}, which introduced machine learning to rank patch candidates and fix compilation errors respectively. The emergence of neural sequence-to-sequence models marked a fundamental shift, with works like SequenceR~\cite{sequencer2019} and CoCoNuT~\cite{coconut2020} treating program repair as a neural machine translation task.
+The transition to learning-based approaches began with Prophet~\cite{prophet2016} and DeepFix~\cite{deepfix2017}, which introduced machine learning to rank patch candidates and fix compilation errors respectively.
+The emergence of neural sequence-to-sequence models marked a fundamental shift, with works like SequenceR~\cite{sequencer2019} and CoCoNuT~\cite{coconut2020} treating program repair as a neural machine translation task.
 
-The advent of large language models has transformed the landscape entirely. Modern systems leveraging models like Codex~\cite{codex2021}, CodeT5~\cite{codet5}, and more recently CodeLlama~\cite{codellama2023} and DeepSeek-Coder~\cite{deepseek2024} have achieved unprecedented performance on established benchmarks. However, even state-of-the-art models achieve only approximately 20\% success rates on realistic benchmarks like SWE-Bench~\cite{sweBench2024}, highlighting the substantial gap between current capabilities and human-level performance.
+The advent of large language models has transformed the landscape entirely.
+Modern systems leveraging models like Codex~\cite{codex2021}, CodeT5~\cite{codet5}, and more recently CodeLlama~\cite{codellama2023} and DeepSeek-Coder~\cite{deepseek2024} have achieved unprecedented performance on established benchmarks.
+However, even state-of-the-art models achieve only approximately 20\% success rates on realistic benchmarks like SWE-Bench~\cite{sweBench2024}, highlighting the substantial gap between current capabilities and human-level performance.
 
-Key evaluation datasets have evolved alongside these approaches. CodeXGLUE~\cite{codexglue2021} provides a comprehensive multi-task benchmark including bug fixing across multiple languages. Most recently, SWE-Bench~\cite{sweBench2024} introduced repository-level tasks requiring understanding of entire codebases, representing a significant leap in evaluation complexity.
+Key evaluation datasets have evolved alongside these approaches.
+CodeXGLUE~\cite{codexglue2021} provides a comprehensive multi-task benchmark including bug fixing across multiple languages.
+Most recently, SWE-Bench~\cite{sweBench2024} introduced repository-level tasks requiring understanding of entire codebases, representing a significant leap in evaluation complexity.
 
 Current LLM-based approaches exhibit several fundamental limitations that constrain their effectiveness:
 
@@ -20,15 +28,19 @@ Current LLM-based approaches exhibit several fundamental limitations that constr
 
 \textbf{Limited context windows}: Even with recent advances extending context lengths to 128K+ tokens, models struggle to maintain coherent understanding across large codebases with complex dependencies.
 
-\textbf{Poor multi-file coordination}: Real-world bugs often require coordinated changes across multiple files. Current models frequently produce inconsistent edits that fail to maintain invariants across file boundaries.
+\textbf{Poor multi-file coordination}: Real-world bugs often require coordinated changes across multiple files.
+Current models frequently produce inconsistent edits that fail to maintain invariants across file boundaries.
 
 \textbf{Lack of environmental interaction}: Models cannot execute code, run tests, or observe runtime behavior, limiting their ability to understand dynamic program properties and verify correctness.
 
-Recent specialized models like RepairLLaMA~\cite{repairllama2024} have attempted to address these limitations through continued pre-training on bug-fix datasets, achieving modest improvements on benchmarks. However, these approaches still operate within the fundamental constraint of single-pass generation without environmental feedback.
+Recent specialized models like RepairLLaMA~\cite{repairllama2024} have attempted to address these limitations through continued pre-training on bug-fix datasets, achieving modest improvements on benchmarks.
+However, these approaches still operate within the fundamental constraint of single-pass generation without environmental feedback.
 
-Current approaches primarily rely on supervised fine-tuning on bug-fix datasets, where models learn to map broken code snippets to corrected versions. However, this paradigm has fundamental limitations when applied to real-world debugging scenarios.
+Current approaches primarily rely on supervised fine-tuning on bug-fix datasets, where models learn to map broken code snippets to corrected versions.
+However, this paradigm has fundamental limitations when applied to real-world debugging scenarios.
 
-The fundamental mismatch between training and deployment paradigms represents a critical challenge in automated program repair. During training, models learn from static datasets of bug-fix pairs, typically formatted as:
+The fundamental mismatch between training and deployment paradigms represents a critical challenge in automated program repair.
+During training, models learn from static datasets of bug-fix pairs, typically formatted as:
 
 \begin{verbatim}
 <buggy_code>
@@ -42,15 +54,19 @@ def calculate_average(numbers):
 </fixed_code>
 \end{verbatim}
 
-This training regime assumes that all necessary information for generating a fix is contained within the immediate code context. However, real-world debugging is inherently interactive and exploratory:
+This training regime assumes that all necessary information for generating a fix is contained within the immediate code context.
+However, real-world debugging is inherently interactive and exploratory:
 
-\textbf{Hypothesis formation and testing}: Developers form hypotheses about bug causes, test them through code execution or inspection, and iteratively refine their understanding. This exploratory process cannot be captured in static input-output pairs.
+\textbf{Hypothesis formation and testing}: Developers form hypotheses about bug causes, test them through code execution or inspection, and iteratively refine their understanding.
+This exploratory process cannot be captured in static input-output pairs.
 
 \textbf{Dynamic information gathering}: Debugging often requires examining stack traces, variable values at runtime, test outputs, and log files—information absent from static training data but crucial for understanding bug manifestations.
 
-\textbf{Repository-level reasoning}: Real bugs exist within complex codebases where understanding requires tracing dependencies, examining calling contexts, and maintaining consistency across module boundaries. The average SWE-Bench task involves understanding code spread across 6.3 files with complex interdependencies.
+\textbf{Repository-level reasoning}: Real bugs exist within complex codebases where understanding requires tracing dependencies, examining calling contexts, and maintaining consistency across module boundaries.
+The average SWE-Bench task involves understanding code spread across 6.3 files with complex interdependencies.
 
-\textbf{Iterative refinement}: Professional debugging rarely produces correct fixes on the first attempt. Developers test partial solutions, observe failures, and refine their approach—a fundamentally different process from single-shot generation.
+\textbf{Iterative refinement}: Professional debugging rarely produces correct fixes on the first attempt.
+Developers test partial solutions, observe failures, and refine their approach—a fundamentally different process from single-shot generation.
 
 Sequence-to-sequence models, even when scaled to billions of parameters, struggle with these requirements for several reasons:
 
@@ -60,61 +76,59 @@ Sequence-to-sequence models, even when scaled to billions of parameters, struggl
 
 \textbf{Absence of verification mechanisms}: Without the ability to execute code and observe outcomes, models cannot verify their proposed solutions or learn from failed attempts.
 
-This mismatch manifests concretely in evaluation results. On SWE-Bench, even the most advanced models achieve less than 25\% success rates, while human developers solving the same tasks achieve over 90\% success rates when given appropriate time and tools. The gap highlights not just a quantitative difference in performance, but a qualitative difference in problem-solving approach.
+This mismatch manifests concretely in evaluation results.
+On SWE-Bench, even the most advanced models achieve less than 25\% success rates, while human developers solving the same tasks achieve over 90\% success rates when given appropriate time and tools.
+The gap highlights not just a quantitative difference in performance, but a qualitative difference in problem-solving approach.
 
 Addressing this mismatch requires moving beyond supervised learning on static datasets toward interactive learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for interactive reinforcement learning explored in this thesis.
 
 \section{Reinforcement Learning for Language Models}
 
-Reinforcement learning has emerged as a powerful technique for improving language model performance beyond what supervised learning alone can achieve, particularly for tasks requiring sequential decision-making and optimization of complex objectives. Unlike supervised learning, which relies on fixed input-output pairs, RL enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
+Reinforcement learning has emerged as a powerful technique for improving language model performance beyond what supervised learning alone can achieve, particularly for tasks requiring sequential decision-making and optimization of complex objectives.
+Unlike supervised learning, which relies on fixed input-output pairs, RL enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
 
 \subsection{Policy Gradient Foundations}
 
-The foundation of RL for language models lies in treating text generation as a Markov Decision Process (MDP). In this formulation, the language model serves as a policy $\pi_\theta(a_t|s_t)$ that selects actions (tokens) $a_t$ given states (context sequences) $s_t$, parameterized by model weights $\theta$.
+The foundation of RL for language models lies in treating text generation as a Markov Decision Process (MDP).
+In this formulation, the language model serves as a policy $\pi_\theta(a_t|s_t)$ that selects actions (tokens) $a_t$ given states (context sequences) $s_t$, parameterized by model weights $\theta$.
 
-The objective is to maximize the expected cumulative reward:
-\begin{equation}
+The objective is to maximize the expected cumulative reward: \begin{equation}
 J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]
-\end{equation}
-where $\tau = (s_0, a_0, s_1, a_1, \ldots, s_T, a_T)$ represents a trajectory (complete sequence generation) and $R(\tau)$ is the total reward for that trajectory.
+\end{equation} where $\tau = (s_0, a_0, s_1, a_1, \ldots, s_T, a_T)$ represents a trajectory (complete sequence generation) and $R(\tau)$ is the total reward for that trajectory.
 
-The policy gradient theorem provides the foundation for optimization:
-\begin{equation}
+The policy gradient theorem provides the foundation for optimization: \begin{equation}
 \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t|s_t) R(\tau)]
 \end{equation}
 
-However, this basic REINFORCE estimator suffers from high variance, making training unstable and sample-inefficient. This limitation becomes particularly problematic for language models, where sequence lengths can be substantial and reward signals are often sparse.
+However, this basic REINFORCE estimator suffers from high variance, making training unstable and sample-inefficient.
+This limitation becomes particularly problematic for language models, where sequence lengths can be substantial and reward signals are often sparse.
 
 \subsection{Proximal Policy Optimization (PPO)}
 
-Proximal Policy Optimization has emerged as the dominant algorithm for fine-tuning large language models due to its ability to stabilize training while maintaining sample efficiency. PPO addresses the fundamental challenge of policy optimization: making meaningful progress without taking overly large steps that destabilize learning.
+Proximal Policy Optimization has emerged as the dominant algorithm for fine-tuning large language models due to its ability to stabilize training while maintaining sample efficiency.
+PPO addresses the fundamental challenge of policy optimization: making meaningful progress without taking overly large steps that destabilize learning.
 
 \subsubsection{The Clipping Mechanism}
 
-PPO introduces a clipped objective function that prevents destructive policy updates:
-\begin{equation}
+PPO introduces a clipped objective function that prevents destructive policy updates: \begin{equation}
 L^{CLIP}(\theta) = \mathbb{E}_t\left[\min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right)\right]
-\end{equation}
-where:
-\begin{align}
+\end{equation} where: \begin{align}
 r_t(\theta) &= \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)} \\
 \hat{A}_t &= R_t - V(s_t)
 \end{align}
 
-The ratio $r_t(\theta)$ measures how much the current policy differs from the previous policy, while $\hat{A}_t$ represents the advantage estimate computed using a value function $V(s_t)$. The clipping parameter $\epsilon$ (typically 0.2) constrains policy updates to prevent catastrophic changes.
+The ratio $r_t(\theta)$ measures how much the current policy differs from the previous policy, while $\hat{A}_t$ represents the advantage estimate computed using a value function $V(s_t)$.
+The clipping parameter $\epsilon$ (typically 0.2) constrains policy updates to prevent catastrophic changes.
 
 \subsubsection{Value Function Training}
 
-PPO employs a separate value network $V_\phi(s)$ trained to predict expected returns, enabling more accurate advantage estimation:
-\begin{equation}
+PPO employs a separate value network $V_\phi(s)$ trained to predict expected returns, enabling more accurate advantage estimation: \begin{equation}
 L^{VF}(\phi) = \mathbb{E}_t\left[(V_\phi(s_t) - R_t)^2\right]
 \end{equation}
 
-The complete PPO objective combines policy and value losses:
-\begin{equation}
+The complete PPO objective combines policy and value losses: \begin{equation}
 L(\theta, \phi) = L^{CLIP}(\theta) - c_1 L^{VF}(\phi) + c_2 S[\pi_\theta](s_t)
-\end{equation}
-where $S[\pi_\theta]$ is an entropy bonus encouraging exploration, and $c_1, c_2$ are weighting coefficients.
+\end{equation} where $S[\pi_\theta]$ is an entropy bonus encouraging exploration, and $c_1, c_2$ are weighting coefficients.
 
 \subsubsection{Success in Language Model Fine-tuning}
 
@@ -130,20 +144,19 @@ However, PPO also introduces significant computational overhead through the sepa
 
 \subsection{Group Relative Policy Optimization (GRPO)}
 
-Group Relative Policy Optimization is fundamentally PPO with a crucial simplification: instead of training a separate value network to estimate advantages, GRPO computes advantages directly from relative performance within sampled action groups. This elegant modification preserves PPO's theoretical guarantees while dramatically reducing computational overhead.
+Group Relative Policy Optimization is fundamentally PPO with a crucial simplification: instead of training a separate value network to estimate advantages, GRPO computes advantages directly from relative performance within sampled action groups.
+This elegant modification preserves PPO's theoretical guarantees while dramatically reducing computational overhead.
 
 \subsubsection{The Core Simplification}
 
 The key insight behind GRPO is that for each state $s$, rather than estimating $V(s)$ with a separate network, we can sample multiple actions $a_1, \ldots, a_G$ from the current policy $\pi_{\theta_t}$ and use their reward distribution to compute relative advantages.
 
-For a given state $s$, GRPO samples $G$ actions from the policy and computes the group-relative advantage as:
-\begin{equation}
+For a given state $s$, GRPO samples $G$ actions from the policy and computes the group-relative advantage as: \begin{equation}
 A^{\pi_{\theta_t}}(s, a_j) = \frac{r(s, a_j) - \mu}{\sigma}
-\end{equation}
-where $\mu$ and $\sigma$ are the mean and standard deviation of the rewards $r(s, a_1), \ldots, r(s, a_G)$. This is simply the standard score (z-score) of the rewards, providing a normalized measure of relative performance.
+\end{equation} where $\mu$ and $\sigma$ are the mean and standard deviation of the rewards $r(s, a_1), \ldots, r(s, a_G)$.
+This is simply the standard score (z-score) of the rewards, providing a normalized measure of relative performance.
 
-Mathematically, this can be expressed as:
-\begin{align}
+Mathematically, this can be expressed as: \begin{align}
 \mu &= \frac{1}{G}\sum_{i=1}^G r(s, a_i) \\
 \sigma &= \sqrt{\frac{1}{G}\sum_{i=1}^G (r(s, a_i) - \mu)^2} \\
 A^{\pi_{\theta_t}}(s, a_j) &= \frac{r(s, a_j) - \mu}{\sigma}
@@ -151,8 +164,8 @@ A^{\pi_{\theta_t}}(s, a_j) &= \frac{r(s, a_j) - \mu}{\sigma}
 
 \subsubsection{PPO Objective with Group-Relative Advantages}
 
-GRPO then maximizes the standard PPO objective, but using these group-relative advantages instead of value-network-based estimates. The objective becomes:
-\begin{equation}
+GRPO then maximizes the standard PPO objective, but using these group-relative advantages instead of value-network-based estimates.
+The objective becomes: \begin{equation}
 \max_\theta \frac{1}{G}\sum_{i=1}^G \mathbb{E}_{(s,a_1,\ldots,a_G) \sim \pi_{\theta_t}}\left[
 \begin{cases}
 \min\left(\frac{\pi_\theta(a_i|s)}{\pi_{\theta_t}(a_i|s)}, 1+\epsilon\right) A^{\pi_{\theta_t}}(s, a_i) & \text{if } A^{\pi_{\theta_t}}(s, a_i) > 0 \\
@@ -161,24 +174,28 @@ GRPO then maximizes the standard PPO objective, but using these group-relative a
 \right]
 \end{equation}
 
-This formulation preserves PPO's asymmetric clipping behavior: when advantages are positive (indicating good actions), we clip the importance ratio from above at $(1+\epsilon)$ to prevent over-optimization. When advantages are negative (indicating poor actions), we clip from below at $(1-\epsilon)$ to avoid excessive penalization.
+This formulation preserves PPO's asymmetric clipping behavior: when advantages are positive (indicating good actions), we clip the importance ratio from above at $(1+\epsilon)$ to prevent over-optimization.
+When advantages are negative (indicating poor actions), we clip from below at $(1-\epsilon)$ to avoid excessive penalization.
 
 \subsubsection{Intuitive Understanding}
 
-The intuition behind GRPO is elegantly simple: each policy update makes the model more likely to produce actions that performed relatively better than other actions tried at the same state, and less likely to produce actions that performed relatively worse. This creates a natural competitive dynamic where actions are evaluated against their peers rather than against an absolute baseline.
+The intuition behind GRPO is elegantly simple: each policy update makes the model more likely to produce actions that performed relatively better than other actions tried at the same state, and less likely to produce actions that performed relatively worse.
+This creates a natural competitive dynamic where actions are evaluated against their peers rather than against an absolute baseline.
 
 Consider a concrete example: if for a given coding problem, the model generates five different debugging approaches with rewards $[0.1, 0.8, 0.3, 0.9, 0.2]$, GRPO will:
 \begin{itemize}
-\item Strongly reinforce the action with reward $0.9$ (highest z-score)
-\item Moderately reinforce the action with reward $0.8$ (second highest z-score)  
-\item Slightly penalize actions with rewards $0.3, 0.2, 0.1$ (below-average performance)
+	\item Strongly reinforce the action with reward $0.9$ (highest z-score)
+	\item Moderately reinforce the action with reward $0.8$ (second highest z-score)
+	\item Slightly penalize actions with rewards $0.3, 0.2, 0.1$ (below-average performance)
 \end{itemize}
 
 This relative ranking approach is particularly powerful for code repair where absolute reward values may vary significantly across different types of bugs, but relative solution quality within each problem remains meaningful.
 
 \subsubsection{Relationship to PPO}
 
-It's crucial to understand that GRPO is not a fundamentally different algorithm from PPO—it is PPO with a specific choice of advantage estimation. The clipping mechanism, importance sampling, and optimization dynamics remain identical. The only change is replacing:
+It's crucial to understand that GRPO is not a fundamentally different algorithm from PPO—it is PPO with a specific choice of advantage estimation.
+The clipping mechanism, importance sampling, and optimization dynamics remain identical.
+The only change is replacing:
 \begin{equation}
 \hat{A}_t^{PPO} = R_t - V_\phi(s_t)
 \end{equation}
@@ -189,10 +206,10 @@ with:
 
 This substitution eliminates the need for:
 \begin{itemize}
-\item Training a separate value network $V_\phi$
-\item Computing value loss $L^{VF}(\phi)$
-\item Managing value network hyperparameters
-\item Coordinating policy and value network training schedules
+	\item Training a separate value network $V_\phi$
+	\item Computing value loss $L^{VF}(\phi)$
+	\item Managing value network hyperparameters
+	\item Coordinating policy and value network training schedules
 \end{itemize}
 
 \subsubsection{Computational and Practical Advantages}
@@ -201,7 +218,8 @@ The computational benefits of GRPO are substantial:
 
 \textbf{Memory Efficiency}: Eliminating the value network reduces GPU memory requirements by approximately 50\%, enabling larger batch sizes or model sizes within the same hardware constraints.
 
-\textbf{Training Simplicity}: The training loop becomes significantly simpler, reducing implementation complexity and potential sources of bugs. There are no value network updates to coordinate or balance against policy updates.
+\textbf{Training Simplicity}: The training loop becomes significantly simpler, reducing implementation complexity and potential sources of bugs.
+There are no value network updates to coordinate or balance against policy updates.
 
 \textbf{Hyperparameter Robustness}: With fewer moving parts, GRPO exhibits reduced sensitivity to hyperparameter choices, making it more reliable across different tasks and model architectures.
 
@@ -211,45 +229,52 @@ The computational benefits of GRPO are substantial:
 
 GRPO's design makes it particularly well-suited for code repair applications:
 
-\textbf{Natural Handling of Sparse Rewards}: Code repair often produces binary success/failure outcomes or sparse quality metrics. GRPO's relative comparison approach handles this naturally, as the standard score normalization adapts to the reward distribution within each group.
+\textbf{Natural Handling of Sparse Rewards}: Code repair often produces binary success/failure outcomes or sparse quality metrics.
+GRPO's relative comparison approach handles this naturally, as the standard score normalization adapts to the reward distribution within each group.
 
-\textbf{Problem Diversity}: Different coding problems require vastly different solution approaches and have different inherent difficulty levels. GRPO's group-relative baseline automatically adjusts to each problem's context, whereas a global value function would struggle to capture this diversity.
+\textbf{Problem Diversity}: Different coding problems require vastly different solution approaches and have different inherent difficulty levels.
+GRPO's group-relative baseline automatically adjusts to each problem's context, whereas a global value function would struggle to capture this diversity.
 
 \textbf{Exploration Encouragement}: By comparing actions against their immediate peers rather than a global baseline, GRPO encourages exploration of diverse solution strategies, which is crucial for learning robust debugging skills.
 
-\textbf{Computational Scaling}: Code repair training requires processing thousands of agent interactions across diverse repositories and bug types. GRPO's computational efficiency makes this scale of training practically feasible.
+\textbf{Computational Scaling}: Code repair training requires processing thousands of agent interactions across diverse repositories and bug types.
+GRPO's computational efficiency makes this scale of training practically feasible.
 
-The mathematical elegance of GRPO lies in its ability to preserve all of PPO's theoretical guarantees while dramatically simplifying the implementation. For code repair, where relative solution quality matters more than absolute reward prediction, this approach provides an optimal balance of performance, simplicity, and computational efficiency.
+The mathematical elegance of GRPO lies in its ability to preserve all of PPO's theoretical guarantees while dramatically simplifying the implementation.
+For code repair, where relative solution quality matters more than absolute reward prediction, this approach provides an optimal balance of performance, simplicity, and computational efficiency.
 
 \subsubsection{Variance Collapse: A Fundamental Challenge}
 
-Despite GRPO's computational advantages, it shares with other policy gradient methods a fundamental challenge known as variance collapse or mode collapse~\cite{varianceCollapse2023}. This phenomenon occurs when the policy gradient optimization inadvertently incentivizes the model to reduce output variance, leading to increasingly deterministic and less exploratory behavior over training iterations.
+Despite GRPO's computational advantages, it shares with other policy gradient methods a fundamental challenge known as variance collapse or mode collapse~\cite{varianceCollapse2023}.
+This phenomenon occurs when the policy gradient optimization inadvertently incentivizes the model to reduce output variance, leading to increasingly deterministic and less exploratory behavior over training iterations.
 
-The mechanism behind variance collapse in GRPO can be understood through the optimization dynamics. When computing group-relative advantages, actions with consistently high rewards relative to their peers receive positive reinforcement, while those with lower relative rewards are penalized. Over time, this creates a positive feedback loop:
+The mechanism behind variance collapse in GRPO can be understood through the optimization dynamics.
+When computing group-relative advantages, actions with consistently high rewards relative to their peers receive positive reinforcement, while those with lower relative rewards are penalized.
+Over time, this creates a positive feedback loop:
 
 \begin{enumerate}
-\item High-performing actions become increasingly likely
-\item The policy concentrates probability mass on these "safe" actions
-\item Exploration of alternative strategies diminishes
-\item The standard deviation $\sigma$ in the group decreases
-\item Smaller $\sigma$ amplifies advantage magnitudes, accelerating concentration
+	\item High-performing actions become increasingly likely
+	\item The policy concentrates probability mass on these "safe" actions
+	\item Exploration of alternative strategies diminishes
+	\item The standard deviation $\sigma$ in the group decreases
+	\item Smaller $\sigma$ amplifies advantage magnitudes, accelerating concentration
 \end{enumerate}
 
 This collapse is particularly problematic for code repair applications where:
 
-\textbf{Multiple valid solutions exist}: Most bugs can be fixed through various approaches—refactoring the logic, adding error handling, or modifying data structures. Variance collapse biases the model toward a single approach, potentially missing simpler or more elegant solutions.
+\textbf{Multiple valid solutions exist}: Most bugs can be fixed through various approaches—refactoring the logic, adding error handling, or modifying data structures.
+Variance collapse biases the model toward a single approach, potentially missing simpler or more elegant solutions.
 
-\textbf{Exploration enables learning}: Discovering effective debugging strategies requires experimenting with different investigation paths, tool usage patterns, and fix attempts. Premature convergence prevents the model from discovering these diverse strategies.
+\textbf{Exploration enables learning}: Discovering effective debugging strategies requires experimenting with different investigation paths, tool usage patterns, and fix attempts.
+Premature convergence prevents the model from discovering these diverse strategies.
 
 \textbf{Robustness requires diversity}: Models that learn only narrow solution patterns fail when encountering bugs requiring different approaches, leading to brittleness in deployment.
 
 Several mitigation strategies have been proposed in the literature:
 
-\textbf{Entropy Regularization}~\cite{entropyRL2022}: Adding an entropy bonus to the objective function explicitly encourages diverse outputs:
-\begin{equation}
+\textbf{Entropy Regularization}~\cite{entropyRL2022}: Adding an entropy bonus to the objective function explicitly encourages diverse outputs: \begin{equation}
 L_{total} = L_{GRPO} + \beta H(\pi_\theta)
-\end{equation}
-where $H(\pi_\theta) = -\mathbb{E}_{a \sim \pi_\theta}[\log \pi_\theta(a|s)]$ measures policy entropy.
+\end{equation} where $H(\pi_\theta) = -\mathbb{E}_{a \sim \pi_\theta}[\log \pi_\theta(a|s)]$ measures policy entropy.
 
 \textbf{KL Divergence Constraints}~\cite{klConstraints2023}: Constraining the KL divergence between successive policies prevents rapid mode collapse:
 \begin{equation}
@@ -263,33 +288,37 @@ This approach is already partially addressed by PPO's clipping mechanism but can
 
 For code repair specifically, we adopt a multi-pronged approach:
 \begin{itemize}
-\item Moderate entropy bonuses ($\beta = 0.01$) to maintain exploration without overwhelming the primary objective
-\item Temperature scaling during sampling to control output diversity
-\item Diverse prompt augmentation to encourage different solution approaches
-\item Early stopping based on validation diversity metrics rather than just success rates
+	\item Moderate entropy bonuses ($\beta = 0.01$) to maintain exploration without overwhelming the primary objective
+	\item Temperature scaling during sampling to control output diversity
+	\item Diverse prompt augmentation to encourage different solution approaches
+	\item Early stopping based on validation diversity metrics rather than just success rates
 \end{itemize}
 
-Understanding and mitigating variance collapse remains an active area of research, with implications extending beyond code repair to all applications of RL-based language model training. The trade-off between exploitation of successful strategies and exploration of alternatives represents a fundamental challenge in making these systems both effective and robust.
+Understanding and mitigating variance collapse remains an active area of research, with implications extending beyond code repair to all applications of RL-based language model training.
+The trade-off between exploitation of successful strategies and exploration of alternatives represents a fundamental challenge in making these systems both effective and robust.
 
 \subsection{Group Sequence Policy Optimization (GSPO)}
 
-While \ac{GRPO} offers computational efficiency over traditional PPO, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool-use scenarios~\cite{zheng2025groupsequencepolicyoptimization}. \ac{GSPO} addresses these fundamental limitations through a theoretically grounded reformulation of the importance sampling mechanism.
+While \ac{GRPO} offers computational efficiency over traditional PPO, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool-use scenarios~\cite{zheng2025groupsequencepolicyoptimization}.
+\ac{GSPO} addresses these fundamental limitations through a theoretically grounded reformulation of the importance sampling mechanism.
 
 \subsubsection{The Stability Problem in GRPO}
 
-The core instability in GRPO stems from its token-level importance ratios. When training models for multi-turn interactions with coding agents, this becomes especially problematic due to numerical discrepancies between logits generated during fast inference (using engines like vLLM) and those computed during training. These discrepancies compound across long sequences, creating high-variance training noise that progressively destabilizes the model.
+The core instability in GRPO stems from its token-level importance ratios.
+When training models for multi-turn interactions with coding agents, this becomes especially problematic due to numerical discrepancies between logits generated during fast inference (using engines like vLLM) and those computed during training.
+These discrepancies compound across long sequences, creating high-variance training noise that progressively destabilizes the model.
 
 For our specific use case—training models to use tools iteratively across multiple turns—this instability manifests as:
 \begin{itemize}
-\item Catastrophic forgetting of tool-use patterns mid-training
-\item Divergence between inference and training behavior
-\item Irreversible model collapse when sequences exceed typical lengths
+	\item Catastrophic forgetting of tool-use patterns mid-training
+	\item Divergence between inference and training behavior
+	\item Irreversible model collapse when sequences exceed typical lengths
 \end{itemize}
 
 \subsubsection{Sequence-Level Importance Sampling}
 
-GSPO's key innovation lies in defining importance ratios at the sequence level rather than token level. For a response $y$ to query $x$, the sequence-level importance ratio is:
-\begin{equation}
+GSPO's key innovation lies in defining importance ratios at the sequence level rather than token level.
+For a response $y$ to query $x$, the sequence-level importance ratio is: \begin{equation}
 w(y|x; \theta) = \frac{\pi_\theta(y|x)}{\pi_{\theta_{old}}(y|x)} = \prod_{t=1}^{|y|} \frac{\pi_\theta(y_t|x, y_{<t})}{\pi_{\theta_{old}}(y_t|x, y_{<t})}
 \end{equation}
 
@@ -297,13 +326,11 @@ This aligns with the fundamental principle of importance sampling and provides m
 
 \subsubsection{The GSPO Objective}
 
-GSPO optimizes the following objective:
-\begin{equation}
+GSPO optimizes the following objective: \begin{equation}
 J_{GSPO}(\theta) = \mathbb{E}_{x \sim D, \{y_i\}_{i=1}^G \sim \pi_{\theta_{old}}(\cdot|x)} \left[ \frac{1}{G} \sum_{i=1}^G \min\left( w(y_i|x; \theta) A_i, \text{clip}(w(y_i|x; \theta), 1-\epsilon, 1+\epsilon) A_i \right) \right]
 \end{equation}
 
-where advantages $A_i$ are computed as normalized rewards across the group:
-\begin{equation}
+where advantages $A_i$ are computed as normalized rewards across the group: \begin{equation}
 A_i = \frac{r(x, y_i) - \mu_r}{\sigma_r}
 \end{equation}
 
@@ -321,27 +348,32 @@ For our coding agent training scenario, GSPO provides several crucial benefits:
 
 \textbf{MoE Compatibility}: The Qwen team demonstrated that GSPO inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.
 
-Empirical results from the Qwen3 models show that GSPO not only stabilizes training but also achieves superior final performance compared to GRPO, validating its theoretical advantages in practice. For our work, adopting GSPO represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
+Empirical results from the Qwen3 models show that GSPO not only stabilizes training but also achieves superior final performance compared to GRPO, validating its theoretical advantages in practice.
+For our work, adopting GSPO represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
 
 \section{Low-Rank Adaptation (LoRA)}
 
-Parameter-efficient fine-tuning has become essential for adapting large language models to specific tasks without the computational overhead of full fine-tuning. Low-Rank Adaptation (LoRA) represents one of the most successful approaches in this domain.
+Parameter-efficient fine-tuning has become essential for adapting large language models to specific tasks without the computational overhead of full fine-tuning.
+Low-Rank Adaptation (LoRA) represents one of the most successful approaches in this domain.
 
 \subsection{Mathematical Foundation}
 
-LoRA is based on the hypothesis that weight updates during fine-tuning have low intrinsic rank. For a pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, LoRA represents the update $\Delta W$ as:
+LoRA is based on the hypothesis that weight updates during fine-tuning have low intrinsic rank.
+For a pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, LoRA represents the update $\Delta W$ as:
 
 \begin{equation}
 \Delta W = BA
 \end{equation}
 
-where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$ with rank $r \ll \min(d,k)$. The adapted weight becomes:
+where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$ with rank $r \ll \min(d,k)$.
+The adapted weight becomes:
 
 \begin{equation}
 W = W_0 + \Delta W = W_0 + BA
 \end{equation}
 
-During training, $W_0$ remains frozen while only $A$ and $B$ are updated. This dramatically reduces the number of trainable parameters from $dk$ to $r(d+k)$.
+During training, $W_0$ remains frozen while only $A$ and $B$ are updated.
+This dramatically reduces the number of trainable parameters from $dk$ to $r(d+k)$.
 
 \subsection{Implementation Details}
 
@@ -349,9 +381,9 @@ During training, $W_0$ remains frozen while only $A$ and $B$ are updated. This d
 
 LoRA uses a specific initialization scheme to ensure training stability:
 \begin{itemize}
-\item Matrix $A$ is initialized using random Gaussian values
-\item Matrix $B$ is initialized to zero, ensuring $\Delta W = BA = 0$ at the start
-\item This guarantees that the adapted model initially behaves identically to the pre-trained model
+	\item Matrix $A$ is initialized using random Gaussian values
+	\item Matrix $B$ is initialized to zero, ensuring $\Delta W = BA = 0$ at the start
+	\item This guarantees that the adapted model initially behaves identically to the pre-trained model
 \end{itemize}
 
 \subsubsection{Scaling Factor}
@@ -380,8 +412,8 @@ LoRA offers substantial practical benefits for RL training:
 
 LoRA's benefits become particularly pronounced in RL settings where multiple model instances must be maintained:
 
-\textbf{Policy-Reference Separation}: RL algorithms like PPO require keeping both current and reference policies. With LoRA, the reference policy can share the frozen base weights while only the adapter differs.
-
+\textbf{Policy-Reference Separation}: RL algorithms like PPO require keeping both current and reference policies.
+With LoRA, the reference policy can share the frozen base weights while only the adapter differs.
 
 \subsection{Theoretical Considerations}
 
@@ -391,13 +423,15 @@ Recent research has examined LoRA's representational capacity and limitations:
 
 \textbf{Task Transfer}: LoRA adapters learned for related tasks can serve as initialization for new tasks, potentially accelerating learning through transfer.
 
-\textbf{Rank Selection}: Choosing appropriate rank values requires balancing expressiveness against efficiency. Higher ranks provide more flexibility but reduce computational savings.
+\textbf{Rank Selection}: Choosing appropriate rank values requires balancing expressiveness against efficiency.
+Higher ranks provide more flexibility but reduce computational savings.
 
 \subsection{Application to Code Repair}
 
 For interactive code repair training, LoRA offers specific advantages:
 
-\textbf{Environmental Diversity}: Different repositories and bug types may benefit from specialized adaptations. LoRA enables training multiple task-specific adapters efficiently.
+\textbf{Environmental Diversity}: Different repositories and bug types may benefit from specialized adaptations.
+LoRA enables training multiple task-specific adapters efficiently.
 
 \textbf{Continual Learning}: As new bug patterns emerge, LoRA adapters can be incrementally trained without catastrophic forgetting of previous skills.
 
@@ -411,7 +445,8 @@ The ability for language models to interact with external tools and APIs represe
 
 \subsection{Function Calling Mechanisms}
 
-Modern LLMs implement tool calling through structured output generation, where models learn to produce specially formatted function calls that can be parsed and executed by external systems. This capability emerged from training models on datasets containing examples of tool usage patterns, enabling them to understand when and how to invoke external functions.
+Modern LLMs implement tool calling through structured output generation, where models learn to produce specially formatted function calls that can be parsed and executed by external systems.
+This capability emerged from training models on datasets containing examples of tool usage patterns, enabling them to understand when and how to invoke external functions.
 
 \subsubsection{JSON-Based Function Calling}
 
@@ -462,32 +497,38 @@ Modern coding agents combine language models with tool access, allowing them to 
 
 Several sophisticated coding agent frameworks have emerged, each representing different philosophies in agent design and human-AI collaboration:
 
-\textbf{GitHub Copilot Workspace}~\cite{copilotWorkspace2024} extends the original Copilot paradigm beyond code completion to full task planning and execution. It employs a multi-agent architecture where specialized agents handle different aspects of software development—understanding requirements, generating implementations, and managing version control. On proprietary evaluations, it achieves approximately 30\% task completion rates for well-specified programming tasks.
+\textbf{GitHub Copilot Workspace}~\cite{copilotWorkspace2024} extends the original Copilot paradigm beyond code completion to full task planning and execution.
+It employs a multi-agent architecture where specialized agents handle different aspects of software development—understanding requirements, generating implementations, and managing version control.
+On proprietary evaluations, it achieves approximately 30\% task completion rates for well-specified programming tasks.
 
-\textbf{Cursor}~\cite{cursor2024} pioneered the IDE-integrated agent approach, providing context-aware code generation within the development environment. Its key innovation lies in automatic context retrieval, using embedding-based search to identify relevant code sections across large codebases. This approach achieves strong performance on code completion tasks but has not been formally evaluated on repair benchmarks.
+\textbf{Cursor}~\cite{cursor2024} pioneered the IDE-integrated agent approach, providing context-aware code generation within the development environment.
+Its key innovation lies in automatic context retrieval, using embedding-based search to identify relevant code sections across large codebases.
+This approach achieves strong performance on code completion tasks but has not been formally evaluated on repair benchmarks.
 
 \textbf{Aider}~\cite{aider2024} represents the heavyweight scaffolding approach, incorporating sophisticated features:
 \begin{itemize}
-\item \textit{Repository mapping}: Automatic generation of codebase summaries and dependency graphs
-\item \textit{Multi-file coordination}: Tracking and maintaining consistency across file edits
-\item \textit{Conversation memory}: Maintaining context across multiple interaction turns
-\item \textit{Git integration}: Automatic commit generation and version management
+	\item \textit{Repository mapping}: Automatic generation of codebase summaries and dependency graphs
+	\item \textit{Multi-file coordination}: Tracking and maintaining consistency across file edits
+	\item \textit{Conversation memory}: Maintaining context across multiple interaction turns
+	\item \textit{Git integration}: Automatic commit generation and version management
 \end{itemize}
 On the Aider-Polyglot benchmark, it achieves 48.3\% success rates with GPT-4, demonstrating the value of comprehensive scaffolding.
 
 \textbf{OpenHands (formerly OpenDevin)}~\cite{openhands2024} and \textbf{SWE-Agent}~\cite{sweAgent2024} represent the state-of-the-art in autonomous software engineering agents. These systems provide:
 \begin{itemize}
-\item Full shell access within sandboxed environments
-\item Web browsing capabilities for documentation lookup  
-\item Persistent workspace management across sessions
-\item Sophisticated error recovery and retry mechanisms
+	\item Full shell access within sandboxed environments
+	\item Web browsing capabilities for documentation lookup
+	\item Persistent workspace management across sessions
+	\item Sophisticated error recovery and retry mechanisms
 \end{itemize}
 
-SWE-Agent achieves 12.29\% on SWE-Bench with GPT-4, while OpenHands reaches similar performance levels. Notably, both systems employ complex, multi-stage workflows with dozens of specialized tools and heuristics.
+SWE-Agent achieves 12.29\% on SWE-Bench with GPT-4, while OpenHands reaches similar performance levels.
+Notably, both systems employ complex, multi-stage workflows with dozens of specialized tools and heuristics.
 
 \textbf{Critical Distinction: Inference-Time vs Training-Time Integration}
 
-All existing systems operate exclusively at inference time—they provide scaffolding and tools to pre-trained language models but do not integrate these capabilities into the training process. This creates a fundamental limitation:
+All existing systems operate exclusively at inference time—they provide scaffolding and tools to pre-trained language models but do not integrate these capabilities into the training process.
+This creates a fundamental limitation:
 
 \textbf{Static tool usage patterns}: Models must adapt to tools they were never trained to use, leading to suboptimal usage patterns and frequent errors in tool invocation.
 
@@ -497,55 +538,60 @@ All existing systems operate exclusively at inference time—they provide scaffo
 
 \textbf{Misaligned representations}: Pre-trained models develop representations optimized for text generation, not for planning tool-based interactions in structured environments.
 
-Our work represents a paradigm shift by integrating agent scaffolding directly into the reinforcement learning training loop. This enables:
+Our work represents a paradigm shift by integrating agent scaffolding directly into the reinforcement learning training loop.
+This enables:
 
 \begin{itemize}
-\item \textbf{Learned tool usage}: Models develop strategies for when and how to use available tools through trial and error
-\item \textbf{Co-evolution}: Model parameters and action policies evolve together, creating tight integration
-\item \textbf{Experience-based improvement}: Successful debugging patterns are reinforced, building expertise over time
-\item \textbf{Emergent strategies}: Models can discover novel tool combinations and workflows not anticipated by designers
+	\item \textbf{Learned tool usage}: Models develop strategies for when and how to use available tools through trial and error
+	\item \textbf{Co-evolution}: Model parameters and action policies evolve together, creating tight integration
+	\item \textbf{Experience-based improvement}: Successful debugging patterns are reinforced, building expertise over time
+	\item \textbf{Emergent strategies}: Models can discover novel tool combinations and workflows not anticipated by designers
 \end{itemize}
 
 This training-time integration represents the core innovation of our approach, potentially bridging the gap between current agent capabilities and human-level performance on complex software engineering tasks.
 
 \subsection{The Nano-Agent: A Minimalist Approach}
 
-The nano-agent represents a minimalist approach to coding agent design, providing only the most essential tools needed for code interaction. This design philosophy allows models to develop their own debugging strategies through reinforcement learning rather than relying on pre-engineered solutions.
+The nano-agent represents a minimalist approach to coding agent design, providing only the most essential tools needed for code interaction.
+This design philosophy allows models to develop their own debugging strategies through reinforcement learning rather than relying on pre-engineered solutions.
 
 \subsubsection{Design Philosophy}
 
 The nano-agent's minimalist design enables models to learn debugging strategies from experience through:
 
 \begin{itemize}
-\item \textbf{Maximum learning opportunity}: By providing minimal assistance, the model must develop fundamental programming skills through trial and error
-\item \textbf{Computational focus}: Simple tools enable scaling to thousands of training interactions where learning can emerge from volume rather than engineering
-\item \textbf{Generalization through simplicity}: Minimal assumptions about programming contexts should enable broader applicability across different Python projects and frameworks
-\item \textbf{Clear training signals}: Simple operations produce interpretable action sequences that facilitate reward computation and learning analysis
+	\item \textbf{Maximum learning opportunity}: By providing minimal assistance, the model must develop fundamental programming skills through trial and error
+	\item \textbf{Computational focus}: Simple tools enable scaling to thousands of training interactions where learning can emerge from volume rather than engineering
+	\item \textbf{Generalization through simplicity}: Minimal assumptions about programming contexts should enable broader applicability across different Python projects and frameworks
+	\item \textbf{Clear training signals}: Simple operations produce interpretable action sequences that facilitate reward computation and learning analysis
 \end{itemize}
 
 \subsubsection{Tool Interface}
 
 The nano-agent provides exactly two primary tools for interacting with codebases:
 
-\textbf{Shell Command Execution} (\texttt{shell(cmd)}): This tool allows the agent to execute terminal commands within a restricted bash environment (rbash). Available commands include standard Unix utilities for navigation and inspection:
+\textbf{Shell Command Execution} (\texttt{shell(cmd)}): This tool allows the agent to execute terminal commands within a restricted bash environment (rbash).
+Available commands include standard Unix utilities for navigation and inspection:
 \begin{itemize}
-\item File system navigation: \texttt{ls}, \texttt{cd}, \texttt{pwd}, \texttt{find}
-\item Content inspection: \texttt{cat}, \texttt{head}, \texttt{tail}, \texttt{less}
-\item Text processing: \texttt{grep}, \texttt{awk}, \texttt{sed}, \texttt{sort}
-\item Repository operations: \texttt{git log}, \texttt{git diff}, \texttt{git status}
+	\item File system navigation: \texttt{ls}, \texttt{cd}, \texttt{pwd}, \texttt{find}
+	\item Content inspection: \texttt{cat}, \texttt{head}, \texttt{tail}, \texttt{less}
+	\item Text processing: \texttt{grep}, \texttt{awk}, \texttt{sed}, \texttt{sort}
+	\item Repository operations: \texttt{git log}, \texttt{git diff}, \texttt{git status}
 \end{itemize}
 
 \textbf{File Patching} (\texttt{apply\_patch}): This tool enables precise code modifications through a search-and-replace mechanism. The agent specifies:
 \begin{itemize}
-\item Target file path
-\item Exact text to be replaced (old\_content)
-\item Replacement text (new\_content)
-\item Optional context for disambiguation
+	\item Target file path
+	\item Exact text to be replaced (old\_content)
+	\item Replacement text (new\_content)
+	\item Optional context for disambiguation
 \end{itemize}
 
 \subsubsection{Architectural Elegance: Sidestepping the Diff Generation Problem}
 
-A critical design decision in the nano-agent architecture demonstrates how thoughtful tool design can eliminate entire classes of errors. Generating valid unified diffs represents one of the most challenging output formatting tasks for language models. The unified diff format requires:
+A critical design decision in the nano-agent architecture demonstrates how thoughtful tool design can eliminate entire classes of errors.
+Generating valid unified diffs represents one of the most challenging output formatting tasks for language models.
+The unified diff format requires:
 
 \begin{verbatim}
 --- a/src/utils.py
@@ -563,16 +609,18 @@ A critical design decision in the nano-agent architecture demonstrates how thoug
 
 This format demands precise coordination of:
 \begin{itemize}
-\item Line numbers that must accurately reflect the file state
-\item Context lines that must exactly match existing content
-\item Proper handling of whitespace, indentation, and special characters
-\item Consistent header formatting with correct file paths
-\item Accurate chunk headers with line counts
+	\item Line numbers that must accurately reflect the file state
+	\item Context lines that must exactly match existing content
+	\item Proper handling of whitespace, indentation, and special characters
+	\item Consistent header formatting with correct file paths
+	\item Accurate chunk headers with line counts
 \end{itemize}
 
-Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers, incorrect context, or formatting errors that prevent patch application. Studies show that up to 40\% of LLM-generated diffs fail to apply due to formatting issues alone~\cite{diffGeneration2024}.
+Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers, incorrect context, or formatting errors that prevent patch application.
+Studies show that up to 40\% of LLM-generated diffs fail to apply due to formatting issues alone~\cite{diffGeneration2024}.
 
-The nano-agent completely sidesteps this challenge through an elegant architectural choice. Instead of requiring diff generation, it provides a simple \texttt{apply\_patch} interface:
+The nano-agent completely sidesteps this challenge through an elegant architectural choice.
+Instead of requiring diff generation, it provides a simple \texttt{apply\_patch} interface:
 
 \begin{verbatim}
 apply_patch(
@@ -584,13 +632,14 @@ apply_patch(
 
 This format is naturally conducive to language model generation because:
 \begin{itemize}
-\item \textbf{Semantic clarity}: The model specifies what to change in natural terms
-\item \textbf{No numerical coordination}: No line numbers or offsets to calculate
-\item \textbf{Robust matching}: String matching handles minor formatting variations
-\item \textbf{Clear intent}: The transformation is explicit and unambiguous
+	\item \textbf{Semantic clarity}: The model specifies what to change in natural terms
+	\item \textbf{No numerical coordination}: No line numbers or offsets to calculate
+	\item \textbf{Robust matching}: String matching handles minor formatting variations
+	\item \textbf{Clear intent}: The transformation is explicit and unambiguous
 \end{itemize}
 
-After the model applies changes using this simple interface, the actual diff is computed using \texttt{git diff}—a battle-tested tool that handles all formatting complexities correctly. This separation of concerns yields multiple benefits:
+After the model applies changes using this simple interface, the actual diff is computed using \texttt{git diff}—a battle-tested tool that handles all formatting complexities correctly.
+This separation of concerns yields multiple benefits:
 
 \textbf{Elimination of formatting errors}: By avoiding diff generation entirely, we remove a major source of failures that plague other systems.
 
@@ -600,32 +649,35 @@ After the model applies changes using this simple interface, the actual diff is 
 
 \textbf{Improved success rates}: Empirical testing shows this approach reduces tool-usage errors by over 60\% compared to systems requiring diff generation.
 
-This architectural decision exemplifies a broader principle in agent design: rather than training models to overcome complex formatting requirements, we can often redesign the interface to be more naturally suited to language model capabilities. The nano-agent's apply\_patch mechanism demonstrates how thoughtful tool design can dramatically simplify the learning problem while maintaining full functionality.
+This architectural decision exemplifies a broader principle in agent design: rather than training models to overcome complex formatting requirements, we can often redesign the interface to be more naturally suited to language model capabilities.
+The nano-agent's apply\_patch mechanism demonstrates how thoughtful tool design can dramatically simplify the learning problem while maintaining full functionality.
 
 \subsubsection{Safety and Isolation}
 
-Security is paramount when allowing language models to execute arbitrary commands. The nano-agent employs several safety mechanisms:
+Security is paramount when allowing language models to execute arbitrary commands.
+The nano-agent employs several safety mechanisms:
 
 \textbf{Restricted Bash (rbash)}: All shell commands execute within a restricted bash environment that prevents:
 \begin{itemize}
-\item Network access and external communication
-\item File system access outside the designated workspace
-\item Process spawning beyond allowed utilities
-\item Modification of system files or configurations
+	\item Network access and external communication
+	\item File system access outside the designated workspace
+	\item Process spawning beyond allowed utilities
+	\item Modification of system files or configurations
 \end{itemize}
 
 \textbf{Sandboxed Execution}: Each agent session runs in an isolated container with:
 \begin{itemize}
-\item Limited computational resources (CPU, memory, time)
-\item No persistent state between sessions
-\item Comprehensive logging of all actions and outputs
+	\item Limited computational resources (CPU, memory, time)
+	\item No persistent state between sessions
+	\item Comprehensive logging of all actions and outputs
 \end{itemize}
 
 \textbf{Command Validation}: Before execution, all commands undergo validation to ensure they match allowed patterns and don't contain potential exploits.
 
 \subsubsection{Learning Through Constraints}
 
-By constraining the available tools to only the most fundamental operations, the nano-agent creates an environment where sophisticated behaviors must emerge from learning rather than engineering. This approach tests whether language models can develop robust debugging skills when forced to work with basic primitives:
+By constraining the available tools to only the most fundamental operations, the nano-agent creates an environment where sophisticated behaviors must emerge from learning rather than engineering.
+This approach tests whether language models can develop robust debugging skills when forced to work with basic primitives:
 
 \textbf{Self-Directed Exploration}: Models must learn to navigate unfamiliar codebases using standard Unix commands, developing systematic approaches to understanding project structure.
 
@@ -639,7 +691,8 @@ By constraining the available tools to only the most fundamental operations, the
 
 The nano-agent's simplicity offers several advantages specifically for reinforcement learning applications:
 
-\textbf{Complete Action Logging}: Every agent interaction produces clear, interpretable logs that can be analyzed to understand learning dynamics and failure modes. There are no hidden internal operations or black-box processing steps.
+\textbf{Complete Action Logging}: Every agent interaction produces clear, interpretable logs that can be analyzed to understand learning dynamics and failure modes.
+There are no hidden internal operations or black-box processing steps.
 
 \textbf{Reward Clarity}: With minimal tool complexity, it becomes easier to attribute successes and failures to specific agent decisions, enabling more accurate reward assignment and training signal propagation.
 
@@ -647,74 +700,78 @@ The nano-agent's simplicity offers several advantages specifically for reinforce
 
 \textbf{Debugging and Analysis}: When training fails or produces unexpected results, the minimal tool set makes it easier to identify root causes and adjust training procedures accordingly.
 
-
 \section{Online RL for LLMs}
 
 The integration of agent frameworks directly into model training represents a paradigm shift from traditional supervised learning approaches, enabling models to learn through active interaction rather than passive observation.
 
-Online RL training represents a fundamental reimagining of how language models acquire capabilities for complex, interactive tasks. Rather than learning from static demonstrations followed by inference-time tool integration, this paradigm embeds full agent capabilities—including environment interaction, tool usage, and iterative refinement—directly into the reinforcement learning training process.
+Online RL training represents a fundamental reimagining of how language models acquire capabilities for complex, interactive tasks.
+Rather than learning from static demonstrations followed by inference-time tool integration, this paradigm embeds full agent capabilities—including environment interaction, tool usage, and iterative refinement—directly into the reinforcement learning training process.
 
 \subsubsection{Paradigm Comparison}
 
 \textbf{Traditional Train-Then-Deploy Approach}:
 \begin{enumerate}
-\item Pre-train on massive text corpora
-\item Fine-tune on static datasets of task demonstrations
-\item Deploy with agent scaffolding added at inference time
-\item Hope the model generalizes to using unfamiliar tools
+	\item Pre-train on massive text corpora
+	\item Fine-tune on static datasets of task demonstrations
+	\item Deploy with agent scaffolding added at inference time
+	\item Hope the model generalizes to using unfamiliar tools
 \end{enumerate}
 
-This pipeline treats tool usage as an inference-time adaptation problem. Models must bridge the gap between their training distribution (static text) and deployment requirements (dynamic interaction) without explicit preparation.
+This pipeline treats tool usage as an inference-time adaptation problem.
+Models must bridge the gap between their training distribution (static text) and deployment requirements (dynamic interaction) without explicit preparation.
 
 \textbf{Online RL for LLMs}:
 \begin{enumerate}
-\item Start with pre-trained model
-\item Embed model within agent framework
-\item Train through reinforcement learning while using tools
-\item Deploy with the same or similar agent frameworks used in training
+	\item Start with pre-trained model
+	\item Embed model within agent framework
+	\item Train through reinforcement learning while using tools
+	\item Deploy with the same or similar agent frameworks used in training
 \end{enumerate}
 \todoinline{This is a recurring theme in the industry, Claude -> Claude Code, o3 -> codex, Gemini -> Gemini CLI, Qwen3 coder -> Qwen Coder, etc.}
 
-This approach ensures perfect alignment between training and deployment conditions. The model learns not just task solutions but optimal strategies for tool usage, exploration, and error recovery.
+This approach ensures perfect alignment between training and deployment conditions.
+The model learns not just task solutions but optimal strategies for tool usage, exploration, and error recovery.
 
 \subsubsection{Technical Novelty and Challenges}
 
 While conceptually straightforward, implementing interactive training presents substantial technical challenges that have limited its adoption:
 
-\textbf{Asynchronous Orchestration}: Traditional RL training assumes synchronous batch generation—all samples in a batch complete simultaneously. Agent interactions are inherently asynchronous, with different trajectories requiring varying numbers of steps and time to complete. Our implementation required developing custom orchestration layers that:
+\textbf{Asynchronous Orchestration}: Traditional RL training assumes synchronous batch generation—all samples in a batch complete simultaneously.
+Agent interactions are inherently asynchronous, with different trajectories requiring varying numbers of steps and time to complete.
+Our implementation required developing custom orchestration layers that:
 \begin{itemize}
-\item Manage thousands of concurrent agent sessions
-\item Handle variable-length trajectories efficiently
-\item Synchronize weight updates across distributed workers
-\item Maintain stable training despite timing variations
+	\item Manage thousands of concurrent agent sessions
+	\item Handle variable-length trajectories efficiently
+	\item Synchronize weight updates across distributed workers
+	\item Maintain stable training despite timing variations
 \end{itemize}
 
 \textbf{Reward Engineering Complexity}: Designing rewards for interactive behaviors requires considering entire action sequences rather than single outputs:
 \begin{itemize}
-\item \textit{Credit assignment}: Which actions in a 50-step debugging sequence deserve credit for success?
-\item \textit{Exploration incentives}: How to reward information gathering that enables future success?
-\item \textit{Efficiency trade-offs}: Balancing solution quality against computational cost
-\item \textit{Partial success recognition}: Crediting progress even when final solutions fail
+	\item \textit{Credit assignment}: Which actions in a 50-step debugging sequence deserve credit for success?
+	\item \textit{Exploration incentives}: How to reward information gathering that enables future success?
+	\item \textit{Efficiency trade-offs}: Balancing solution quality against computational cost
+	\item \textit{Partial success recognition}: Crediting progress even when final solutions fail
 \end{itemize}
 
 Our implementation addresses these through hierarchical reward structures that consider both final outcomes and intermediate progress indicators.
 
 \textbf{Environment Stability at Scale}: Running thousands of training episodes requires unprecedented environment reliability:
 \begin{itemize}
-\item \textit{Deterministic reproduction}: Ensuring identical behavior across training runs
-\item \textit{Resource isolation}: Preventing agent sessions from interfering
-\item \textit{Failure recovery}: Gracefully handling environment crashes without corrupting training
-\item \textit{State management}: Efficiently resetting environments between episodes
+	\item \textit{Deterministic reproduction}: Ensuring identical behavior across training runs
+	\item \textit{Resource isolation}: Preventing agent sessions from interfering
+	\item \textit{Failure recovery}: Gracefully handling environment crashes without corrupting training
+	\item \textit{State management}: Efficiently resetting environments between episodes
 \end{itemize}
 
 We developed containerized execution environments with checkpoint-restart capabilities to maintain stability across extended training runs.
 
 \textbf{Computational Scaling Challenges}: Agent interactions are orders of magnitude more expensive than simple text generation:
 \begin{itemize}
-\item Each training step involves multiple model calls (often 10-50 per trajectory)
-\item Environment execution adds significant overhead
-\item Memory requirements scale with trajectory length and environment state
-\item Distributed training requires synchronizing both model and environment state
+	\item Each training step involves multiple model calls (often 10-50 per trajectory)
+	\item Environment execution adds significant overhead
+	\item Memory requirements scale with trajectory length and environment state
+	\item Distributed training requires synchronizing both model and environment state
 \end{itemize}
 
 Our solution leverages aggressive batching, environment pooling, and hierarchical resource allocation to make training tractable.
@@ -725,16 +782,17 @@ Despite growing evidence that leading AI labs employ interactive training—Open
 
 This work provides the first publicly available implementation of interactive RL training, including:
 \begin{itemize}
-\item Complete training infrastructure built on TRL and vLLM
-\item Integration modules for arbitrary OpenAI-compatible agents  
-\item Distributed orchestration for large-scale training
-\item Comprehensive logging and debugging tools
-\item Reproducible configurations for key experiments
+	\item Complete training infrastructure built on TRL and vLLM
+	\item Integration modules for arbitrary OpenAI-compatible agents
+	\item Distributed orchestration for large-scale training
+	\item Comprehensive logging and debugging tools
+	\item Reproducible configurations for key experiments
 \end{itemize}
 
 By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into interactive AI systems.
 
-The significance extends beyond code repair: interactive training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control. This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
+The significance extends beyond code repair: interactive training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control.
+This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
 
 Current research in this area is primarily conducted by industry labs (OpenAI, Anthropic, Cognition Labs) with limited open-source replication, creating a significant knowledge gap in the academic community.
 
@@ -744,37 +802,42 @@ Effective reward design is crucial for interactive training, requiring careful b
 
 \subsubsection{Reward Engineering for Interactive Code Repair}
 
-Designing effective reward functions for code repair in an interactive setting requires balancing multiple objectives while addressing fundamental challenges in automated evaluation. The reward signal must capture semantic correctness, encourage efficient exploration, and provide sufficient learning signal despite sparse success rates.
+Designing effective reward functions for code repair in an interactive setting requires balancing multiple objectives while addressing fundamental challenges in automated evaluation.
+The reward signal must capture semantic correctness, encourage efficient exploration, and provide sufficient learning signal despite sparse success rates.
 
 \textbf{Evaluation Paradigms and Their Trade-offs}
 
 Three primary approaches exist for evaluating code repair quality:
 
-\textit{Test-based evaluation} represents the gold standard, directly measuring functional correctness by executing test suites. However, this approach faces significant practical challenges:
+\textit{Test-based evaluation} represents the gold standard, directly measuring functional correctness by executing test suites.
+However, this approach faces significant practical challenges:
 \begin{itemize}
-\item Computational cost: Running full test suites for thousands of repair attempts requires massive infrastructure
-\item Flaky tests: Real-world test suites often contain non-deterministic failures unrelated to the bug
-\item Incomplete coverage: Passing tests do not guarantee the absence of introduced bugs
-\item Binary feedback: Test results provide limited gradient for partial progress
+	\item Computational cost: Running full test suites for thousands of repair attempts requires massive infrastructure
+	\item Flaky tests: Real-world test suites often contain non-deterministic failures unrelated to the bug
+	\item Incomplete coverage: Passing tests do not guarantee the absence of introduced bugs
+	\item Binary feedback: Test results provide limited gradient for partial progress
 \end{itemize}
 
 \textit{Similarity-based evaluation} compares generated patches against known-good solutions using various metrics:
 \begin{itemize}
-\item Tree-edit distance: Measures syntactic similarity at the AST level
-\item Token-based metrics: BLEU, CodeBLEU scores adapted from NLP
-\item Semantic embeddings: Learned representations capturing code functionality
-\item Exact match: Binary indicator of identical solutions
+	\item Tree-edit distance: Measures syntactic similarity at the AST level
+	\item Token-based metrics: BLEU, CodeBLEU scores adapted from NLP
+	\item Semantic embeddings: Learned representations capturing code functionality
+	\item Exact match: Binary indicator of identical solutions
 \end{itemize}
 
 \textit{Hybrid approaches} combine multiple signals, using cheap similarity metrics for training with periodic test validation.
 
 \textbf{Challenges in Code Repair Reward Design}
 
-\textit{Extreme sparsity}: Success rates on realistic benchmarks hover around 20\%, meaning 80\% of attempts receive zero reward under binary evaluation. This sparsity severely hampers gradient-based learning.
+\textit{Extreme sparsity}: Success rates on realistic benchmarks hover around 20\%, meaning 80\% of attempts receive zero reward under binary evaluation.
+This sparsity severely hampers gradient-based learning.
 
-\textit{Delayed credit assignment}: Interactive debugging involves long action sequences—exploring files, forming hypotheses, attempting fixes. Determining which actions contributed to eventual success requires sophisticated credit assignment.
+\textit{Delayed credit assignment}: Interactive debugging involves long action sequences—exploring files, forming hypotheses, attempting fixes.
+Determining which actions contributed to eventual success requires sophisticated credit assignment.
 
-\textit{Semantic equivalence}: Multiple syntactically different patches can be semantically equivalent. Rewarding only exact matches penalizes valid alternative solutions.
+\textit{Semantic equivalence}: Multiple syntactically different patches can be semantically equivalent.
+Rewarding only exact matches penalizes valid alternative solutions.
 
 \textit{Partial progress recognition}: A model that correctly identifies the bug location but implements an incorrect fix has made meaningful progress that should be rewarded.
 
@@ -788,9 +851,11 @@ R_{\text{total}} = 0.2 \cdot R_{\text{files}} + 0.4 \cdot R_{\text{functional}} 
 
 where each component evaluates a specific dimension of repair quality:
 
-\textit{File Targeting Component} $R_{\text{files}} \in [0,1]$: Evaluates whether the agent modified the correct files that should be changed to fix the bug. This component rewards the agent for identifying the appropriate locations in the codebase, regardless of the specific changes made.
+\textit{File Targeting Component} $R_{\text{files}} \in [0,1]$: Evaluates whether the agent modified the correct files that should be changed to fix the bug.
+This component rewards the agent for identifying the appropriate locations in the codebase, regardless of the specific changes made.
 
-\textit{Functional Similarity Component} $R_{\text{functional}} \in [0,1]$: Measures how similar the agent's changes are to the ground-truth solution in terms of the functional aspects of fixing the bug. This component focuses on whether the core logic changes align with the expected repair strategy.
+\textit{Functional Similarity Component} $R_{\text{functional}} \in [0,1]$: Measures how similar the agent's changes are to the ground-truth solution in terms of the functional aspects of fixing the bug.
+This component focuses on whether the core logic changes align with the expected repair strategy.
 
 \textit{Testing Alignment Component} $R_{\text{testing}} \in [0,1]$: Assesses how well the agent's changes align with the testing suite additions or modifications in the ground truth, which monitor the bug and ensure correctness while preventing regression.
 
@@ -800,7 +865,8 @@ The weights $(0.2, 0.4, 0.4)$ reflect that while file targeting is important for
 
 For comparing generated and oracle patches, we employ a multi-level approach:
 
-1. \textit{Patch normalization}: Remove comments, standardize whitespace, and alpha-rename variables to handle superficial differences
+1.
+\textit{Patch normalization}: Remove comments, standardize whitespace, and alpha-rename variables to handle superficial differences
 
 2. \textit{Chunk extraction}: Decompose patches into individual change chunks for fine-grained comparison
 
@@ -820,7 +886,8 @@ To combat the challenge of sparse rewards, we implement several strategies:
 
 \textit{Exploration bonuses}: Novel action sequences receive small positive rewards to encourage diverse strategy discovery.
 
-This reward formulation, while imperfect, provides sufficient signal for reinforcement learning while remaining computationally tractable for large-scale training. Future work could explore learned reward models or integration with test-based evaluation as computational resources permit.
+This reward formulation, while imperfect, provides sufficient signal for reinforcement learning while remaining computationally tractable for large-scale training.
+Future work could explore learned reward models or integration with test-based evaluation as computational resources permit.
 
 \section{Evaluation Benchmarks}
 
@@ -836,21 +903,21 @@ The SWE-Bench family of benchmarks has revolutionized evaluation of code generat
 
 \textbf{Original SWE-Bench (2023)}~\cite{sweBench2024}: The foundational dataset introduced 2,294 task instances drawn from 12 popular Python repositories. Each instance consists of:
 \begin{itemize}
-\item A GitHub issue describing a bug or feature request
-\item The repository state at issue creation time
-\item The developer-written patch that resolved the issue
-\item Test cases that fail before and pass after the patch
+	\item A GitHub issue describing a bug or feature request
+	\item The repository state at issue creation time
+	\item The developer-written patch that resolved the issue
+	\item Test cases that fail before and pass after the patch
 \end{itemize}
 
 This design captures the full complexity of real software development: understanding natural language descriptions, navigating large codebases, and implementing solutions that satisfy existing tests.
 
 \textbf{SWE-Bench-Verified (2024)}~\cite{sweBenchVerified2024}: Addressing quality concerns in the original dataset, this refined version includes 500 carefully validated instances that:
 \begin{itemize}
-\item Eliminate ambiguous issue descriptions
-\item Ensure deterministic test outcomes
-\item Remove trivial string replacements
-\item Verify patch minimality and correctness
-\item Balance difficulty across different problem types
+	\item Eliminate ambiguous issue descriptions
+	\item Ensure deterministic test outcomes
+	\item Remove trivial string replacements
+	\item Verify patch minimality and correctness
+	\item Balance difficulty across different problem types
 \end{itemize}
 
 Human annotators achieve 97\% success on SWE-Bench-Verified compared to 73\% on the original, confirming the removal of problematic instances while maintaining challenging, realistic tasks.
@@ -883,21 +950,23 @@ REPOSITORY STATE:
 - 15,000+ test cases
 \end{verbatim}
 
-The evaluation system places the model in this repository state and measures whether it can produce a patch functionally equivalent to the developer's solution. This requires:
+The evaluation system places the model in this repository state and measures whether it can produce a patch functionally equivalent to the developer's solution.
+This requires:
 \begin{itemize}
-\item Understanding the issue from natural language description
-\item Reproducing the bug through code execution
-\item Navigating the codebase to locate relevant modules
-\item Understanding existing implementation patterns
-\item Implementing a fix that maintains backward compatibility
-\item Ensuring the fix passes all existing tests
+	\item Understanding the issue from natural language description
+	\item Reproducing the bug through code execution
+	\item Navigating the codebase to locate relevant modules
+	\item Understanding existing implementation patterns
+	\item Implementing a fix that maintains backward compatibility
+	\item Ensuring the fix passes all existing tests
 \end{itemize}
 
 \subsubsection{Evaluation Methodology}
 
 SWE-Bench employs rigorous evaluation protocols:
 
-\textbf{Functional verification}: Patches are evaluated by running the full test suite, not through textual comparison. This allows semantically equivalent but syntactically different solutions.
+\textbf{Functional verification}: Patches are evaluated by running the full test suite, not through textual comparison.
+This allows semantically equivalent but syntactically different solutions.
 
 \textbf{Isolated execution}: Each evaluation runs in a fresh Docker container to prevent cross-contamination and ensure reproducibility.
 
@@ -907,11 +976,14 @@ SWE-Bench employs rigorous evaluation protocols:
 
 \subsubsection{Why Success Rates Remain Low}
 
-Despite rapid progress in LLM capabilities, even state-of-the-art systems achieve only ~20-25\% success rates on SWE-Bench. This persistent challenge stems from several factors:
+Despite rapid progress in LLM capabilities, even state-of-the-art systems achieve only ~20-25\% success rates on SWE-Bench.
+This persistent challenge stems from several factors:
 
-\textbf{Repository complexity}: The average task requires understanding code distributed across 6.3 files, with deep call chains and complex dependencies. Current models struggle to maintain coherent understanding across such scales.
+\textbf{Repository complexity}: The average task requires understanding code distributed across 6.3 files, with deep call chains and complex dependencies.
+Current models struggle to maintain coherent understanding across such scales.
 
-\textbf{Ambiguity in natural language}: Issue descriptions often assume domain knowledge, use project-specific terminology, or describe symptoms rather than root causes. Models must infer substantial context.
+\textbf{Ambiguity in natural language}: Issue descriptions often assume domain knowledge, use project-specific terminology, or describe symptoms rather than root causes.
+Models must infer substantial context.
 
 \textbf{Execution feedback requirement}: Unlike code generation tasks solvable through pattern matching, debugging requires iterative hypothesis testing through code execution—a capability most models lack.
 
@@ -920,7 +992,6 @@ Despite rapid progress in LLM capabilities, even state-of-the-art systems achiev
 \textbf{Long-tail distribution}: Many bugs involve rare edge cases or unique project-specific patterns absent from training data, testing true generalization rather than memorization.
 
 These challenges make SWE-Bench an ideal testbed for interactive training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
-
 
 \section{Related Work}
 
@@ -932,73 +1003,91 @@ This section synthesizes the most directly relevant prior work across three crit
 
 Despite the natural fit between RL and interactive programming tasks, surprisingly little work has explored this intersection:
 
-\textbf{CodeRL}~\cite{codeRL2022} pioneered applying RL to code generation, using unit test execution as rewards. However, it focused on single-function synthesis rather than repository-scale debugging, and critically, used traditional synchronous generation without environmental interaction.
+\textbf{CodeRL}~\cite{codeRL2022} pioneered applying RL to code generation, using unit test execution as rewards.
+However, it focused on single-function synthesis rather than repository-scale debugging, and critically, used traditional synchronous generation without environmental interaction.
 
-\textbf{PPOCoder}~\cite{ppoCoder2023} extended CodeRL with proximal policy optimization but maintained the limitation of single-file, single-step generation. The work demonstrated improved sample efficiency but did not address the fundamental mismatch between training and real-world debugging workflows.
+\textbf{PPOCoder}~\cite{ppoCoder2023} extended CodeRL with proximal policy optimization but maintained the limitation of single-file, single-step generation.
+The work demonstrated improved sample efficiency but did not address the fundamental mismatch between training and real-world debugging workflows.
 
-\textbf{RLTF}~\cite{rltf2023} (Reinforcement Learning from Test Feedback) introduced more sophisticated reward shaping using test coverage and execution traces. While innovative, it still operated on isolated functions without repository context or tool usage.
+\textbf{RLTF}~\cite{rltf2023} (Reinforcement Learning from Test Feedback) introduced more sophisticated reward shaping using test coverage and execution traces.
+While innovative, it still operated on isolated functions without repository context or tool usage.
 
 \textbf{Critical limitations of existing work}:
 \begin{itemize}
-\item Focus on generation rather than repair: Creating new code differs fundamentally from debugging existing systems
-\item Isolated task formulation: Single-function tasks ignore the complexity of real software systems
-\item Lack of environmental interaction: No exploration, tool usage, or iterative refinement
-\item Limited scale: Experiments on small datasets don't demonstrate practical viability
+	\item Focus on generation rather than repair: Creating new code differs fundamentally from debugging existing systems
+	\item Isolated task formulation: Single-function tasks ignore the complexity of real software systems
+	\item Lack of environmental interaction: No exploration, tool usage, or iterative refinement
+	\item Limited scale: Experiments on small datasets don't demonstrate practical viability
 \end{itemize}
 
 \subsubsection{Agent-Based Debugging Systems}
 
 The proliferation of coding agents has occurred almost entirely in the inference domain:
 
-\textbf{AutoCodeRover}~\cite{autoCodeRover2024} combines code search, static analysis, and LLM-based patch generation. While effective (achieving 15\% on SWE-Bench), it operates purely at inference time with no learning from experience.
+\textbf{AutoCodeRover}~\cite{autoCodeRover2024} combines code search, static analysis, and LLM-based patch generation.
+While effective (achieving 15\% on SWE-Bench), it operates purely at inference time with no learning from experience.
 
-\textbf{AgentCoder}~\cite{agentCoder2024} introduces multi-agent collaboration with specialized roles (test writer, debugger, coder). Despite sophisticated orchestration, each agent uses a frozen model without improvement mechanisms.
+\textbf{AgentCoder}~\cite{agentCoder2024} introduces multi-agent collaboration with specialized roles (test writer, debugger, coder).
+Despite sophisticated orchestration, each agent uses a frozen model without improvement mechanisms.
 
-\textbf{RepoAgent}~\cite{repoAgent2024} focuses on repository understanding through graph neural networks and semantic indexing. These capabilities enhance inference but aren't integrated into model training.
+\textbf{RepoAgent}~\cite{repoAgent2024} focuses on repository understanding through graph neural networks and semantic indexing.
+These capabilities enhance inference but aren't integrated into model training.
 
 \textbf{The training-deployment gap}: All existing systems share a fundamental limitation—they apply sophisticated scaffolding to pre-trained models without enabling models to learn optimal usage of these tools. This creates inefficiencies:
 \begin{itemize}
-\item Models struggle with unfamiliar tool interfaces
-\item Prompt engineering becomes necessary to elicit proper tool usage
-\item No improvement from successful task completions
-\item Inability to discover novel tool combinations
+	\item Models struggle with unfamiliar tool interfaces
+	\item Prompt engineering becomes necessary to elicit proper tool usage
+	\item No improvement from successful task completions
+	\item Inability to discover novel tool combinations
 \end{itemize}
-
 
 \subsubsection{The Missing Pieces}
 
 Our research addresses three critical gaps in the literature:
 
-\textbf{1. Open-source interactive training}: While rumors suggest industry labs train models interactively (OpenAI's o1, Anthropic's Claude), no public implementation exists. We provide:
+\textbf{1.
+	Open-source interactive training}: While rumors suggest industry labs train models interactively (OpenAI's o1, Anthropic's Claude), no public implementation exists.
+We provide:
 \begin{itemize}
-\item Complete infrastructure for agent-integrated RL
-\item Reproducible training pipelines
-\item Extensive ablation capabilities
-\item Detailed instrumentation for analysis
+	\item Complete infrastructure for agent-integrated RL
+	\item Reproducible training pipelines
+	\item Extensive ablation capabilities
+	\item Detailed instrumentation for analysis
 \end{itemize}
 
-\textbf{2. Minimalist agent design}: Our nano-agent demonstrates that effective debugging behaviors can emerge from simple tools combined with reinforcement learning.
+\textbf{2.
+	Minimalist agent design}: Our nano-agent demonstrates that effective debugging behaviors can emerge from simple tools combined with reinforcement learning.
 
-\textbf{3. Demonstrated learning improvements}: We show monotonic improvement through RL iterations, validating that interactive training produces measurable capability gains beyond static fine-tuning.
+\textbf{3.
+	Demonstrated learning improvements}: We show monotonic improvement through RL iterations, validating that interactive training produces measurable capability gains beyond static fine-tuning.
 
-These contributions fill a crucial gap between the theoretical promise of interactive learning and practical implementation for software engineering tasks. By open-sourcing our approach, we enable the broader research community to build upon interactive training, potentially transforming how we develop AI systems for programming assistance.
+These contributions fill a crucial gap between the theoretical promise of interactive learning and practical implementation for software engineering tasks.
+By open-sourcing our approach, we enable the broader research community to build upon interactive training, potentially transforming how we develop AI systems for programming assistance.
 
 \section{Summary and Research Positioning}
 
-This chapter has established the theoretical and empirical foundations for interactive reinforcement learning applied to automated code repair. By examining the evolution from rule-based repair systems to modern LLM-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and interactive debugging, the absence of environmental feedback during learning, and the lack of systematic comparison between minimal and engineered scaffolding approaches.
+This chapter has established the theoretical and empirical foundations for interactive reinforcement learning applied to automated code repair.
+By examining the evolution from rule-based repair systems to modern LLM-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and interactive debugging, the absence of environmental feedback during learning, and the lack of systematic comparison between minimal and engineered scaffolding approaches.
 
-Our review of reinforcement learning techniques, particularly the elegant simplification offered by GRPO, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees. The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
+Our review of reinforcement learning techniques, particularly the elegant simplification offered by GRPO, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees.
+The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
 
-The nano-agent architecture presents an alternative approach to agent design. By providing only essential tools and relying on learning, we demonstrate that effective debugging capabilities can emerge from simple interfaces.
+The nano-agent architecture presents an alternative approach to agent design.
+By providing only essential tools and relying on learning, we demonstrate that effective debugging capabilities can emerge from simple interfaces.
 
 This thesis makes three fundamental contributions to the field:
 
-\textbf{First open-source interactive implementation}: We provide the research community with complete infrastructure for training language models through interactive environmental experience. This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary. Our implementation enables researchers to explore interactive learning across diverse domains beyond code repair.
+\textbf{First open-source interactive implementation}: We provide the research community with complete infrastructure for training language models through interactive environmental experience.
+This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary.
+Our implementation enables researchers to explore interactive learning across diverse domains beyond code repair.
 
 \textbf{Minimalist agent approach}: We demonstrate that a simple agent design with basic tools can achieve strong performance when combined with reinforcement learning, showing that sophisticated debugging behaviors can emerge from minimal interfaces.
 
-\textbf{Bridge between research and practice}: By demonstrating that models can learn effective debugging strategies through reinforcement learning in realistic environments, we bridge the gap between academic research on program repair and practical tools used by developers. Our approach shows that the future of coding assistance lies not in ever-more-sophisticated prompt engineering, but in models that learn from experience.
+\textbf{Bridge between research and practice}: By demonstrating that models can learn effective debugging strategies through reinforcement learning in realistic environments, we bridge the gap between academic research on program repair and practical tools used by developers.
+Our approach shows that the future of coding assistance lies not in ever-more-sophisticated prompt engineering, but in models that learn from experience.
 
-The implications extend beyond code repair. Our work demonstrates that effective debugging behaviors can emerge from simple agent designs when combined with reinforcement learning. This provides both the theoretical framework and practical tools to explore interactive training.
+The implications extend beyond code repair.
+Our work demonstrates that effective debugging behaviors can emerge from simple agent designs when combined with reinforcement learning.
+This provides both the theoretical framework and practical tools to explore interactive training.
 
 As we proceed to describe our method in detail, keep in mind that our goal is not merely to improve performance metrics on benchmarks, but to demonstrate a fundamentally different training approach that enables models to learn from environmental interaction.

@@ -26,9 +26,6 @@ _minted*
 # latexmk internal state
 *.latexmk
 
-# --- Editor / OS cruft --------------------------
-# VS Code
-.vscode/
 # macOS
 .DS_Store
 # Windows thumbnails / indexing

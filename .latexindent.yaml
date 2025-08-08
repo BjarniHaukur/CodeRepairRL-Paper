@@ -1,0 +1,52 @@
+modifyLineBreaks:
+  oneSentencePerLine:
+    manipulateSentences: 1
+    textWrapSentences: 1
+  textWrapOptions:
+    columns: -1
+# Make math and tables untouchable
+verbatimEnvironments:
+  # AMS math
+  equation: 1
+  equation*: 1
+  align: 1
+  align*: 1
+  aligned: 1
+  alignat: 1
+  alignat*: 1
+  flalign: 1
+  flalign*: 1
+  gather: 1
+  gather*: 1
+  multline: 1
+  multline*: 1
+  split: 1
+  cases: 1
+  # matrices
+  matrix: 1
+  pmatrix: 1
+  bmatrix: 1
+  Bmatrix: 1
+  vmatrix: 1
+  Vmatrix: 1
+  smallmatrix: 1
+  # tables
+  tabular: 1
+  tabular*: 1
+  tabularx: 1
+  tabulary: 1
+  longtable: 1
+  array: 1
+  # graphics/code blocks that should never be reformatted
+  tikzpicture: 1
+  lstlisting: 1
+  minted: 1
+  verbatim: 1
+
+# Make sure no column alignment logic ever fires
+lookForAlignDelims:
+  tabular: 0
+  tabularx: 0
+  longtable: 0
+  array: 0
+  matrix: 0

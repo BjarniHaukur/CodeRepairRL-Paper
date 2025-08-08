@@ -1,14 +1,16 @@
 \chapter{Implementation and Experimental Work}
 \label{ch:work}
 
-This chapter describes the comprehensive implementation effort required to realize interactive reinforcement learning for automated code repair. We detail the engineering challenges, system integration work, and experimental validation that transformed theoretical concepts into a working research platform capable of training large-scale coding agents.
+This chapter describes the comprehensive implementation effort required to realize interactive reinforcement learning for automated code repair.
+We detail the engineering challenges, system integration work, and experimental validation that transformed theoretical concepts into a working research platform capable of training large-scale coding agents.
 
 \section{System Architecture and Implementation}
 \label{sec:system-implementation}
 
 \subsection{Infrastructure Design Challenges}
 
-Implementing interactive RL for code repair presented several unique engineering challenges not addressed by existing frameworks. Traditional RL libraries assume simple observation-action spaces and stateless environments, while our system requires:
+Implementing interactive RL for code repair presented several unique engineering challenges not addressed by existing frameworks.
+Traditional RL libraries assume simple observation-action spaces and stateless environments, while our system requires:
 
 \begin{itemize}
 	\item \textbf{Persistent Environment State}: Agent sessions maintain complex file system states, command histories, and repository contexts across multiple interaction steps
@@ -25,7 +27,8 @@ Our implementation comprises several interconnected subsystems, each addressing 
 
 \textbf{OpenAI API Compatibility}: The nano-agent originally designed for commercial LLM APIs was adapted to work with our vLLM serving infrastructure through a compatibility layer that translates between API formats while preserving all agent capabilities.
 
-\textbf{Trajectory Serialization}: Agent interactions produce complex nested data structures (commands, outputs, file states, error messages) that must be serialized into formats suitable for RL training. Our serialization protocol preserves all interaction details while maintaining computational efficiency.
+\textbf{Trajectory Serialization}: Agent interactions produce complex nested data structures (commands, outputs, file states, error messages) that must be serialized into formats suitable for RL training.
+Our serialization protocol preserves all interaction details while maintaining computational efficiency.
 
 \textbf{Action Space Mapping}: The agent's tool calls are mapped to discrete actions in the RL formulation, with careful attention to maintaining gradient flow through the policy network to the underlying token generation process.
 
@@ -45,9 +48,11 @@ Safety and reproducibility requirements necessitated a sophisticated containeriz
 
 \subsubsection{GRPO Implementation}
 
-While existing implementations of GRPO existed in the TRL library \cite{trl2020}, they were not designed for the complex interaction patterns required by coding agents. Our custom implementation addresses several limitations:
+While existing implementations of GRPO existed in the TRL library \cite{trl2020}, they were not designed for the complex interaction patterns required by coding agents.
+Our custom implementation addresses several limitations:
 
-\textbf{Variable-Length Trajectories}: Standard GRPO assumes fixed-length sequences, while agent interactions vary dramatically in length depending on problem complexity and exploration strategy. Our implementation handles variable-length trajectories through sophisticated padding and masking schemes.
+\textbf{Variable-Length Trajectories}: Standard GRPO assumes fixed-length sequences, while agent interactions vary dramatically in length depending on problem complexity and exploration strategy.
+Our implementation handles variable-length trajectories through sophisticated padding and masking schemes.
 
 \textbf{Multi-Turn Conversations}: Agent interactions involve multiple tool calls and responses, requiring careful attention to conversation structure and context management during gradient computation.
 
@@ -71,9 +76,11 @@ Adapting vLLM for RL training required several modifications to the base serving
 
 \textbf{Streaming Trajectory Collection}: We implemented custom request handlers that stream completed agent trajectories directly to the training pipeline without buffering, enabling real-time training data collection.
 
-\textbf{Model Hot-Swapping}: Custom model management code enables live weight updates without service interruption. This required careful coordination of CUDA memory management, request routing, and state consistency.
+\textbf{Model Hot-Swapping}: Custom model management code enables live weight updates without service interruption.
+This required careful coordination of CUDA memory management, request routing, and state consistency.
 
-\textbf{Multi-Model Serving}: GRPO requires serving both the current policy and a reference policy simultaneously. Our implementation shares base model weights while maintaining separate LoRA adapters, optimizing memory usage and inference throughput.
+\textbf{Multi-Model Serving}: GRPO requires serving both the current policy and a reference policy simultaneously.
+Our implementation shares base model weights while maintaining separate LoRA adapters, optimizing memory usage and inference throughput.
 
 \subsubsection{Performance Optimizations}
 
@@ -106,7 +113,8 @@ Our NCCL-based communication system operates through several layers:
 
 The synchronization protocol addresses several critical challenges:
 
-\textbf{Consistency Guarantees}: All tokens within a single generation use consistent model weights, even if updates occur during generation. This required careful request tracking and version management.
+\textbf{Consistency Guarantees}: All tokens within a single generation use consistent model weights, even if updates occur during generation.
+This required careful request tracking and version management.
 
 \textbf{Asynchronous Operations}: Weight broadcasts occur asynchronously with respect to inference requests, utilizing CUDA streams and events to prevent blocking of ongoing inference work.
 
@@ -118,7 +126,8 @@ The synchronization protocol addresses several critical challenges:
 
 Coordinating CUDA memory across multiple processes presented several unique challenges:
 
-\textbf{Memory Fragmentation}: Long-running training jobs tend to fragment GPU memory, leading to allocation failures. We implemented custom memory pools and defragmentation strategies to maintain stable operation.
+\textbf{Memory Fragmentation}: Long-running training jobs tend to fragment GPU memory, leading to allocation failures.
+We implemented custom memory pools and defragmentation strategies to maintain stable operation.
 
 \textbf{Inter-Process Communication}: Efficient weight sharing required implementing custom IPC mechanisms using CUDA unified memory and peer-to-peer access, with fallbacks to CPU memory for compatibility.
 
@@ -223,7 +232,8 @@ Validating experimental results required multiple validation approaches:
 \section{Open Source Contributions}
 \label{sec:open-source}
 
-A key objective of this work was providing open-source implementations to democratize access to interactive RL techniques. Our contributions include:
+A key objective of this work was providing open-source implementations to democratize access to interactive RL techniques.
+Our contributions include:
 
 \subsection{CodeRepairRL Framework}
 
@@ -238,7 +248,8 @@ The complete training framework has been released as open source, including:
 
 \subsection{Nano-Agent Implementation}
 
-The nano-agent framework is provided as a standalone library that can be integrated with other training systems or used for inference-only applications. Key features include:
+The nano-agent framework is provided as a standalone library that can be integrated with other training systems or used for inference-only applications.
+Key features include:
 
 \begin{itemize}
 	\item Minimalist tool interface for maximum learning flexibility
@@ -278,7 +289,8 @@ The implementation process revealed several important insights about the practic
 
 \subsection{Distributed Systems Challenges}
 
-\textbf{Complexity Underestimation}: The engineering effort required for stable distributed training was significantly underestimated initially. Real-world deployment revealed numerous edge cases and failure modes not apparent in smaller-scale testing.
+\textbf{Complexity Underestimation}: The engineering effort required for stable distributed training was significantly underestimated initially.
+Real-world deployment revealed numerous edge cases and failure modes not apparent in smaller-scale testing.
 
 \textbf{Debugging Difficulty}: Debugging distributed agent systems is substantially more complex than traditional ML training, requiring sophisticated logging and monitoring infrastructure to identify root causes of failures.
 
@@ -286,11 +298,13 @@ The implementation process revealed several important insights about the practic
 
 \subsection{Agent Integration Insights}
 
-\textbf{Tool Interface Design}: The choice of tool interface significantly impacts both training efficiency and learning outcomes. Overly complex tools slow training, while overly simple tools may limit learning potential.
+\textbf{Tool Interface Design}: The choice of tool interface significantly impacts both training efficiency and learning outcomes.
+Overly complex tools slow training, while overly simple tools may limit learning potential.
 
 \textbf{Environment Standardization}: Significant effort was required to standardize execution environments across diverse software projects, highlighting the importance of consistent infrastructure in agent training.
 
-\textbf{Safety and Isolation}: Comprehensive safety measures are essential but substantially increase system complexity. The trade-off between safety and simplicity must be carefully managed.
+\textbf{Safety and Isolation}: Comprehensive safety measures are essential but substantially increase system complexity.
+The trade-off between safety and simplicity must be carefully managed.
 
 \subsection{RL Training Observations}
 
@@ -298,6 +312,7 @@ The implementation process revealed several important insights about the practic
 
 \textbf{Exploration-Exploitation Balance}: Managing exploration in complex environments like software repositories requires careful tuning and monitoring to prevent both excessive wandering and premature convergence.
 
-\textbf{Sample Efficiency Challenges}: Agent interactions are expensive compared to traditional RL environments, making sample efficiency critical for practical training. This constraint significantly influenced our algorithmic and infrastructure choices.
+\textbf{Sample Efficiency Challenges}: Agent interactions are expensive compared to traditional RL environments, making sample efficiency critical for practical training.
+This constraint significantly influenced our algorithmic and infrastructure choices.
 
 These insights provide valuable guidance for future research in interactive training and highlight the substantial engineering effort required to make theoretical advances practical and reproducible.

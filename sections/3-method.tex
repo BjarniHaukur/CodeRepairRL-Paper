@@ -1,14 +1,18 @@
 \chapter{Method}
 \label{ch:method}
 
-This chapter presents our novel approach to training large language models for automated code repair through interactive reinforcement learning. We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the RL training loop improves bug-fixing performance.
+This chapter presents our novel approach to training large language models for automated code repair through interactive reinforcement learning.
+We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the RL training loop improves bug-fixing performance.
 
 \section{Overview of Interactive Reinforcement Learning}
 \label{sec:method-overview}
 
-Traditional approaches to training LLMs for code repair rely on supervised fine-tuning with static datasets of code-patch pairs. In contrast, our method pioneers interactive reinforcement learning, where coding agents actively interact with real software repositories during training. This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
+Traditional approaches to training LLMs for code repair rely on supervised fine-tuning with static datasets of code-patch pairs.
+In contrast, our method pioneers interactive reinforcement learning, where coding agents actively interact with real software repositories during training.
+This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
 
-The core innovation lies in our integration of existing coding agent frameworks directly into the RL training pipeline. Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can:
+The core innovation lies in our integration of existing coding agent frameworks directly into the RL training pipeline.
+Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can:
 \begin{itemize}
 	\item Navigate repository structures using terminal commands
 	\item Examine multiple files to understand code context
@@ -16,14 +20,17 @@ The core innovation lies in our integration of existing coding agent frameworks 
 	\item Learn from the outcomes of their actions rather than just imitating examples
 \end{itemize}
 
-By implementing an OpenAI-compatible API server with asynchronous token streaming capabilities, we enable seamless integration between RL training and agent execution. This allows our Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
+By implementing an OpenAI-compatible API server with asynchronous token streaming capabilities, we enable seamless integration between RL training and agent execution.
+This allows our Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
 
-Figure~\ref{fig:agent-loop-architecture} illustrates the complete training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation. This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
+Figure~\ref{fig:agent-loop-architecture} illustrates the complete training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation.
+This diagram demonstrates how traditional RL training is enhanced by embedding interactive agents directly within the optimization loop.
 
 \section{Formal Problem Formulation as a Markov Decision Process}
 \label{sec:mdp-formulation}
 
-To establish rigorous theoretical foundations, we formalize the interactive code repair task as a Markov Decision Process (MDP). This formulation clarifies the relationship between natural language agent interactions and standard reinforcement learning components, enabling principled application of RL algorithms to conversational debugging tasks.
+To establish rigorous theoretical foundations, we formalize the interactive code repair task as a Markov Decision Process (MDP).
+This formulation clarifies the relationship between natural language agent interactions and standard reinforcement learning components, enabling principled application of RL algorithms to conversational debugging tasks.
 
 \subsection{MDP Definition}
 
@@ -78,8 +85,7 @@ where $p_{\text{generated}}$ is the patch produced by executing all \texttt{appl
 
 \subsection{Policy Representation}
 
-The policy $\pi_\theta: \mathcal{S} \rightarrow \Delta(\mathcal{A})$ is parameterized by a large language model with parameters $\theta$:
-\begin{align}
+The policy $\pi_\theta: \mathcal{S} \rightarrow \Delta(\mathcal{A})$ is parameterized by a large language model with parameters $\theta$: \begin{align}
 	\pi_\theta(a_t | s_t) = \prod_{i=1}^{|a_t|} p_\theta(a_t^{(i)} | s_t, a_t^{(1:i-1)})
 \end{align}
 
@@ -87,7 +93,8 @@ where $a_t^{(i)}$ represents the $i$-th token in action $a_t$, and the policy fa
 
 \subsection{Episode Structure}
 
-Episodes begin with initial state $s_0 = (\emptyset, \mathcal{R}_0, I)$ containing an empty conversation history, initial repository state, and issue description. Episodes terminate when:
+Episodes begin with initial state $s_0 = (\emptyset, \mathcal{R}_0, I)$ containing an empty conversation history, initial repository state, and issue description.
+Episodes terminate when:
 \begin{itemize}
 	\item The agent signals completion (implicitly through not calling a tool and having made changes to the repository)
 	\item Maximum action limit $T_{\max}$ is reached (Nano has a finite action budget)
@@ -95,13 +102,16 @@ Episodes begin with initial state $s_0 = (\emptyset, \mathcal{R}_0, I)$ containi
 	\item The agent produces an invalid action sequence
 \end{itemize}
 
-Importantly, inaction (i.e., not calling any tools) counts as an action toward the $T_{\max}$ limit, making this a finite time horizon MDP. The token-based termination criterion reflects Nano's compute-aware design—the agent operates while the conversation history fits comfortably in GPU memory, ensuring tractable resource usage during both training and inference.
+Importantly, inaction (i.e., not calling any tools) counts as an action toward the $T_{\max}$ limit, making this a finite time horizon MDP.
+The token-based termination criterion reflects Nano's compute-aware design—the agent operates while the conversation history fits comfortably in GPU memory, ensuring tractable resource usage during both training and inference.
 
 A complete trajectory is $\tau = (s_0, a_0, r_0, s_1, a_1, r_1, \ldots, s_T, r_T)$ where rewards are zero except at termination.
 
 \subsection{Compute-Aware Agent Design}
 
-The finite horizon and token-based termination criteria reflect a key design philosophy: Nano is inherently compute-aware. Rather than allowing unbounded exploration that could exhaust computational resources, the agent operates within well-defined memory and computational budgets. This approach ensures:
+The finite horizon and token-based termination criteria reflect a key design philosophy: Nano is inherently compute-aware.
+Rather than allowing unbounded exploration that could exhaust computational resources, the agent operates within well-defined memory and computational budgets.
+This approach ensures:
 
 \begin{itemize}
 	\item \textbf{Predictable Memory Usage}: Token limits guarantee that conversation histories remain within GPU memory constraints during training and inference
@@ -114,12 +124,14 @@ This compute-aware design represents a departure from traditional RL environment
 
 \subsection{If Finite MDP, Why Not Q-Learning?}
 
-With finite state and action spaces, Q-learning becomes theoretically applicable. However, [placeholder for discussion of practical considerations, scalability challenges, and why policy gradient methods are preferred for this high-dimensional natural language domain].
+With finite state and action spaces, Q-learning becomes theoretically applicable.
+However, [placeholder for discussion of practical considerations, scalability challenges, and why policy gradient methods are preferred for this high-dimensional natural language domain].
 
 \subsection{Connection to GRPO}
 
-This MDP formulation enables direct application of Group Relative Policy Optimization. GRPO operates on batches of trajectories $\{\tau_1, \tau_2, \ldots, \tau_B\}$, computing advantages by comparing terminal rewards within each batch. The policy update maximizes:
-\begin{align}
+This MDP formulation enables direct application of Group Relative Policy Optimization.
+GRPO operates on batches of trajectories $\{\tau_1, \tau_2, \ldots, \tau_B\}$, computing advantages by comparing terminal rewards within each batch.
+The policy update maximizes: \begin{align}
 	\mathcal{L}_{\text{GRPO}}(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{T} A_t \log \pi_\theta(a_t | s_t) \right]
 \end{align}
 
@@ -132,9 +144,11 @@ This formalization establishes the theoretical foundation for applying reinforce
 
 \subsection{Datasets and Benchmarks}
 
-Our experimental design carefully separates training and evaluation data to demonstrate true generalization rather than memorization. We employ the following datasets:
+Our experimental design carefully separates training and evaluation data to demonstrate true generalization rather than memorization.
+We employ the following datasets:
 
-\textbf{Training Dataset:} We use SWE-Gym, a curated collection of approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories. Each task includes:
+\textbf{Training Dataset:} We use SWE-Gym, a curated collection of approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories.
+Each task includes:
 \begin{itemize}
 	\item A containerized repository snapshot at the time of the bug report
 	\item The original issue description
@@ -144,13 +158,19 @@ Our experimental design carefully separates training and evaluation data to demo
 
 SWE-Gym's containerized design makes it ideal for RL training, as agents can freely explore and modify code without risk while receiving deterministic feedback based on their actions.
 
-\textbf{Primary Evaluation:} SWE-Bench-Verified serves as our main evaluation benchmark, containing approximately 500 carefully validated Python bugs from popular open-source projects. These bugs are notably more challenging than the training set, often requiring multi-file modifications and deep understanding of project structure. This dataset tests whether our agent-trained models can generalize beyond their training distribution.
+\textbf{Primary Evaluation:}
+SWE-Bench-Verified serves as our main evaluation benchmark, containing approximately 500 carefully validated Python bugs from popular open-source projects.
+These bugs are notably more challenging than the training set, often requiring multi-file modifications and deep understanding of project structure.
+This dataset tests whether our agent-trained models can generalize beyond their training distribution.
 
-\textbf{Generalization Testing:} To assess transfer of learned repair skills beyond the training domain, we evaluate on HumanEval, a standard code generation benchmark. This tests whether debugging strategies learned through interactive RL improve general programming capabilities.
+\textbf{Generalization Testing:}
+To assess transfer of learned repair skills beyond the training domain, we evaluate on HumanEval, a standard code generation benchmark.
+This tests whether debugging strategies learned through interactive RL improve general programming capabilities.
 
 \subsection{Pretrained Model Selection: Qwen for Tool Calling Excellence}
 
-We base our experiments on the Qwen2.5-Coder family, specifically targeting both 7B and 32B parameter variants. Qwen was selected based on extensive empirical evidence from recent literature demonstrating its superior tool-calling capabilities compared to other open-source alternatives.
+We base our experiments on the Qwen2.5-Coder family, specifically targeting both 7B and 32B parameter variants.
+Qwen was selected based on extensive empirical evidence from recent literature demonstrating its superior tool-calling capabilities compared to other open-source alternatives.
 
 \subsubsection{Tool Calling Performance}
 
@@ -172,12 +192,14 @@ Beyond tool calling, Qwen demonstrates strong foundational coding abilities:
 	\item Strong performance on debugging and code repair tasks in baseline evaluations
 \end{itemize}
 
-The model undergoes continued training rather than traditional fine-tuning, preserving its general capabilities while acquiring specialized agent skills through reinforcement learning. This approach maintains Qwen's robust tool-calling foundation while enabling learning of complex debugging behaviors.
+The model undergoes continued training rather than traditional fine-tuning, preserving its general capabilities while acquiring specialized agent skills through reinforcement learning.
+This approach maintains Qwen's robust tool-calling foundation while enabling learning of complex debugging behaviors.
 
 \section{The Nano Coding Agent}
 \label{sec:nano-agent}
 
-Our Nano coding agent adopts a minimalist design: rather than engineering sophisticated tools and guided workflows, we provide only essential capabilities and allow effective behaviors to emerge through reinforcement learning. This isolates the contribution of learning under a simple action space and avoids confounds introduced by heavyweight scaffolding.
+Our Nano coding agent adopts a minimalist design: rather than engineering sophisticated tools and guided workflows, we provide only essential capabilities and allow effective behaviors to emerge through reinforcement learning.
+This isolates the contribution of learning under a simple action space and avoids confounds introduced by heavyweight scaffolding.
 
 \subsection{Core Capabilities}
 
@@ -190,7 +212,8 @@ The Nano agent provides a streamlined set of tools for repository interaction:
 	\item \texttt{write\_file}: Create new files when necessary
 \end{itemize}
 
-This minimal toolset encourages models to develop their own strategies for code understanding and modification rather than relying on pre-engineered heuristics. The agent must learn to:
+This minimal toolset encourages models to develop their own strategies for code understanding and modification rather than relying on pre-engineered heuristics.
+The agent must learn to:
 \begin{itemize}
 	\item Navigate unfamiliar codebases using standard Unix commands
 	\item Identify relevant files through grep searches and directory exploration
@@ -200,15 +223,20 @@ This minimal toolset encourages models to develop their own strategies for code 
 
 \subsection{Minimalist Design Rationale}
 
-The agent's design emphasizes learning over engineered heuristics. The objective is to evaluate whether simple tools combined with interactive RL suffice to develop robust debugging strategies without bespoke, task-specific machinery.
+The agent's design emphasizes learning over engineered heuristics.
+The objective is to evaluate whether simple tools combined with interactive RL suffice to develop robust debugging strategies without bespoke, task-specific machinery.
 
-\textbf{Learning Over Engineering:} Rather than pre-programming sophisticated debugging heuristics, we provide minimal tools and let effective strategies emerge through extensive training.
+\textbf{Learning Over Engineering:}
+Rather than pre-programming sophisticated debugging heuristics, we provide minimal tools and let effective strategies emerge through extensive training.
 
-\textbf{Computation Over Complexity:} Complex behaviors should arise from simple primitives and large-scale learning rather than from engineering complex tool interfaces.
+\textbf{Computation Over Complexity:}
+Complex behaviors should arise from simple primitives and large-scale learning rather than from engineering complex tool interfaces.
 
-\textbf{Generality Over Specialization:} Basic, general-purpose tools should ultimately prove more effective than specialized, engineered solutions as models learn to use them creatively.
+\textbf{Generality Over Specialization:}
+Basic, general-purpose tools should ultimately prove more effective than specialized, engineered solutions as models learn to use them creatively.
 
-\textbf{Scalability Focus:} The design prioritizes scalability to massive training regimens rather than immediate performance optimization through sophisticated tooling.
+\textbf{Scalability Focus:}
+The design prioritizes scalability to massive training regimens rather than immediate performance optimization through sophisticated tooling.
 
 \subsection{Integration with RL Training}
 
@@ -222,14 +250,17 @@ The Nano agent integrates seamlessly with our RL training pipeline through a str
 	\item The final patch is evaluated against the ground truth for reward computation
 \end{enumerate}
 
-This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes. The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
+This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes.
+The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
 
-This learning-centric approach avoids overfitting to tooling idiosyncrasies. Rather than engineering away the difficulty of code repair through sophisticated tooling, we provide a stable, minimal interface and train the model to develop its own solutions through experience.
+This learning-centric approach avoids overfitting to tooling idiosyncrasies.
+Rather than engineering away the difficulty of code repair through sophisticated tooling, we provide a stable, minimal interface and train the model to develop its own solutions through experience.
 
 \section{Training-Inference Duality in Online RL for LLMs}
 \label{sec:training-inference}
 
-A fundamental innovation in our approach is the collapse of the traditional training-inference boundary. Unlike conventional RL where trajectory collection and policy updates occur in separate phases, our system performs both simultaneously through continuous serving and real-time weight updates.
+A fundamental innovation in our approach is the collapse of the traditional training-inference boundary.
+Unlike conventional RL where trajectory collection and policy updates occur in separate phases, our system performs both simultaneously through continuous serving and real-time weight updates.
 
 \subsection{The Unified Training-Inference Paradigm}
 
@@ -239,7 +270,8 @@ In traditional RL, models alternate between:
 	\item \textbf{Training phase}: Computing gradients and updating parameters offline
 \end{enumerate}
 
-Our interactive system eliminates this separation. The GRPO process operates as a continuous cycle where:
+Our interactive system eliminates this separation.
+The GRPO process operates as a continuous cycle where:
 \begin{enumerate}
 	\item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
 	\item \textbf{Trajectory streaming}: Completed agent episodes stream to the training pipeline in real-time
@@ -264,36 +296,39 @@ This unified paradigm enables true online learning where the policy improves con
 
 \subsection{Group Relative Policy Optimization (GRPO)}
 
-We employ Group Relative Policy Optimization (GRPO) as our primary RL algorithm. GRPO offers several advantages for our interactive setting:
+We employ Group Relative Policy Optimization (GRPO) as our primary RL algorithm.
+GRPO offers several advantages for our interactive setting:
 
 \begin{itemize}
-	\item \textbf{No value model required:} Unlike traditional actor-critic methods, GRPO estimates advantages using relative performance within a batch, eliminating the need for a separate value network
-	\item \textbf{Reduced variance:} By normalizing rewards across groups of trajectories, GRPO provides more stable training signals
-	\item \textbf{Simplified pipeline:} The absence of value estimation reduces computational overhead and implementation complexity
-\end{itemize}
+	\item \textbf{No value model required:}
+	      Unlike traditional actor-critic methods, GRPO estimates advantages using relative performance within a batch, eliminating the need for a separate value network \item \textbf{Reduced variance:} By normalizing rewards across groups of trajectories, GRPO provides more stable training signals \item \textbf{Simplified pipeline:} The absence of value estimation reduces computational overhead and implementation complexity \end{itemize}
 
-\subsection{Masked Loss Computation for Tool-Augmented RL}
-\label{sec:masked-loss-computation}
+\subsection{Masked Loss Computation for Tool-Augmented RL} \label{sec:masked-loss-computation}
 
-A key design consideration in training tool-augmented language models involves the treatment of externally-generated content during optimization. Interactive agents must process and reason about tool outputs (shell command results, file contents, search results) to maintain coherent conversations, yet including these external tokens in the loss computation shifts optimization pressure away from the primary learning objective: making appropriate tool calls based on context.
+A key design consideration in training tool-augmented language models involves the treatment of externally-generated content during optimization.
+Interactive agents must process and reason about tool outputs (shell command results, file contents, search results) to maintain coherent conversations, yet including these external tokens in the loss computation shifts optimization pressure away from the primary learning objective: making appropriate tool calls based on context.
 
-Consider an agent trajectory $\tau = (s_1, a_1, o_1, s_2, a_2, o_2, \ldots, s_T)$ where $a_t$ represents agent actions (tool calls) and $o_t$ represents corresponding tool outputs. While tool outputs are partially predictable given sufficient context, training the model to predict them deemphasizes the critical skill of contextual tool selection and invocation. Traditional sequence modeling treats the entire trajectory as a prediction target, diluting the learning signal for agent reasoning and tool usage patterns.
+Consider an agent trajectory $\tau = (s_1, a_1, o_1, s_2, a_2, o_2, \ldots, s_T)$ where $a_t$ represents agent actions (tool calls) and $o_t$ represents corresponding tool outputs.
+While tool outputs are partially predictable given sufficient context, training the model to predict them deemphasizes the critical skill of contextual tool selection and invocation.
+Traditional sequence modeling treats the entire trajectory as a prediction target, diluting the learning signal for agent reasoning and tool usage patterns.
 
 \subsubsection{Dual-Mask Strategy for Loss Isolation}
 
-We introduce a dual-masking approach that preserves contextual information during forward computation while focusing optimization on agent-authored content. Let $\mathbf{x} = [x_1, x_2, \ldots, x_n]$ represent a tokenized trajectory and $\mathcal{T} \subset \{1, 2, \ldots, n\}$ denote the indices corresponding to tool-generated tokens.
+We introduce a dual-masking approach that preserves contextual information during forward computation while focusing optimization on agent-authored content.
+Let $\mathbf{x} = [x_1, x_2, \ldots, x_n]$ represent a tokenized trajectory and $\mathcal{T} \subset \{1, 2, \ldots, n\}$ denote the indices corresponding to tool-generated tokens.
 
-\textbf{Forward Pass:} The model processes the complete sequence with full attention:
-\begin{align}
+\textbf{Forward Pass:}
+The model processes the complete sequence with full attention: \begin{align}
 	\mathbf{M}_{\text{att}} & = \mathbf{1}_{n \times n} \quad \text{(full attention mask)} \\
 	\mathbf{h}              & = \text{Transformer}(\mathbf{x}, \mathbf{M}_{\text{att}})    \\
 	\mathbf{L}              & = \text{LinearHead}(\mathbf{h})
 \end{align}
 
-where $\mathbf{h}$ contains representations informed by all tokens, including tool outputs. Crucially, when computing log probabilities for agent-authored tokens, the model maintains full access to tool response content through the attention mechanism.
+where $\mathbf{h}$ contains representations informed by all tokens, including tool outputs.
+Crucially, when computing log probabilities for agent-authored tokens, the model maintains full access to tool response content through the attention mechanism.
 
-\textbf{Loss Computation:} We apply selective masking to focus optimization exclusively on agent-authored tokens:
-\begin{align}
+\textbf{Loss Computation:}
+We apply selective masking to focus optimization exclusively on agent-authored tokens: \begin{align}
 	\mathbf{M}_{\text{loss}}[i] & = \begin{cases}
 		                                1 & \text{if } i \notin \mathcal{T} \text{ (agent-authored)} \\
 		                                0 & \text{if } i \in \mathcal{T} \text{ (tool-generated)}
@@ -305,15 +340,21 @@ where $\ell_i$ represents the per-token policy loss and $A_i$ denotes advantages
 
 \subsubsection{Perplexity Analysis and Training Focus}
 
-Figure~\ref{fig:tool-perplexity-analysis} demonstrates the importance of masked loss computation through perplexity decomposition across agent trajectories. Tool-generated tokens consistently exhibit higher perplexity as the model's predicted distributions often diverge from actual tool outputs—reflecting the difficulty of precisely predicting external system responses without complete environmental state.
+Figure~\ref{fig:tool-perplexity-analysis} demonstrates the importance of masked loss computation through perplexity decomposition across agent trajectories.
+Tool-generated tokens consistently exhibit higher perplexity as the model's predicted distributions often diverge from actual tool outputs—reflecting the difficulty of precisely predicting external system responses without complete environmental state.
 
 % TODO: Create figure showing perplexity breakdown
 \begin{figure}[ht]
 	\centering
 	\fbox{\parbox{0.8\textwidth}{\centering
-			\textit{[Figure placeholder: Perplexity decomposition across agent trajectories showing tool-generated tokens contribute disproportionately to sequence-level perplexity. Left panel: trajectory timeline with color-coded regions (agent reasoning, tool calls, tool outputs). Right panel: per-token perplexity highlighting the spike at tool response boundaries where model predictions diverge from external content that, while partially predictable, is not the target learning objective.]}
+			\textit{[Figure placeholder: Perplexity decomposition across agent trajectories showing tool-generated tokens contribute disproportionately to sequence-level perplexity.
+						Left panel: trajectory timeline with color-coded regions (agent reasoning, tool calls, tool outputs).
+						Right panel: per-token perplexity highlighting the spike at tool response boundaries where model predictions diverge from external content that, while partially predictable, is not the target learning objective.
+					]}
 		}}
-	\caption{Perplexity analysis revealing the dominance of tool-generated tokens in sequence-level prediction difficulty. The majority of perplexity arises from tool responses, which while not entirely unpredictable, represent a different learning objective than the desired focus on contextual tool selection and agent reasoning.}
+	\caption{Perplexity analysis revealing the dominance of tool-generated tokens in sequence-level prediction difficulty.
+		The majority of perplexity arises from tool responses, which while not entirely unpredictable, represent a different learning objective than the desired focus on contextual tool selection and agent reasoning.
+	}
 	\label{fig:tool-perplexity-analysis}
 \end{figure}
 
@@ -321,13 +362,17 @@ Without selective masking, the optimization objective allocates significant capa
 
 \subsubsection{Algorithmic Benefits}
 
-\textbf{Training Focus:} Tool tokens contribute zero gradient magnitude, ensuring optimization pressure concentrates exclusively on agent reasoning and tool invocation patterns—the core competencies we seek to develop.
+\textbf{Training Focus:}
+Tool tokens contribute zero gradient magnitude, ensuring optimization pressure concentrates exclusively on agent reasoning and tool invocation patterns—the core competencies we seek to develop.
 
-\textbf{Contextual Preservation:} The forward pass maintains full attention over tool outputs, enabling coherent reasoning about external information while directing optimization toward appropriate tool usage rather than content prediction.
+\textbf{Contextual Preservation:}
+The forward pass maintains full attention over tool outputs, enabling coherent reasoning about external information while directing optimization toward appropriate tool usage rather than content prediction.
 
-\textbf{Computational Efficiency:} Loss masking integrates seamlessly with fused kernel implementations, avoiding additional forward passes or memory overhead during training.
+\textbf{Computational Efficiency:}
+Loss masking integrates seamlessly with fused kernel implementations, avoiding additional forward passes or memory overhead during training.
 
-\textbf{Objective Clarity:} As tool outputs grow in length and complexity, the masking strategy ensures training remains focused on agent capabilities rather than becoming diluted across external content prediction tasks.
+\textbf{Objective Clarity:}
+As tool outputs grow in length and complexity, the masking strategy ensures training remains focused on agent capabilities rather than becoming diluted across external content prediction tasks.
 
 This masked loss formulation represents an important design choice for tool-augmented RL, enabling models to leverage external information for reasoning while maintaining clear optimization objectives focused on contextual tool selection and effective agent behavior.
 
@@ -362,34 +407,43 @@ Training and serving 8B to 32B parameter models for interactive RL requires soph
 
 \subsubsection{Training Optimizations}
 
-\textbf{DeepSpeed ZeRO-3 Integration:} Complete model parameter, gradient, and optimizer state sharding enables training of 32B models across multiple GPUs with minimal memory overhead per device.
+\textbf{DeepSpeed ZeRO-3 Integration:}
+Complete model parameter, gradient, and optimizer state sharding enables training of 32B models across multiple GPUs with minimal memory overhead per device.
 
-\textbf{Gradient Checkpointing:} Selective activation checkpointing reduces memory usage by 50\% during backward passes, trading compute for memory to enable larger batch sizes and longer sequence lengths.
+\textbf{Gradient Checkpointing:}
+Selective activation checkpointing reduces memory usage by 50\% during backward passes, trading compute for memory to enable larger batch sizes and longer sequence lengths.
 
-\textbf{Mixed Precision Training:} FP16 training with automatic loss scaling reduces memory usage and increases throughput while maintaining numerical stability.
+\textbf{Mixed Precision Training:}
+FP16 training with automatic loss scaling reduces memory usage and increases throughput while maintaining numerical stability.
 
-\textbf{Communication Optimization:} Overlapped gradient communication during backward passes minimizes the impact of all-reduce operations on training throughput.
+\textbf{Communication Optimization:}
+Overlapped gradient communication during backward passes minimizes the impact of all-reduce operations on training throughput.
 
-\textbf{KL-Divergence Computational Efficiency:} GRPO training often requires computing KL-divergence between the current policy and a reference model to ensure training stability—preventing the model from deviating excessively from its original training objectives while optimizing for the new task. This stability constraint typically necessitates maintaining two complete model instances in memory to compute $D_{KL}(\pi_{\theta}(a|s) \| \pi_{\text{ref}}(a|s))$, effectively doubling GPU memory requirements. LoRA's additive parameter structure provides a natural solution to this computational burden: since base model weights $\mathbf{W}_0$ remain frozen while only low-rank adaptations $\mathbf{W}_0 + \mathbf{BA}$ are trained, the reference policy corresponds exactly to the base model without adapters. We can therefore compute reference policy outputs by temporarily disabling the LoRA adapters on the same model instance, eliminating the need for a separate reference model. This approach reduces memory consumption by approximately 50\% while preserving the distributional constraints essential for stable policy optimization.
+\textbf{KL-Divergence Computational Efficiency:}
+GRPO training often requires computing KL-divergence between the current policy and a reference model to ensure training stability—preventing the model from deviating excessively from its original training objectives while optimizing for the new task.
+This stability constraint typically necessitates maintaining two complete model instances in memory to compute $D_{KL}(\pi_{\theta}(a|s) \| \pi_{\text{ref}}(a|s))$, effectively doubling GPU memory requirements.
+LoRA's additive parameter structure provides a natural solution to this computational burden: since base model weights $\mathbf{W}_0$ remain frozen while only low-rank adaptations $\mathbf{W}_0 + \mathbf{BA}$ are trained, the reference policy corresponds exactly to the base model without adapters.
+We can therefore compute reference policy outputs by temporarily disabling the LoRA adapters on the same model instance, eliminating the need for a separate reference model.
+This approach reduces memory consumption by approximately 50\% while preserving the distributional constraints essential for stable policy optimization.
 
 \subsubsection{Memory Management Strategies}
 
-\textbf{Activation Partitioning:} Custom memory management splits large activations across devices to minimize peak memory usage during both forward and backward passes.
+\textbf{Activation Partitioning:}
+Custom memory management splits large activations across devices to minimize peak memory usage during both forward and backward passes.
 
-\textbf{Dynamic Batch Construction:} Intelligent batching algorithms pack variable-length agent trajectories to maximize GPU utilization while respecting memory constraints.
+\textbf{Dynamic Batch Construction:}
+Intelligent batching algorithms pack variable-length agent trajectories to maximize GPU utilization while respecting memory constraints.
 
-\textbf{Cache-Aware Scheduling:} Coordinated scheduling between training and inference processes minimizes memory contention and enables stable dual-mode operation.
+\textbf{Cache-Aware Scheduling:}
+Coordinated scheduling between training and inference processes minimizes memory contention and enables stable dual-mode operation.
 
 \subsubsection{Cost-Performance Trade-offs}
 
 The combination of these optimizations enables training of state-of-the-art agent behaviors while maintaining practical computational budgets:
 
 \begin{itemize}
-	\item \textbf{8B models:} Trainable on 4x A100 GPUs with full agent interaction
-	\item \textbf{32B models:} Scalable to 8x A100 GPUs with maintained training throughput
-	\item \textbf{Memory efficiency:} 90\%+ memory utilization through careful optimization
-	\item \textbf{Training speed:} Agent trajectory processing at near real-time rates
-\end{itemize}
+	\item \textbf{8B models:}
+	      Trainable on 4x A100 GPUs with full agent interaction \item \textbf{32B models:} Scalable to 8x A100 GPUs with maintained training throughput \item \textbf{Memory efficiency:} 90\%+ memory utilization through careful optimization \item \textbf{Training speed:} Agent trajectory processing at near real-time rates \end{itemize}
 
 These innovations make large-scale interactive RL practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
 
@@ -398,13 +452,12 @@ These innovations make large-scale interactive RL practically feasible for acade
 
 \subsection{Outcome-Based Patch Similarity}
 
-Our reward function focuses on the final outcome—the generated patch—rather than intermediate steps. This design choice offers several benefits:
+Our reward function focuses on the final outcome—the generated patch—rather than intermediate steps.
+This design choice offers several benefits:
 
 \begin{itemize}
-	\item \textbf{Simplicity:} Evaluating final patches is straightforward and deterministic
-	\item \textbf{Flexibility:} Agents can discover diverse problem-solving strategies without being constrained by process-specific rewards
-	\item \textbf{Alignment:} The reward directly measures what we care about—correct bug fixes
-\end{itemize}
+	\item \textbf{Simplicity:}
+	      Evaluating final patches is straightforward and deterministic \item \textbf{Flexibility:} Agents can discover diverse problem-solving strategies without being constrained by process-specific rewards \item \textbf{Alignment:} The reward directly measures what we care about—correct bug fixes \end{itemize}
 
 \subsection{Multi-Component Reward Computation}
 
@@ -416,19 +469,25 @@ Our reward function decomposes the complex task of bug fixing into three distinc
 
 where each component evaluates a specific dimension of the agent's solution:
 
-\textbf{File Targeting Component} ($R_{\text{files}} \in [0,1]$): Evaluates whether the agent modified the correct files that should be changed to fix the bug. This component rewards the agent for identifying the appropriate locations in the codebase, regardless of the specific changes made.
+\textbf{File Targeting Component} ($R_{\text{files}} \in [0,1]$): Evaluates whether the agent modified the correct files that should be changed to fix the bug.
+This component rewards the agent for identifying the appropriate locations in the codebase, regardless of the specific changes made.
 
-\textbf{Functional Similarity Component} ($R_{\text{functional}} \in [0,1]$): Measures how similar the agent's changes are to the ground-truth solution in terms of the functional aspects of fixing the bug. This component focuses on whether the core logic changes align with the expected repair strategy.
+\textbf{Functional Similarity Component} ($R_{\text{functional}} \in [0,1]$): Measures how similar the agent's changes are to the ground-truth solution in terms of the functional aspects of fixing the bug.
+This component focuses on whether the core logic changes align with the expected repair strategy.
 
 \textbf{Testing Alignment Component} ($R_{\text{testing}} \in [0,1]$): Assesses how well the agent's changes align with the testing suite additions or modifications in the ground truth, which monitor the bug and ensure correctness while preventing regression.
 
 This decomposition reflects the multi-faceted nature of software debugging: successful repair requires not only identifying the right locations and implementing functional fixes, but also considering how changes interact with the broader testing infrastructure that validates correctness.
 
-This reward computation approach addresses a fundamental challenge in LLM-based code modification: the notorious difficulty of generating syntactically valid diffs. Traditional approaches require models to produce unified diff format with precise line numbering, context coordination, and complex formatting rules—a task that frequently results in parsing errors and invalid patches.
+This reward computation approach addresses a fundamental challenge in LLM-based code modification: the notorious difficulty of generating syntactically valid diffs.
+Traditional approaches require models to produce unified diff format with precise line numbering, context coordination, and complex formatting rules—a task that frequently results in parsing errors and invalid patches.
 
-Our approach elegantly separates semantic understanding from syntactic formatting. During interaction, the agent performs any number of \texttt{apply\_patch} operations using a simplified search-replace format that aligns naturally with LLM capabilities. Each operation specifies exact text to replace and its substitution, without requiring knowledge of line numbers or diff syntax.
+Our approach elegantly separates semantic understanding from syntactic formatting.
+During interaction, the agent performs any number of \texttt{apply\_patch} operations using a simplified search-replace format that aligns naturally with LLM capabilities.
+Each operation specifies exact text to replace and its substitution, without requiring knowledge of line numbers or diff syntax.
 
-Only after the complete interaction do we execute \texttt{git diff} to compute the actual patch for evaluation. This separation of concerns offers several advantages:
+Only after the complete interaction do we execute \texttt{git diff} to compute the actual patch for evaluation.
+This separation of concerns offers several advantages:
 
 \begin{itemize}
 	\item \textbf{Error Elimination}: Models cannot fail due to diff formatting issues, as the patch is computed automatically
@@ -441,17 +500,17 @@ This architectural choice transforms a major source of technical failures into a
 
 \subsection{Addressing Sparse Rewards}
 
-The sparse nature of exact patch matching presents challenges for RL training. We address this through:
+The sparse nature of exact patch matching presents challenges for RL training.
+We address this through:
 
 \begin{itemize}
-	\item \textbf{Curriculum learning:} Starting with simpler bugs where rewards are more attainable
-	\item \textbf{Partial credit:} Rewarding patches that target correct files and functions even if the exact fix differs
-	\item \textbf{Large batch sizes:} Ensuring sufficient positive examples within each training batch
-\end{itemize}
+	\item \textbf{Curriculum learning:}
+	      Starting with simpler bugs where rewards are more attainable \item \textbf{Partial credit:} Rewarding patches that target correct files and functions even if the exact fix differs \item \textbf{Large batch sizes:} Ensuring sufficient positive examples within each training batch \end{itemize}
 
 \subsection{Future Extensions}
 
-While our current approach uses patch similarity for computational efficiency, the framework naturally extends to test-based evaluation. Future work could incorporate:
+While our current approach uses patch similarity for computational efficiency, the framework naturally extends to test-based evaluation.
+Future work could incorporate:
 
 \begin{itemize}
 	\item Execution of project test suites to verify functional correctness
@@ -470,19 +529,25 @@ Our system leverages vLLM's advanced serving capabilities, enhanced with additio
 
 \subsubsection{Core vLLM Features}
 
-\textbf{KV-Cache Management:} Intelligent key-value cache reuse across agent conversations dramatically reduces memory usage and latency. For multi-step debugging sessions, context prefixes are cached and reused, providing up to 3x speedup in token generation.
+\textbf{KV-Cache Management:} Intelligent key-value cache reuse across agent conversations dramatically reduces memory usage and latency.
+For multi-step debugging sessions, context prefixes are cached and reused, providing up to 3x speedup in token generation.
 
-\textbf{Continuous Batching:} Dynamic request batching allows optimal GPU utilization by processing multiple agent requests simultaneously, with automatic load balancing across available compute resources.
+\textbf{Continuous Batching:}
+Dynamic request batching allows optimal GPU utilization by processing multiple agent requests simultaneously, with automatic load balancing across available compute resources.
 
-\textbf{Memory-Efficient Attention:} PagedAttention implementation reduces memory fragmentation and enables serving larger models with the same hardware footprint.
+\textbf{Memory-Efficient Attention:}
+PagedAttention implementation reduces memory fragmentation and enables serving larger models with the same hardware footprint.
 
 \subsubsection{RL-Specific Enhancements}
 
-\textbf{Trajectory Streaming:} Custom modifications enable real-time streaming of completed agent trajectories to the training pipeline without blocking inference for ongoing requests.
+\textbf{Trajectory Streaming:}
+Custom modifications enable real-time streaming of completed agent trajectories to the training pipeline without blocking inference for ongoing requests.
 
-\textbf{Model Hot-Swapping:} Live weight updates occur without service interruption through careful state management and request routing.
+\textbf{Model Hot-Swapping:}
+Live weight updates occur without service interruption through careful state management and request routing.
 
-\textbf{Multi-Model Serving:} Simultaneous serving of both the current policy and reference policy (required for GRPO) with shared base weights and separate adapters.
+\textbf{Multi-Model Serving:}
+Simultaneous serving of both the current policy and reference policy (required for GRPO) with shared base weights and separate adapters.
 
 \subsection{NCCL-Based Live Weight Synchronization}
 
@@ -492,19 +557,24 @@ A critical technical breakthrough enabling our training-inference duality is rea
 
 The weight synchronization system operates through several components:
 
-\textbf{NCCL Broadcast Groups:} Training nodes broadcast updated weights to inference servers using optimized collective communication primitives. This ensures minimal latency and maximum bandwidth utilization.
+\textbf{NCCL Broadcast Groups:} Training nodes broadcast updated weights to inference servers using optimized collective communication primitives.
+This ensures minimal latency and maximum bandwidth utilization.
 
-\textbf{Asynchronous Updates:} Weight broadcasts occur asynchronously with respect to inference requests, preventing service interruption during model updates.
+\textbf{Asynchronous Updates:}
+Weight broadcasts occur asynchronously with respect to inference requests, preventing service interruption during model updates.
 
-\textbf{Version Control:} Sophisticated versioning ensures request consistency—all tokens within a generation use the same model weights, even if updates occur mid-generation.
+\textbf{Version Control:}
+Sophisticated versioning ensures request consistency—all tokens within a generation use the same model weights, even if updates occur mid-generation.
 
-\textbf{Differential Updates:} Only changed parameters (typically LoRA adapters) are broadcast, dramatically reducing network traffic and update latency.
+\textbf{Differential Updates:}
+Only changed parameters (typically LoRA adapters) are broadcast, dramatically reducing network traffic and update latency.
 
 \subsubsection{Performance Characteristics}
 
 The performance characteristics of our NCCL-based weight synchronization system demonstrate significant engineering achievements:
 
-\textbf{Update Latency}: Weight broadcasts complete in 150-300ms for LoRA adapters (8-64 rank), enabling near real-time policy improvements. Full model updates for smaller models (8B parameters) complete in 2-4 seconds.
+\textbf{Update Latency}: Weight broadcasts complete in 150-300ms for LoRA adapters (8-64 rank), enabling near real-time policy improvements.
+Full model updates for smaller models (8B parameters) complete in 2-4 seconds.
 
 \textbf{Throughput Impact}: Inference throughput degrades by less than 5\% during weight updates, achieved through careful scheduling and asynchronous communication patterns.
 
@@ -520,7 +590,8 @@ Several technical challenges were overcome to achieve these performance levels:
 
 \textbf{Numerical Consistency}: Careful attention to floating-point precision and operation ordering maintains bit-exact reproducibility across distributed updates.
 
-\textbf{Scalability}: The system scales linearly to multiple inference nodes, with broadcast trees minimizing update latency as cluster size increases. Production deployments have demonstrated stable operation with up to 8 inference nodes receiving synchronized updates.
+\textbf{Scalability}: The system scales linearly to multiple inference nodes, with broadcast trees minimizing update latency as cluster size increases.
+Production deployments have demonstrated stable operation with up to 8 inference nodes receiving synchronized updates.
 
 This infrastructure represents a significant advance in making online RL practical for large language models, reducing the traditional barrier between training and deployment while maintaining production-grade reliability and performance.
 
@@ -555,13 +626,11 @@ This tight integration between serving and training represents a significant dep
 Key implementation choices include:
 
 \begin{itemize}
-	\item \textbf{Collective RPC:} For efficient weight sharing across distributed processes
-	\item \textbf{LoRA adaptation:} Optional use of low-rank adapters to reduce communication overhead
-	\item \textbf{Containerized environments:} Each agent runs in an isolated Docker container for safety
-	\item \textbf{Request batching:} Multiple agent requests are processed concurrently for efficiency
-\end{itemize}
+	\item \textbf{Collective RPC:}
+	      For efficient weight sharing across distributed processes \item \textbf{LoRA adaptation:} Optional use of low-rank adapters to reduce communication overhead \item \textbf{Containerized environments:} Each agent runs in an isolated Docker container for safety \item \textbf{Request batching:} Multiple agent requests are processed concurrently for efficiency \end{itemize}
 
-Figure~\ref{fig:system-architecture} presents the complete system architecture, illustrating data flow between the vLLM inference cluster, distributed agent worker pool, and GRPO training pipeline. The diagram highlights the NCCL communication layer that enables real-time weight synchronization, supporting the training-inference duality that distinguishes our approach from conventional RL systems.
+Figure~\ref{fig:system-architecture} presents the complete system architecture, illustrating data flow between the vLLM inference cluster, distributed agent worker pool, and GRPO training pipeline.
+The diagram highlights the NCCL communication layer that enables real-time weight synchronization, supporting the training-inference duality that distinguishes our approach from conventional RL systems.
 
 \section{Evaluation Methodology}
 \label{sec:evaluation}
@@ -603,10 +672,9 @@ Beyond in-domain performance, we evaluate generalization through:
 To understand the contribution of different components, we conduct ablations:
 
 \begin{itemize}
-	\item \textbf{Without RL:} Using only supervised fine-tuning on the same data
-	\item \textbf{Without agent:} Direct patch generation without repository interaction
-	\item \textbf{Varying trajectory lengths:} Impact of allowing more or fewer exploration steps
-	\item \textbf{Different reward functions:} Comparing patch similarity vs. binary success rewards
+	\item \textbf{Without RL:}
+	      Using only supervised fine-tuning on the same data \item \textbf{Without agent:} Direct patch generation without repository interaction \item \textbf{Varying trajectory lengths:} Impact of allowing more or fewer exploration steps \item \textbf{Different reward functions:} Comparing patch similarity vs.
+	      binary success rewards
 \end{itemize}
 
 \subsection{Statistical Significance}

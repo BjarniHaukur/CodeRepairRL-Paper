@@ -1,18 +1,21 @@
 \chapter{Experimental Results and Analysis}
 \label{ch:results}
 
-This chapter presents comprehensive experimental results addressing our research questions (RQ1/RQ2/RQ3/RQ4) about interactive reinforcement learning for automated code repair. We demonstrate statistically significant improvements over baseline approaches and evaluate the generalization of learned debugging capabilities.
+This chapter presents comprehensive experimental results addressing our research questions (RQ1/RQ2/RQ3/RQ4) about interactive reinforcement learning for automated code repair.
+We demonstrate statistically significant improvements over baseline approaches and evaluate the generalization of learned debugging capabilities.
 
 \section{Training Dynamics and Convergence}
 \label{sec:training-dynamics}
 
 \subsection{Learning Curve Analysis}
 
-Our GRPO training demonstrates clear and consistent learning dynamics across multiple experimental runs. Figure~\ref{fig:training-curves} shows the evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the nano-agent.
+Our GRPO training demonstrates clear and consistent learning dynamics across multiple experimental runs.
+Figure~\ref{fig:training-curves} shows the evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the nano-agent.
 
 \subsubsection{Reward Progression}
 
-Training begins with near-zero success rates as the pre-trained model, despite its coding capabilities, lacks experience with the specific tool-calling patterns and multi-step exploration required for bug fixing. However, within the first 500 training episodes, we observe rapid improvement:
+Training begins with near-zero success rates as the pre-trained model, despite its coding capabilities, lacks experience with the specific tool-calling patterns and multi-step exploration required for bug fixing.
+However, within the first 500 training episodes, we observe rapid improvement:
 
 \begin{itemize}
 	\item \textbf{Initial Phase (0-500 episodes)}: Steep learning curve as the model acquires basic tool usage patterns and repository navigation skills
@@ -24,7 +27,9 @@ The learning curves demonstrate monotonic improvement throughout training, valid
 
 \subsubsection{Training Stability}
 
-GRPO training exhibits remarkable stability compared to traditional PPO implementations. The group-relative advantage estimation effectively reduces gradient variance, leading to smooth convergence without the oscillations typically observed in policy gradient methods. Standard deviation across training runs remains consistently low (σ < 0.03 success rate) throughout the training process.
+GRPO training exhibits remarkable stability compared to traditional PPO implementations.
+The group-relative advantage estimation effectively reduces gradient variance, leading to smooth convergence without the oscillations typically observed in policy gradient methods.
+Standard deviation across training runs remains consistently low (σ < 0.03 success rate) throughout the training process.
 
 \subsection{Computational Efficiency}
 
@@ -38,8 +43,8 @@ Our training-inference duality architecture achieves significant computational e
 
 The NCCL-based weight synchronization enables near real-time policy updates with minimal overhead (< 200ms latency for LoRA adapter updates), contributing significantly to these efficiency gains.
 
-\section{Main Results: Interactive RL vs. Baselines}
-\label{sec:main-results}
+\section{Main Results: Interactive RL vs.
+  Baselines} \label{sec:main-results}
 
 \subsection{SWE-Bench-Verified Performance}
 
@@ -80,19 +85,25 @@ We analyze harness adaptation through tool success rate, invalid tool calls, and
 	\item \textbf{Invalid call rate}: fraction of calls rejected by the harness (schema mismatch, unsafe commands)
 	\item \textbf{Action efficiency}: commands per successful episode; files viewed per solved task
 \end{itemize}
-\todoinline{Insert plots: tool success vs steps, invalid call rate vs steps, actions-per-episode distribution. Add numbers from logs.}
+\todoinline{Insert plots: tool success vs steps, invalid call rate vs steps, actions-per-episode distribution.
+	Add numbers from logs.
+}
 
 \section{RQ2: Multiple Base Models}
 \label{sec:rq2-multi-base}
 
 We evaluate whether the training recipe and nano harness transfer to alternative base models.
-\todoinline{Add table comparing Qwen vs SmolLM3 (or chosen models) on SWE-Bench-Verified, with same budgets and prompts. Include tool success metrics.}
+\todoinline{Add table comparing Qwen vs SmolLM3 (or chosen models) on SWE-Bench-Verified, with same budgets and prompts.
+	Include tool success metrics.
+}
 
-\section{RQ3: SWE-Gym Training vs. SWE-Bench/Multi-SWE-Bench Evaluation}
-\label{sec:rq3-overfit}
+\section{RQ3: SWE-Gym Training vs.
+  SWE-Bench/Multi-SWE-Bench Evaluation} \label{sec:rq3-overfit}
 
 We test for overfitting by training on \ac{SWE-Gym} and evaluating on \ac{SWE-Bench} and Multi-SWE-Bench.
-\todoinline{Add cross-dataset results, gap analysis vs. SFT, and discussion of overfitting indicators.}
+\todoinline{Add cross-dataset results, gap analysis vs.
+	SFT, and discussion of overfitting indicators.
+}
 
 \section{RQ4: Cross-Harness and Cross-Task Generalization}
 \label{sec:rq4-cross}
@@ -182,7 +193,8 @@ The ablation results highlight several critical system components:
 
 \textbf{Reinforcement Learning (8.6\% impact)}: RL training provides significant benefits over supervised fine-tuning alone, even with identical training data.
 
-\textbf{GRPO vs. PPO (5.5\% impact)}: GRPO's group-relative advantages provide meaningful improvements over traditional actor-critic methods.
+\textbf{GRPO vs.
+	PPO (5.5\% impact)}: GRPO's group-relative advantages provide meaningful improvements over traditional actor-critic methods.
 
 \textbf{Real-time Updates (4.1\% impact)}: Training-inference duality contributes to final performance through improved sample efficiency.
 
@@ -192,15 +204,18 @@ We evaluated sensitivity to key hyperparameters to understand training robustnes
 
 \subsubsection{Learning Rate Analysis}
 
-Learning rates from 1e-6 to 1e-4 were tested, with optimal performance achieved at 5e-6 for 8B models and 3e-6 for 32B models. The training is relatively robust to learning rate choices within this range (performance varies by < 3\% across the effective range).
+Learning rates from 1e-6 to 1e-4 were tested, with optimal performance achieved at 5e-6 for 8B models and 3e-6 for 32B models.
+The training is relatively robust to learning rate choices within this range (performance varies by < 3\% across the effective range).
 
 \subsubsection{Trajectory Length Impact}
 
-Maximum trajectory lengths from 4K to 16K tokens were evaluated. Performance plateaus at 8K tokens, suggesting this provides sufficient context for most debugging tasks while maintaining computational efficiency.
+Maximum trajectory lengths from 4K to 16K tokens were evaluated.
+Performance plateaus at 8K tokens, suggesting this provides sufficient context for most debugging tasks while maintaining computational efficiency.
 
 \subsubsection{Batch Size Effects}
 
-Batch sizes from 16 to 64 trajectories per update were tested. Performance improves with larger batches up to 32 trajectories, then plateaus, indicating optimal reward signal averaging for GRPO.
+Batch sizes from 16 to 64 trajectories per update were tested.
+Performance improves with larger batches up to 32 trajectories, then plateaus, indicating optimal reward signal averaging for GRPO.
 
 \section{Error Analysis and Failure Modes}
 \label{sec:error-analysis}
@@ -229,7 +244,8 @@ To understand current limitations and guide future improvements, we analyzed fai
 
 \subsubsection{Problem Understanding Challenges}
 
-The most common failure mode (32.4\%) involves misunderstanding the fundamental problem requirements. This suggests areas for improvement:
+The most common failure mode (32.4\%) involves misunderstanding the fundamental problem requirements.
+This suggests areas for improvement:
 
 \begin{itemize}
 	\item \textbf{Enhanced Issue Processing}: Better training on interpreting natural language issue descriptions and mapping them to technical requirements
@@ -326,7 +342,8 @@ Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers}
 
-\textbf{RQ1 (Harness Adaptation)}: RL training improves adaptation to the nano harness, increasing tool success and reducing invalid calls, with improved action efficiency. \todoinline{Cite Sec.~\ref{sec:rq1-harness} and insert concrete deltas.}
+\textbf{RQ1 (Harness Adaptation)}: RL training improves adaptation to the nano harness, increasing tool success and reducing invalid calls, with improved action efficiency.
+\todoinline{Cite Sec.~\ref{sec:rq1-harness} and insert concrete deltas.}
 
 \textbf{RQ2 (Multiple Base Models)}: The training recipe and harness are portable across base models, yielding consistent gains over SFT. \todoinline{Add table reference to Sec.~\ref{sec:rq2-multi-base}.}
 

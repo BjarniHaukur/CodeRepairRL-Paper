@@ -1,0 +1,11 @@
+# AGENTS.md
+
+This document provides guidance for coding agents (e.g., Cursor, Claude Code) contributing to this repository. The project is a KTH thesis that investigates reinforcement learning for automated program repair using a single minimalist agent harness (the “nano” harness). All edits should respect the thesis’ academic tone, emphasize methodological clarity, and maintain reproducibility.
+
+The repository is organized around a conventional LaTeX thesis. The entry point is `main.tex`, which includes chapter files under `sections/`. LaTeX configuration and KTH-specific assets live in `setup/`. Bibliographic entries are collected in `references.bib`.
+
+Current research questions emphasize harness adaptation and generalization while maintaining a nano-only scope. In brief, the thesis examines whether reinforcement learning improves adaptation to the nano harness (with attention to tool success rates, invalid call reduction, and action efficiency), whether the training recipe transfers to alternative base models (e.g., SmolLM3) without bespoke engineering, whether training on SWE-Gym generalizes to evaluations on SWE-Bench and Multi-SWE-Bench rather than overfitting, and whether the trained model exhibits zero-shot transfer to other agentic code harnesses (e.g., Aider, OpenHands) and terminal-oriented tasks (e.g., TauBench, TerminalBench). As results evolve, insert concise `\todoinline{}` placeholders where quantitative updates, figures, and tables will later be integrated. Avoid speculative claims; prefer explicit references to figures and sections once data are finalized.
+
+All authoring should assume a single harness paradigm. Remove or avoid references to multiple scaffolds unless explicitly restoring prior context for comparison. Where the thesis discusses “scaffolding” in a generic sense, ensure the text clearly distinguishes the implemented nano harness from broader agentic tooling ecosystems.
+
+Finally, maintain an academic narrative style. Favor cohesive exposition over enumerated lists, except where short fenced code blocks clarify concrete commands (compilation, dependency setup, or plot execution). When adding content that is tentative or data-dependent, annotate with `\todoinline{}` and include a short directive indicating what evidence or analysis will be added later.

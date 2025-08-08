@@ -1,46 +1,84 @@
 \chapter{Introduction}
 
-Automated program repair has rapidly transformed from a nascent research area to one of the most promising applications of agentic AI systems. Recent advances in autonomous software engineering have achieved remarkable performance milestones, with systems like Claude~4 now exceeding 70\% success rates on SWE-Bench-Verified \cite{claude4_2025}. This rapid progress underscores the critical importance of maintaining open research that can achieve near-parity understanding with frontier capabilities. Across diverse perspectives, there emerges a common recognition that researchers must maintain competitive access to the tools and methodologies driving these advances, ensuring that critical insights remain accessible to the broader scientific community rather than concentrated within proprietary systems. Recent open weight contributions such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\cite{qwen3coder_blog_2025} demonstrate that cutting-edge capabilities need not remain confined to closed systems, with these models following closely behind frontier performance.
+Automated program repair has rapidly transformed from a nascent research area to one of the most promising applications of agentic AI systems.
+Recent advances in autonomous software engineering have achieved remarkable performance milestones, with systems like Claude~4 now exceeding 70\% success rates on SWE-Bench-Verified \cite{claude4_2025}.
+This rapid progress underscores the critical importance of maintaining open research that can achieve near-parity understanding with frontier capabilities.
+Across diverse perspectives, there emerges a common recognition that researchers must maintain competitive access to the tools and methodologies driving these advances, ensuring that critical insights remain accessible to the broader scientific community rather than concentrated within proprietary systems.
+Recent open weight contributions such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\cite{qwen3coder_blog_2025} demonstrate that cutting-edge capabilities need not remain confined to closed systems, with these models following closely behind frontier performance.
 \todoinline{Verify and update SWE-Bench(-Verified) SOTA; cite system cards/technical reports for these claims (Claude 4/3.5, Qwen3-Coder, Kimi-K2) at submission.}
 
-Traditional systems for automated code repair have relied predominantly on supervised learning from static datasets of bug-fix pairs. In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process. While computationally efficient, this approach fundamentally misrepresents the nature of software debugging, which involves iterative hypothesis refinement, strategic exploration of codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation. Moreover, the information needed to fix a bug is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide.
+Traditional systems for automated code repair have relied predominantly on supervised learning from static datasets of bug-fix pairs.
+In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process.
+While computationally efficient, this approach fundamentally misrepresents the nature of software debugging, which involves iterative hypothesis refinement, strategic exploration of codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation.
+Moreover, the information needed to fix a bug is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide.
 
-The question becomes: how do we train such interactive agents when the very complexity that necessitates their existence also makes traditional training approaches intractable? Reinforcement learning has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaZero2018}. These successes typically follow a progression from imitation learning to self-play, where agents refine their strategies through iterative experience. However, this approach fundamentally requires that learning systems can meaningfully participate in the task from the beginning—they must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space. For complex reasoning tasks like software debugging, this prerequisite participation threshold has historically been insurmountable.
+The question becomes: how do we train such interactive agents when the very complexity that necessitates their existence also makes traditional training approaches intractable?
+Reinforcement learning has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaZero2018}.
+These successes typically follow a progression from imitation learning to self-play, where agents refine their strategies through iterative experience.
+However, this approach fundamentally requires that learning systems can meaningfully participate in the task from the beginning—they must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space.
+For complex reasoning tasks like software debugging, this prerequisite participation threshold has historically been insurmountable.
 
-\acp{LLM} have altered this fundamental constraint by providing the world knowledge and reasoning capabilities necessary to attempt tasks of unprecedented complexity. When equipped with appropriate interfaces, these models can navigate file systems, interpret error messages, execute diagnostic commands, and generate syntactically valid code modifications. This capability foundation transforms previously intractable problems into domains where reinforcement learning becomes feasible. The models possess sufficient latent understanding to generate meaningful action sequences and interpret environmental responses, providing the crucial foundation upon which reinforcement learning optimization can build.
+\acp{LLM} have altered this fundamental constraint by providing the world knowledge and reasoning capabilities necessary to attempt tasks of unprecedented complexity.
+When equipped with appropriate interfaces, these models can navigate file systems, interpret error messages, execute diagnostic commands, and generate syntactically valid code modifications.
+This capability foundation transforms previously intractable problems into domains where reinforcement learning becomes feasible.
+The models possess sufficient latent understanding to generate meaningful action sequences and interpret environmental responses, providing the crucial foundation upon which reinforcement learning optimization can build.
 
-However, unlike traditional \ac{RL} agents—such as those trained for game playing—that directly produce actions from observations (e.g., selecting chess moves or joystick inputs), \acp{LLM} fundamentally operate as token generators. They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental responses back into text.
+However, unlike traditional \ac{RL} agents—such as those trained for game playing—that directly produce actions from observations (e.g., selecting chess moves or joystick inputs), \acp{LLM} fundamentally operate as token generators.
+They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental responses back into text.
 
-This critical distinction necessitates a fundamentally different approach to reinforcement learning. \todoinline{Add technical section explaining LLM-scaffold interaction patterns and MDP formulation} In this paradigm, a scaffold or harness interprets structured token outputs from the \ac{LLM} (such as function calls or commands), executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process. The entire system—\ac{LLM} plus scaffold—forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
+This critical distinction necessitates a fundamentally different approach to reinforcement learning.
+\todoinline{Add technical section explaining LLM-scaffold interaction patterns and MDP formulation}
+In this paradigm, a scaffold or harness interprets structured token outputs from the \ac{LLM} (such as function calls or commands), executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
+The entire system—\ac{LLM} plus scaffold—forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
 
-This approach has gained particular prominence following dramatic improvements in model agency capabilities observed throughout 2024. Systems like Claude 3.5 Sonnet demonstrated unprecedented coding performance (improving from 33.4\% to 49.0\% on SWE-Bench Verified) and introduced revolutionary "computer use" capabilities, while OpenAI's o1 showed remarkable reasoning improvements through reinforcement learning techniques. These breakthroughs likely reflect large-scale deployment of similar scaffolded training approaches by major AI laboratories, validating the potential of this paradigm for developing genuinely agentic AI systems.
+This approach has gained particular prominence following dramatic improvements in model agency capabilities observed throughout 2024.
+Systems like Claude 3.5 Sonnet demonstrated unprecedented coding performance (improving from 33.4\% to 49.0\% on SWE-Bench Verified) and introduced revolutionary "computer use" capabilities, while OpenAI's o1 showed remarkable reasoning improvements through reinforcement learning techniques.
+These breakthroughs likely reflect large-scale deployment of similar scaffolded training approaches by major AI laboratories, validating the potential of this paradigm for developing genuinely agentic AI systems.
 \todoinline{Add citations to system cards/official docs: Claude 3.5 "computer use" and OpenAI o1 RL; keep/adjust numbers based on verifiable sources.}
 
-When equipped with appropriate scaffolds, LLMs can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications. This capability transformation enables, for the first time, the application of reinforcement learning to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
+When equipped with appropriate scaffolds, LLMs can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
+This capability transformation enables, for the first time, the application of reinforcement learning to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
 \todoinline{Tie explicitly to terminal-oriented agency; add references to public statements/benchmarks on terminal skills (e.g., TerminalBench/TauBench if applicable).}
 
-The significance of this paradigm shift extends beyond mere technical feasibility. Human software developers do not repair bugs through single-shot pattern matching; rather, they engage in sophisticated exploratory processes involving hypothesis formation, incremental information gathering, and iterative solution refinement. They navigate complex codebases, examine multiple interconnected components, execute diagnostic commands, and progressively construct mental models of system behavior. This active learning process, fundamentally different from passive pattern recognition, suggests that training models through interactive experience could yield qualitatively superior debugging capabilities.
+The significance of this paradigm shift extends beyond mere technical feasibility.
+Human software developers do not repair bugs through single-shot pattern matching; rather, they engage in sophisticated exploratory processes involving hypothesis formation, incremental information gathering, and iterative solution refinement.
+They navigate complex codebases, examine multiple interconnected components, execute diagnostic commands, and progressively construct mental models of system behavior.
+This active learning process, fundamentally different from passive pattern recognition, suggests that training models through interactive experience could yield qualitatively superior debugging capabilities.
 
-Recent investigations into agent-based approaches have demonstrated the potential of tool-augmented LLMs for software engineering tasks \cite{openHands2024, aider2024}. However, these systems typically employ a two-stage approach: first training models on static datasets through supervised learning, then deploying them as agents with access to various tools and interfaces. This training-deployment mismatch potentially limits their effectiveness, as models never learn to optimize their tool usage or develop exploration strategies during training. The disconnect between the passive training regime and the active deployment environment represents a fundamental limitation that our work addresses.
+Recent investigations into agent-based approaches have demonstrated the potential of tool-augmented LLMs for software engineering tasks \cite{openHands2024, aider2024}.
+However, these systems typically employ a two-stage approach: first training models on static datasets through supervised learning, then deploying them as agents with access to various tools and interfaces.
+This training-deployment mismatch potentially limits their effectiveness, as models never learn to optimize their tool usage or develop exploration strategies during training.
+The disconnect between the passive training regime and the active deployment environment represents a fundamental limitation that our work addresses.
 
 \section{Problem Statement}
 
-The central challenge addressed in this thesis concerns the fundamental disconnect between the training methodologies employed for code repair models and the interactive, exploratory nature of real-world debugging. Contemporary approaches to automated program repair exhibit a critical limitation: models trained on static datasets of bug-fix pairs are subsequently expected to perform dynamic, multi-step reasoning in complex software environments. This paradigm mismatch constrains their effectiveness and generalization capabilities.
+The central challenge addressed in this thesis concerns the fundamental disconnect between the training methodologies employed for code repair models and the interactive, exploratory nature of real-world debugging.
+Contemporary approaches to automated program repair exhibit a critical limitation: models trained on static datasets of bug-fix pairs are subsequently expected to perform dynamic, multi-step reasoning in complex software environments.
+This paradigm mismatch constrains their effectiveness and generalization capabilities.
 
 We identify three specific limitations that characterize current approaches:
 
-\textbf{Exploration Capability Deficit}: Models trained exclusively on static data lack the ability to develop effective exploration strategies. Unlike human developers who actively navigate codebases, execute diagnostic commands, and iteratively gather contextual information, these models never experience the exploratory aspects of debugging during training. This results in agents that, when deployed, exhibit suboptimal information-gathering behaviors and fail to leverage available tools effectively.
+\textbf{Exploration Capability Deficit}: Models trained exclusively on static data lack the ability to develop effective exploration strategies.
+Unlike human developers who actively navigate codebases, execute diagnostic commands, and iteratively gather contextual information, these models never experience the exploratory aspects of debugging during training.
+This results in agents that, when deployed, exhibit suboptimal information-gathering behaviors and fail to leverage available tools effectively.
 
-\textbf{Temporal Abstraction Mismatch}: The predominant training paradigm assumes bug repair can be modeled as a single-step transformation from buggy code to correct code. However, empirical observation of developer workflows reveals that debugging is inherently a multi-step process involving hypothesis formation, incremental testing, and solution refinement. Models trained for single-shot generation lack the temporal reasoning capabilities necessary for effective iterative problem-solving.
+\textbf{Temporal Abstraction Mismatch}: The predominant training paradigm assumes bug repair can be modeled as a single-step transformation from buggy code to correct code.
+However, empirical observation of developer workflows reveals that debugging is inherently a multi-step process involving hypothesis formation, incremental testing, and solution refinement.
+Models trained for single-shot generation lack the temporal reasoning capabilities necessary for effective iterative problem-solving.
 
-
-These limitations converge to a fundamental research question: How can we develop training methodologies that enable language models to acquire genuine debugging skills through interactive experience, and what architectural choices maximize the effectiveness of such training? This question motivates our investigation into reinforcement learning with interactive agents as a paradigm for training more capable code repair systems. \todoinline{Recommend defining scaffolded RL once here and using "RL" throughout - the distinction is clear from context}
+These limitations converge to a fundamental research question: How can we develop training methodologies that enable language models to acquire genuine debugging skills through interactive experience, and what architectural choices maximize the effectiveness of such training?
+This question motivates our investigation into reinforcement learning with interactive agents as a paradigm for training more capable code repair systems.
+\todoinline{Recommend defining scaffolded RL once here and using "RL" throughout - the distinction is clear from context}
 
 \section{Research Objectives}
 
-This thesis investigates a novel training paradigm for automated program repair using reinforcement learning with interactive coding agents. \todoinline{Recommend avoiding repeated terminology - just call it "RL" after establishing the scaffolded context} The fundamental premise is that language models can acquire more sophisticated debugging capabilities when trained through direct interaction with software environments, rather than passive observation of static bug-fix examples. By embedding autonomous coding agents within the reinforcement learning optimization process, we enable models to learn from the consequences of their exploratory actions and develop effective debugging strategies through experience.
+This thesis investigates a novel training paradigm for automated program repair using reinforcement learning with interactive coding agents.
+\todoinline{Recommend avoiding repeated terminology - just call it "RL" after establishing the scaffolded context}
+The fundamental premise is that language models can acquire more sophisticated debugging capabilities when trained through direct interaction with software environments, rather than passive observation of static bug-fix examples.
+By embedding autonomous coding agents within the reinforcement learning optimization process, we enable models to learn from the consequences of their exploratory actions and develop effective debugging strategies through experience.
 
-The primary objective is to demonstrate that this interactive training approach yields models with superior bug-fixing capabilities compared to those trained through conventional supervised learning. We hypothesize that the ability to explore codebases, execute commands, observe error messages, and iteratively refine solutions during training will result in agents that better capture the problem-solving patterns characteristic of human debugging.
+The primary objective is to demonstrate that this interactive training approach yields models with superior bug-fixing capabilities compared to those trained through conventional supervised learning.
+We hypothesize that the ability to explore codebases, execute commands, observe error messages, and iteratively refine solutions during training will result in agents that better capture the problem-solving patterns characteristic of human debugging.
 
 Through rigorous empirical evaluation, this research aims to establish this interactive reinforcement learning approach as a viable and superior alternative to static supervised learning for training code repair systems, demonstrating that interactive training with real environments leads to more capable debugging agents.
 
@@ -48,85 +86,130 @@ Through rigorous empirical evaluation, this research aims to establish this inte
 
 This thesis makes several significant contributions to the field of automated program repair and reinforcement learning for code generation:
 
-\textbf{Novel Training Paradigm}: We introduce and implement reinforcement learning for code repair, wherein autonomous agents interact with real software environments during training. \todoinline{Recommend defining this approach once and dropping the term} This approach represents a fundamental departure from static supervised learning, enabling models to learn debugging strategies through direct experience. Our implementation demonstrates the feasibility of this paradigm at scale, handling the computational and engineering challenges of simultaneous training and environment interaction.
+\textbf{Novel Training Paradigm}: We introduce and implement reinforcement learning for code repair, wherein autonomous agents interact with real software environments during training.
+\todoinline{Recommend defining this approach once and dropping the term}
+This approach represents a fundamental departure from static supervised learning, enabling models to learn debugging strategies through direct experience.
+Our implementation demonstrates the feasibility of this paradigm at scale, handling the computational and engineering challenges of simultaneous training and environment interaction.
 
-\textbf{Nano-Agent Implementation}: We develop a minimalist "nano-agent" that utilizes only essential terminal commands and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning. This clean-slate approach validates that effective code repair capabilities arise from learning rather than engineered complexity.
+\textbf{Nano-Agent Implementation}: We develop a minimalist "nano-agent" that utilizes only essential terminal commands and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with reinforcement learning.
+This clean-slate approach validates that effective code repair capabilities arise from learning rather than engineered complexity.
 
-\textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient reinforcement learning with interactive agents. This includes a custom integration layer between vLLM inference servers and reinforcement learning trainers, real-time weight synchronization via NCCL for live policy updates, and optimizations enabling training of models up to 32B parameters with limited computational resources. The infrastructure supports both Group Relative Policy Optimization (GRPO) and can be extended to other policy gradient methods.
+\textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient reinforcement learning with interactive agents.
+This includes a custom integration layer between vLLM inference servers and reinforcement learning trainers, real-time weight synchronization via NCCL for live policy updates, and optimizations enabling training of models up to 32B parameters with limited computational resources.
+The infrastructure supports both Group Relative Policy Optimization (GRPO) and can be extended to other policy gradient methods.
 
-\textbf{Empirical Validation}: Through extensive experiments on the SWE-Gym training environment and SWE-Bench-Verified evaluation benchmark, we demonstrate that this reinforcement learning approach produces monotonic improvements in bug-fixing performance. This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of interactive training approaches.
+\textbf{Empirical Validation}: Through extensive experiments on the SWE-Gym training environment and SWE-Bench-Verified evaluation benchmark, we demonstrate that this reinforcement learning approach produces monotonic improvements in bug-fixing performance.
+This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of interactive training approaches.
 
-\textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community. This includes the nano-agent implementation and the reinforcement learning training pipeline.
+\textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community.
+This includes the nano-agent implementation and the reinforcement learning training pipeline.
 
 \section{Research Questions}
 
 This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (nano) and practical generalization:
 
-\textbf{RQX: Does the trained model adapt to the harness (tools and prompts)?}
+\textbf{RQX: Does the trained model adapt to the harness (tools and prompts)?
+}
 \begin{itemize}
-    \item Primary indicators: tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity, action efficiency (files viewed, commands per episode), prompt-format sensitivity.
-    \item Hypothesis: RL improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
-    \item \todoinline{Insert concrete numbers and plots from training logs: tool success, invalid calls, retries, length-of-trajectory, KL to reference prompts.}
+	\item Primary indicators: tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity, action efficiency (files viewed, commands per episode), prompt-format sensitivity.
+	\item Hypothesis: RL improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
+	\item \todoinline{Insert concrete numbers and plots from training logs: tool success, invalid calls, retries, length-of-trajectory, KL to reference prompts.}
 \end{itemize}
 
 \textbf{RQ?: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?}
 \begin{itemize}
-    \item Goal: assess portability of the training recipe and nano-harness to alternative backbones with different tool-calling priors.
-    \item Design: repeat core experiments with at least one additional base model of comparable scale.
-    \item \todoinline{Add chosen models, training budgets, and any harness-specific adjustments needed (if any).}
+	\item Goal: assess portability of the training recipe and nano-harness to alternative backbones with different tool-calling priors.
+	\item Design: repeat core experiments with at least one additional base model of comparable scale.
+	\item \todoinline{Add chosen models, training budgets, and any harness-specific adjustments needed (if any).}
 \end{itemize}
 
 \textbf{RQZ: Does training on SWE-Gym overfit? (Train on SWE-Gym, evaluate on SWE-Bench and Multi-SWE-Bench)}
 \begin{itemize}
-    \item Measure cross-dataset generalization and potential overfitting to training environments.
-    \item \todoinline{Report SWE-Gym train curves vs. SWE-Bench(-Verified) / Multi-SWE-Bench evaluation; include delta vs SFT baselines.}
+	\item Measure cross-dataset generalization and potential overfitting to training environments.
+	\item \todoinline{Report SWE-Gym train curves vs.
+		      SWE-Bench(-Verified) / Multi-SWE-Bench evaluation; include delta vs SFT baselines.
+	      }
 \end{itemize}
 
 \textbf{RQY: Does the trained model generalize to other agentic code harnesses and tasks?}
 \begin{itemize}
-    \item Cross-harness: evaluate with Aider and OpenHands-style harnesses without re-training (prompt shim only if needed).
-    \item Cross-task: evaluate on TauBench and TerminalBench to probe terminal-oriented generalization.
-    \item \todoinline{Specify evaluation protocol, shim prompts, and compatibility constraints; add results tables when available.}
+	\item Cross-harness: evaluate with Aider and OpenHands-style harnesses without re-training (prompt shim only if needed).
+	\item Cross-task: evaluate on TauBench and TerminalBench to probe terminal-oriented generalization.
+	\item \todoinline{Specify evaluation protocol, shim prompts, and compatibility constraints; add results tables when available.}
 \end{itemize}
 
 \section{Methodology Overview}
 
-This research employs a rigorous experimental methodology designed to systematically evaluate reinforcement learning for automated program repair. Our approach combines theoretical insights from reinforcement learning with practical engineering solutions to create a comprehensive experimental framework.
+This research employs a rigorous experimental methodology designed to systematically evaluate reinforcement learning for automated program repair.
+Our approach combines theoretical insights from reinforcement learning with practical engineering solutions to create a comprehensive experimental framework.
 
-The methodology centers on a two-stage training pipeline that progressively refines model capabilities. The first stage employs \ac{SFT} on curated datasets of high-quality bug fixes, establishing a foundation of code understanding and basic repair patterns. This stage ensures that models begin reinforcement learning with sufficient capability to generate meaningful actions within the environment. The second stage implements \ac{GRPO}, a variant of \ac{PPO} that forgoes value function estimation in favor of group-relative reward baselines. During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch quality.
+The methodology centers on a two-stage training pipeline that progressively refines model capabilities.
+The first stage employs \ac{SFT} on curated datasets of high-quality bug fixes, establishing a foundation of code understanding and basic repair patterns.
+This stage ensures that models begin reinforcement learning with sufficient capability to generate meaningful actions within the environment.
+The second stage implements \ac{GRPO}, a variant of \ac{PPO} that forgoes value function estimation in favor of group-relative reward baselines.
+During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch quality.
 
-Our experimental design implements careful controls to ensure valid comparisons between different training paradigms. We maintain identical model architectures (Qwen3 family models chosen for their superior tool-calling abilities), training data sources, and computational budgets across all experimental conditions. The primary independent variable is the training methodology (supervised learning versus reinforcement learning). Dependent variables include repair success rates, patch quality metrics, and generalization performance.
+Our experimental design implements careful controls to ensure valid comparisons between different training paradigms.
+We maintain identical model architectures (Qwen3 family models chosen for their superior tool-calling abilities), training data sources, and computational budgets across all experimental conditions.
+The primary independent variable is the training methodology (supervised learning versus reinforcement learning).
+Dependent variables include repair success rates, patch quality metrics, and generalization performance.
 
-Data collection encompasses multiple complementary sources: detailed logs of agent-environment interactions capturing exploration patterns and decision-making processes, reward signals computed through automated comparison with ground-truth patches, and comprehensive evaluation metrics across diverse benchmarks. We employ both the \ac{SWE-Gym} environment for training, which provides thousands of real-world Python bug-fixing tasks, and \ac{SWE-Bench} for evaluation, ensuring robust assessment on human-verified bug fixes.
+Data collection encompasses multiple complementary sources: detailed logs of agent-environment interactions capturing exploration patterns and decision-making processes, reward signals computed through automated comparison with ground-truth patches, and comprehensive evaluation metrics across diverse benchmarks.
+We employ both the \ac{SWE-Gym} environment for training, which provides thousands of real-world Python bug-fixing tasks, and \ac{SWE-Bench} for evaluation, ensuring robust assessment on human-verified bug fixes.
 
-\todoinline{SWE-Bench? Verified? R2E?}
+\todoinline{SWE-Bench?
+	Verified?
+	R2E?
+}
 
-Statistical analysis includes significance testing for performance differences, learning curve analysis to understand training dynamics, and qualitative examination of agent behaviors to identify emergent strategies. This multi-faceted approach enables both quantitative validation of our hypotheses and deeper insights into the mechanisms driving performance improvements.
+Statistical analysis includes significance testing for performance differences, learning curve analysis to understand training dynamics, and qualitative examination of agent behaviors to identify emergent strategies.
+This multi-faceted approach enables both quantitative validation of our hypotheses and deeper insights into the mechanisms driving performance improvements.
 
 \section{Scope and Limitations}
 
-This investigation operates within carefully defined boundaries that balance scientific rigor with practical constraints. Understanding these delimitations is essential for interpreting our findings and their applicability to broader contexts.
+This investigation operates within carefully defined boundaries that balance scientific rigor with practical constraints.
+Understanding these delimitations is essential for interpreting our findings and their applicability to broader contexts.
 
-\textbf{Task Scope}: We focus specifically on automated bug repair tasks where a known error exists in the codebase and the goal is to generate a corrective patch. While we conduct limited evaluation on general code generation benchmarks to assess skill transfer, our primary emphasis remains on debugging and repair scenarios. This focus allows deep investigation of the debugging process while acknowledging that code generation from specifications represents a related but distinct challenge.
+\textbf{Task Scope}: We focus specifically on automated bug repair tasks where a known error exists in the codebase and the goal is to generate a corrective patch.
+While we conduct limited evaluation on general code generation benchmarks to assess skill transfer, our primary emphasis remains on debugging and repair scenarios.
+This focus allows deep investigation of the debugging process while acknowledging that code generation from specifications represents a related but distinct challenge.
 
-\textbf{Language and Environment Constraints}: Our experiments focus exclusively on Python repositories due to the availability of high-quality benchmarks and the language's popularity in open-source development. We specifically exclude bugs requiring complex runtime environments, external service interactions, or hardware-specific behaviors, as these cannot be reliably simulated in our containerized training environment.
+\textbf{Language and Environment Constraints}: Our experiments focus exclusively on Python repositories due to the availability of high-quality benchmarks and the language's popularity in open-source development.
+We specifically exclude bugs requiring complex runtime environments, external service interactions, or hardware-specific behaviors, as these cannot be reliably simulated in our containerized training environment.
 
-\textbf{Model Architecture Limitations}: While our approach is theoretically model-agnostic, computational constraints necessitate focusing on the Qwen3 model family (8B and 32B variants). These models were selected for their exceptional tool-calling capabilities and open availability, but our findings may not directly generalize to models with different architectural characteristics or training objectives. The reinforcement learning approach demands substantial computational resources for both training and inference, limiting the scope of hyperparameter exploration and model scaling experiments.
+\textbf{Model Architecture Limitations}: While our approach is theoretically model-agnostic, computational constraints necessitate focusing on the Qwen3 model family (8B and 32B variants).
+These models were selected for their exceptional tool-calling capabilities and open availability, but our findings may not directly generalize to models with different architectural characteristics or training objectives.
+The reinforcement learning approach demands substantial computational resources for both training and inference, limiting the scope of hyperparameter exploration and model scaling experiments.
 
-\textbf{Evaluation Protocol Boundaries}: Our reward function relies on automated patch comparison rather than full test suite execution, trading perfect functional correctness assessment for computational tractability. While this approach aligns with established benchmarks and enables large-scale experiments, it may occasionally miss functionally equivalent but syntactically different solutions. Additionally, our evaluation emphasizes single-commit bug fixes rather than complex multi-stage refactoring or architectural changes.
+\textbf{Evaluation Protocol Boundaries}: Our reward function relies on automated patch comparison rather than full test suite execution, trading perfect functional correctness assessment for computational tractability.
+While this approach aligns with established benchmarks and enables large-scale experiments, it may occasionally miss functionally equivalent but syntactically different solutions.
+Additionally, our evaluation emphasizes single-commit bug fixes rather than complex multi-stage refactoring or architectural changes.
 
-\textbf{Agent Implementation}: Our nano-agent represents a deliberately minimalist approach to agent design, providing only essential terminal commands and file operations. While this simplicity enables clean experimental validation of the reinforcement learning approach, more sophisticated tool sets could potentially yield different performance characteristics.
+\textbf{Agent Implementation}: Our nano-agent represents a deliberately minimalist approach to agent design, providing only essential terminal commands and file operations.
+While this simplicity enables clean experimental validation of the reinforcement learning approach, more sophisticated tool sets could potentially yield different performance characteristics.
 
 \section{Thesis Organization}
 
 The remainder of this thesis is structured to provide a comprehensive treatment of reinforcement learning for automated program repair, progressing from theoretical foundations through empirical validation.
 
-\textbf{Chapter 2: Background and Theoretical Foundations} establishes the theoretical context for our work, reviewing reinforcement learning algorithms for language models with particular emphasis on Group Relative Policy Optimization. We examine the evolution of automated program repair approaches, from rule-based systems through modern neural methods, and analyze the emergence of tool-augmented language models. The chapter introduces key concepts including agent scaffolding, reward design for code repair, and the training-inference duality that characterizes our approach.
+\textbf{Chapter 2: Background and Theoretical Foundations} establishes the theoretical context for our work, reviewing reinforcement learning algorithms for language models with particular emphasis on Group Relative Policy Optimization.
+We examine the evolution of automated program repair approaches, from rule-based systems through modern neural methods, and analyze the emergence of tool-augmented language models.
+The chapter introduces key concepts including agent scaffolding, reward design for code repair, and the training-inference duality that characterizes our approach.
 
-\textbf{Chapter 3: Methodology and System Design} presents our technical approach in detail, beginning with the scaffolded training paradigm and its implementation. \todoinline{Add section on MDP formulation and tool usage patterns here} We describe the architecture of our nano-agent, explaining design decisions and rationale for the minimalist approach. The chapter details our two-stage training pipeline, reward formulation, and the engineering innovations that enable efficient large-scale training. Particular attention is given to the integration of vLLM inference servers with reinforcement learning trainers and the NCCL-based weight synchronization system.
+\textbf{Chapter 3: Methodology and System Design} presents our technical approach in detail, beginning with the scaffolded training paradigm and its implementation. \todoinline{Add section on MDP formulation and tool usage patterns here}
+We describe the architecture of our nano-agent, explaining design decisions and rationale for the minimalist approach.
+The chapter details our two-stage training pipeline, reward formulation, and the engineering innovations that enable efficient large-scale training.
+Particular attention is given to the integration of vLLM inference servers with reinforcement learning trainers and the NCCL-based weight synchronization system.
 
-\textbf{Chapter 4: Related Work} contextualizes our contributions within the broader landscape of code generation and repair research. We analyze prior work on reinforcement learning for programming tasks, agent-based software engineering tools, and the evolution of benchmarks for code repair evaluation. This chapter highlights how our approach synthesizes insights from multiple research threads while addressing limitations in existing methods.
+\textbf{Chapter 4: Related Work} contextualizes our contributions within the broader landscape of code generation and repair research.
+We analyze prior work on reinforcement learning for programming tasks, agent-based software engineering tools, and the evolution of benchmarks for code repair evaluation.
+This chapter highlights how our approach synthesizes insights from multiple research threads while addressing limitations in existing methods.
 
-\textbf{Chapter 5: Experimental Results and Analysis} presents comprehensive empirical evaluation addressing our research questions. We report performance metrics on SWE-Bench-Verified, analyze learning curves and training dynamics, and examine the effectiveness of our approach. The chapter includes detailed ablation studies, error analysis, and investigation of transfer to general code generation tasks. Statistical significance testing and qualitative analysis of agent behaviors provide deeper insights into the mechanisms driving performance improvements.
+\textbf{Chapter 5: Experimental Results and Analysis} presents comprehensive empirical evaluation addressing our research questions.
+We report performance metrics on SWE-Bench-Verified, analyze learning curves and training dynamics, and examine the effectiveness of our approach.
+The chapter includes detailed ablation studies, error analysis, and investigation of transfer to general code generation tasks.
+Statistical significance testing and qualitative analysis of agent behaviors provide deeper insights into the mechanisms driving performance improvements.
 
-\textbf{Chapter 6: Conclusions and Future Directions} synthesizes our findings, explicitly answering each research question based on empirical evidence. We discuss the broader implications for automated software engineering, identify limitations of the current approach, and outline promising directions for future research. The chapter concludes with reflections on the potential impact of scaffolded reinforcement learning on the future of software development tools.
+\textbf{Chapter 6: Conclusions and Future Directions} synthesizes our findings, explicitly answering each research question based on empirical evidence.
+We discuss the broader implications for automated software engineering, identify limitations of the current approach, and outline promising directions for future research.
+The chapter concludes with reflections on the potential impact of scaffolded reinforcement learning on the future of software development tools.
