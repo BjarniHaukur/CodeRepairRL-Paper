@@ -15,9 +15,9 @@ Our GRPO training demonstrates clear and consistent learning dynamics across mul
 Training begins with near-zero success rates as the pre-trained model, despite its coding capabilities, lacks experience with the specific tool-calling patterns and multi-step exploration required for bug fixing. However, within the first 500 training episodes, we observe rapid improvement:
 
 \begin{itemize}
-\item \textbf{Initial Phase (0-500 episodes)}: Steep learning curve as the model acquires basic tool usage patterns and repository navigation skills
-\item \textbf{Intermediate Phase (500-2000 episodes)}: Steady improvement as debugging strategies develop and generalize across problem types
-\item \textbf{Convergence Phase (2000+ episodes)}: Gradual refinement with occasional breakthrough improvements on specific bug categories
+	\item \textbf{Initial Phase (0-500 episodes)}: Steep learning curve as the model acquires basic tool usage patterns and repository navigation skills
+	\item \textbf{Intermediate Phase (500-2000 episodes)}: Steady improvement as debugging strategies develop and generalize across problem types
+	\item \textbf{Convergence Phase (2000+ episodes)}: Gradual refinement with occasional breakthrough improvements on specific bug categories
 \end{itemize}
 
 The learning curves demonstrate monotonic improvement throughout training, validating our hypothesis that interactive RL can successfully enhance coding capabilities through environmental interaction.
@@ -31,9 +31,9 @@ GRPO training exhibits remarkable stability compared to traditional PPO implemen
 Our training-inference duality architecture achieves significant computational efficiency improvements:
 
 \begin{itemize}
-\item \textbf{Wall-clock Training Time}: 60\% reduction compared to traditional collect-then-train RL approaches
-\item \textbf{GPU Utilization}: >90\% utilization across both training and inference hardware
-\item \textbf{Sample Efficiency}: 40\% improvement in episodes required to reach target performance levels
+	\item \textbf{Wall-clock Training Time}: 60\% reduction compared to traditional collect-then-train RL approaches
+	\item \textbf{GPU Utilization}: >90\% utilization across both training and inference hardware
+	\item \textbf{Sample Efficiency}: 40\% improvement in episodes required to reach target performance levels
 \end{itemize}
 
 The NCCL-based weight synchronization enables near real-time policy updates with minimal overhead (< 200ms latency for LoRA adapter updates), contributing significantly to these efficiency gains.
@@ -45,35 +45,16 @@ The NCCL-based weight synchronization enables near real-time policy updates with
 
 Table~\ref{tab:main-results} presents our primary experimental results on SWE-Bench-Verified, comparing interactive RL training against multiple baseline approaches.
 
-\begin{table}[h]
-\centering
-\caption{Performance comparison on SWE-Bench-Verified (500 tasks). Success rate indicates exact patch matches; Partial indicates functionally correct but syntactically different solutions.}
-\label{tab:main-results}
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Approach} & \textbf{Success Rate} & \textbf{Partial Rate} & \textbf{Total} & \textbf{Avg. Time (min)} \\
-\midrule
-Qwen-8B (Base) & 12.4\% & 6.8\% & 19.2\% & 3.2 \\
-Qwen-8B (SFT) & 18.6\% & 9.4\% & 28.0\% & 2.8 \\
-Qwen-8B (Nano-RL) & \textbf{26.4\%} & 11.2\% & \textbf{37.6\%} & 4.1 \\
-\midrule
-Qwen-32B (Base) & 15.8\% & 8.6\% & 24.4\% & 4.7 \\
-Qwen-32B (SFT) & 22.2\% & 10.8\% & 33.0\% & 4.1 \\
-Qwen-32B (Nano-RL) & \textbf{31.8\%} & 13.4\% & \textbf{45.2\%} & 5.3 \\
-\midrule
-State-of-the-art (Published) & 19.8\% & -- & -- & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
+\todoinline{Add table here}
 
 \subsubsection{Statistical Significance}
 
 All improvements are statistically significant at p < 0.01 using McNemar's test for paired comparisons:
 
 \begin{itemize}
-\item \textbf{8B Model}: RL training improves success rate by 7.8 percentage points over SFT (95\% CI: [5.2, 10.4])
-\item \textbf{32B Model}: RL training improves success rate by 9.6 percentage points over SFT (95\% CI: [6.8, 12.4])
-\item \textbf{Effect Size}: Cohen's d = 0.84 for 8B, 0.91 for 32B (large effect sizes)
+	\item \textbf{8B Model}: RL training improves success rate by 7.8 percentage points over SFT (95\% CI: [5.2, 10.4])
+	\item \textbf{32B Model}: RL training improves success rate by 9.6 percentage points over SFT (95\% CI: [6.8, 12.4])
+	\item \textbf{Effect Size}: Cohen's d = 0.84 for 8B, 0.91 for 32B (large effect sizes)
 \end{itemize}
 
 These results provide strong evidence that interactive RL produces substantial and statistically significant improvements over both pre-trained models and supervised fine-tuning approaches.
@@ -90,15 +71,14 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 
 \textbf{Tool Usage Efficiency}: Trained agents develop efficient command usage patterns, avoiding redundant operations and focusing on information-gathering commands that maximize debugging insight.
 
-
 \section{RQ1: Adaptation to the Nano Harness}
 \label{sec:rq1-harness}
 
 We analyze harness adaptation through tool success rate, invalid tool calls, and action efficiency over training.
 \begin{itemize}
-    \item \textbf{Tool success rate}: fraction of tool calls that execute without schema/validation errors
-    \item \textbf{Invalid call rate}: fraction of calls rejected by the harness (schema mismatch, unsafe commands)
-    \item \textbf{Action efficiency}: commands per successful episode; files viewed per solved task
+	\item \textbf{Tool success rate}: fraction of tool calls that execute without schema/validation errors
+	\item \textbf{Invalid call rate}: fraction of calls rejected by the harness (schema mismatch, unsafe commands)
+	\item \textbf{Action efficiency}: commands per successful episode; files viewed per solved task
 \end{itemize}
 \todoinline{Insert plots: tool success vs steps, invalid call rate vs steps, actions-per-episode distribution. Add numbers from logs.}
 
@@ -128,22 +108,22 @@ We examine out-of-domain generalization to other harnesses (Aider, OpenHands-sty
 To assess whether debugging-specific training affects general coding capabilities, we evaluate our models on HumanEval, a standard code generation benchmark.
 
 \begin{table}[h]
-\centering
-\caption{HumanEval performance comparison (Pass@1 results)}
-\label{tab:humaneval}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Model} & \textbf{Pass@1} & \textbf{Change vs. Base} \\
-\midrule
-Qwen-8B (Base) & 42.7\% & -- \\
-Qwen-8B (Python SFT) & 44.1\% & +1.4\% \\
-Qwen-8B (Python RL) & 46.8\% & +4.1\% \\
-\midrule
-Qwen-32B (Base) & 58.3\% & -- \\
-Qwen-32B (Python SFT) & 59.7\% & +1.4\% \\
-Qwen-32B (Python RL) & 62.1\% & +3.8\% \\
-\bottomrule
-\end{tabular}
+	\centering
+	\caption{HumanEval performance comparison (Pass@1 results)}
+	\label{tab:humaneval}
+	\begin{tabular}{lcc}
+		\toprule
+		\textbf{Model}        & \textbf{Pass@1} & \textbf{Change vs. Base} \\
+		\midrule
+		Qwen-8B (Base)        & 42.7\%          & --                       \\
+		Qwen-8B (Python SFT)  & 44.1\%          & +1.4\%                   \\
+		Qwen-8B (Python RL)   & 46.8\%          & +4.1\%                   \\
+		\midrule
+		Qwen-32B (Base)       & 58.3\%          & --                       \\
+		Qwen-32B (Python SFT) & 59.7\%          & +1.4\%                   \\
+		Qwen-32B (Python RL)  & 62.1\%          & +3.8\%                   \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 \subsubsection{Positive Transfer to Code Generation}
@@ -151,9 +131,9 @@ Qwen-32B (Python RL) & 62.1\% & +3.8\% \\
 RL training for debugging produces modest but consistent improvements in general code generation tasks:
 
 \begin{itemize}
-\item \textbf{Consistent Improvement}: Both model sizes show similar magnitude improvements (3.8-4.1 percentage points)
-\item \textbf{Statistical Significance}: Improvements are significant at p < 0.05 using bootstrap testing
-\item \textbf{No Regression}: No evidence of negative transfer or capability degradation in general coding tasks
+	\item \textbf{Consistent Improvement}: Both model sizes show similar magnitude improvements (3.8-4.1 percentage points)
+	\item \textbf{Statistical Significance}: Improvements are significant at p < 0.05 using bootstrap testing
+	\item \textbf{No Regression}: No evidence of negative transfer or capability degradation in general coding tasks
 \end{itemize}
 
 \subsubsection{Explanation for General Improvement}
@@ -174,22 +154,22 @@ Several factors likely contribute to improved general coding performance:
 To understand the contribution of different system components, we conducted systematic ablation studies:
 
 \begin{table}[h]
-\centering
-\caption{Ablation study results on SWE-Bench-Verified subset (200 tasks, Qwen-8B)}
-\label{tab:ablations}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Configuration} & \textbf{Success Rate} & \textbf{Δ vs. Full System} \\
-\midrule
-Full System (Nano-RL) & 26.8\% & -- \\
-\midrule
-Without RL (SFT only) & 18.2\% & -8.6\% \\
-Without Agent Scaffold & 15.4\% & -11.4\% \\
-Without Multi-step Interaction & 14.1\% & -12.7\% \\
-Traditional PPO (vs. GRPO) & 21.3\% & -5.5\% \\
-Without Real-time Updates & 22.7\% & -4.1\% \\
-\bottomrule
-\end{tabular}
+	\centering
+	\caption{Ablation study results on SWE-Bench-Verified subset (200 tasks, Qwen-8B)}
+	\label{tab:ablations}
+	\begin{tabular}{lcc}
+		\toprule
+		\textbf{Configuration}         & \textbf{Success Rate} & \textbf{Δ vs. Full System} \\
+		\midrule
+		Full System (Nano-RL)          & 26.8\%                & --                         \\
+		\midrule
+		Without RL (SFT only)          & 18.2\%                & -8.6\%                     \\
+		Without Agent Scaffold         & 15.4\%                & -11.4\%                    \\
+		Without Multi-step Interaction & 14.1\%                & -12.7\%                    \\
+		Traditional PPO (vs. GRPO)     & 21.3\%                & -5.5\%                     \\
+		Without Real-time Updates      & 22.7\%                & -4.1\%                     \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 \subsubsection{Critical Component Identification}
@@ -230,21 +210,21 @@ Batch sizes from 16 to 64 trajectories per update were tested. Performance impro
 To understand current limitations and guide future improvements, we analyzed failed debugging attempts across multiple categories:
 
 \begin{table}[h]
-\centering
-\caption{Failure mode analysis on failed SWE-Bench-Verified tasks (Qwen-8B Nano-RL)}
-\label{tab:failure-modes}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Failure Category} & \textbf{Frequency} & \textbf{Description} \\
-\midrule
-Incorrect Problem Understanding & 32.4\% & Misinterpret issue description or requirements \\
-Wrong File Identification & 24.8\% & Locate incorrect files for modification \\
-Correct Location, Wrong Fix & 18.7\% & Identify bug location but apply incorrect patch \\
-Incomplete Understanding & 12.3\% & Partial fix that doesn't fully resolve issue \\
-Tool Usage Errors & 7.2\% & Technical failures in tool invocation \\
-Context Length Limitations & 4.6\% & Exceed token limits in complex interactions \\
-\bottomrule
-\end{tabular}
+	\centering
+	\caption{Failure mode analysis on failed SWE-Bench-Verified tasks (Qwen-8B Nano-RL)}
+	\label{tab:failure-modes}
+	\begin{tabular}{lcc}
+		\toprule
+		\textbf{Failure Category}       & \textbf{Frequency} & \textbf{Description}                            \\
+		\midrule
+		Incorrect Problem Understanding & 32.4\%             & Misinterpret issue description or requirements  \\
+		Wrong File Identification       & 24.8\%             & Locate incorrect files for modification         \\
+		Correct Location, Wrong Fix     & 18.7\%             & Identify bug location but apply incorrect patch \\
+		Incomplete Understanding        & 12.3\%             & Partial fix that doesn't fully resolve issue    \\
+		Tool Usage Errors               & 7.2\%              & Technical failures in tool invocation           \\
+		Context Length Limitations      & 4.6\%              & Exceed token limits in complex interactions     \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 \subsubsection{Problem Understanding Challenges}
@@ -252,9 +232,9 @@ Context Length Limitations & 4.6\% & Exceed token limits in complex interactions
 The most common failure mode (32.4\%) involves misunderstanding the fundamental problem requirements. This suggests areas for improvement:
 
 \begin{itemize}
-\item \textbf{Enhanced Issue Processing}: Better training on interpreting natural language issue descriptions and mapping them to technical requirements
-\item \textbf{Clarification Strategies}: Learning to ask clarifying questions or seek additional context when issue descriptions are ambiguous
-\item \textbf{Domain Knowledge Integration}: Incorporating more domain-specific knowledge about common bug patterns and software engineering practices
+	\item \textbf{Enhanced Issue Processing}: Better training on interpreting natural language issue descriptions and mapping them to technical requirements
+	\item \textbf{Clarification Strategies}: Learning to ask clarifying questions or seek additional context when issue descriptions are ambiguous
+	\item \textbf{Domain Knowledge Integration}: Incorporating more domain-specific knowledge about common bug patterns and software engineering practices
 \end{itemize}
 
 \subsubsection{File Localization Accuracy}
@@ -262,9 +242,9 @@ The most common failure mode (32.4\%) involves misunderstanding the fundamental 
 Wrong file identification (24.8\% of failures) indicates room for improvement in repository understanding:
 
 \begin{itemize}
-\item \textbf{Improved Search Strategies}: Learning more effective patterns for locating relevant code through grep and find operations
-\item \textbf{Dependency Analysis}: Better understanding of code dependencies and import relationships
-\item \textbf{Project Structure Learning}: Enhanced ability to navigate unfamiliar project architectures and coding conventions
+	\item \textbf{Improved Search Strategies}: Learning more effective patterns for locating relevant code through grep and find operations
+	\item \textbf{Dependency Analysis}: Better understanding of code dependencies and import relationships
+	\item \textbf{Project Structure Learning}: Enhanced ability to navigate unfamiliar project architectures and coding conventions
 \end{itemize}
 
 \subsection{Success Pattern Analysis}
@@ -276,11 +256,11 @@ Conversely, analyzing successful debugging attempts reveals effective strategies
 Successful agents consistently follow effective exploration patterns:
 
 \begin{enumerate}
-\item \textbf{Initial Reconnaissance}: Examine project structure, README files, and high-level organization
-\item \textbf{Issue Analysis}: Carefully parse issue descriptions and identify key terms for searching
-\item \textbf{Systematic Search}: Use grep and find strategically to locate relevant code sections
-\item \textbf{Context Gathering}: Examine related files, tests, and documentation before attempting fixes
-\item \textbf{Targeted Modification}: Apply precise, minimal changes that address the root cause
+	\item \textbf{Initial Reconnaissance}: Examine project structure, README files, and high-level organization
+	\item \textbf{Issue Analysis}: Carefully parse issue descriptions and identify key terms for searching
+	\item \textbf{Systematic Search}: Use grep and find strategically to locate relevant code sections
+	\item \textbf{Context Gathering}: Examine related files, tests, and documentation before attempting fixes
+	\item \textbf{Targeted Modification}: Apply precise, minimal changes that address the root cause
 \end{enumerate}
 
 \subsubsection{Tool Usage Efficiency}
@@ -288,10 +268,10 @@ Successful agents consistently follow effective exploration patterns:
 Successful agents develop efficient tool usage patterns:
 
 \begin{itemize}
-\item \textbf{Strategic Grep Usage}: Effective search terms and patterns that quickly locate relevant code
-\item \textbf{Minimal File Examination}: Focus on essential files rather than exhaustive exploration
-\item \textbf{Iterative Refinement}: Start with broad searches and progressively narrow focus
-\item \textbf{Error-Driven Learning}: Adapt strategies based on command outputs and error messages
+	\item \textbf{Strategic Grep Usage}: Effective search terms and patterns that quickly locate relevant code
+	\item \textbf{Minimal File Examination}: Focus on essential files rather than exhaustive exploration
+	\item \textbf{Iterative Refinement}: Start with broad searches and progressively narrow focus
+	\item \textbf{Error-Driven Learning}: Adapt strategies based on command outputs and error messages
 \end{itemize}
 
 \section{Computational Performance Analysis}
@@ -302,17 +282,17 @@ Successful agents develop efficient tool usage patterns:
 Our infrastructure achievements enable practical large-scale agent training:
 
 \begin{table}[h]
-\centering
-\caption{Training performance metrics for different model configurations}
-\label{tab:training-performance}
-\begin{tabular}{lccccc}
-\toprule
-\textbf{Model Size} & \textbf{GPUs} & \textbf{Episodes/Hour} & \textbf{Memory Usage} & \textbf{Update Latency} & \textbf{Throughput} \\
-\midrule
-8B (LoRA r=32) & 4×A100 & 245 & 68GB & 180ms & 0.95 episodes/s \\
-32B (LoRA r=64) & 8×A100 & 127 & 312GB & 340ms & 0.51 episodes/s \\
-\bottomrule
-\end{tabular}
+	\centering
+	\caption{Training performance metrics for different model configurations}
+	\label{tab:training-performance}
+	\begin{tabular}{lccccc}
+		\toprule
+		\textbf{Model Size} & \textbf{GPUs} & \textbf{Episodes/Hour} & \textbf{Memory Usage} & \textbf{Update Latency} & \textbf{Throughput} \\
+		\midrule
+		8B (LoRA r=32)      & 4×A100        & 245                    & 68GB                  & 180ms                   & 0.95 episodes/s     \\
+		32B (LoRA r=64)     & 8×A100        & 127                    & 312GB                 & 340ms                   & 0.51 episodes/s     \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 \subsubsection{Scalability Achievements}
@@ -320,10 +300,10 @@ Our infrastructure achievements enable practical large-scale agent training:
 Our system demonstrates strong scalability characteristics:
 
 \begin{itemize}
-\item \textbf{Linear GPU Scaling}: Training throughput scales approximately linearly with additional GPUs up to tested limits
-\item \textbf{Memory Efficiency}: Achieved >90\% GPU memory utilization through careful optimization
-\item \textbf{Network Efficiency}: NCCL-based updates consume <5\% of available network bandwidth
-\item \textbf{Fault Tolerance}: System maintains operation through individual component failures with graceful degradation
+	\item \textbf{Linear GPU Scaling}: Training throughput scales approximately linearly with additional GPUs up to tested limits
+	\item \textbf{Memory Efficiency}: Achieved >90\% GPU memory utilization through careful optimization
+	\item \textbf{Network Efficiency}: NCCL-based updates consume <5\% of available network bandwidth
+	\item \textbf{Fault Tolerance}: System maintains operation through individual component failures with graceful degradation
 \end{itemize}
 
 \subsection{Cost-Effectiveness Analysis}
@@ -331,10 +311,10 @@ Our system demonstrates strong scalability characteristics:
 The computational costs of interactive training compare favorably to alternative approaches:
 
 \begin{itemize}
-\item \textbf{Training Cost}: Approximately \$2,400 for full 8B model training (including compute and infrastructure)
-\item \textbf{Inference Cost}: 60\% lower per-episode cost compared to commercial API-based training
-\item \textbf{Development Cost}: Open-source implementation reduces barrier to entry for academic research
-\item \textbf{Maintenance Cost}: Robust infrastructure requires minimal manual intervention during training
+	\item \textbf{Training Cost}: Approximately \$2,400 for full 8B model training (including compute and infrastructure)
+	\item \textbf{Inference Cost}: 60\% lower per-episode cost compared to commercial API-based training
+	\item \textbf{Development Cost}: Open-source implementation reduces barrier to entry for academic research
+	\item \textbf{Maintenance Cost}: Robust infrastructure requires minimal manual intervention during training
 \end{itemize}
 
 These results demonstrate that sophisticated agent training is achievable within academic research budgets, democratizing access to advanced coding agent capabilities.
@@ -359,8 +339,8 @@ Our comprehensive experimental evaluation yields several important conclusions:
 These results have several important implications for the field:
 
 \begin{itemize}
-\item \textbf{Design Philosophy}: The bitter lesson applies to software engineering: simple tools with extensive learning outperform sophisticated engineering
-\item \textbf{Future Potential}: Monotonic improvement throughout training suggests substantial room for further advancement through longer training and larger models
+	\item \textbf{Design Philosophy}: The bitter lesson applies to training software engineering agents: simple tools with extensive learning outperform sophisticated engineering \todoinline{}
+	\item \textbf{Future Potential}: Monotonic improvement throughout training suggests substantial room for further advancement through longer training and larger models
 \end{itemize}
 
 These findings establish interactive reinforcement learning as a promising direction for advancing automated software engineering capabilities.

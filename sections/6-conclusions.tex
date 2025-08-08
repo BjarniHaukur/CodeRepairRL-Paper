@@ -10,7 +10,6 @@ Our work makes several significant contributions to the field of automated softw
 
 \subsection{Methodological Innovation}
 
-
 \textbf{Training-Inference Duality}: Our implementation collapses the conventional boundary between training and inference phases through continuous serving and real-time weight updates. This unified approach reduces training time by 60\% while improving sample efficiency by 40\%, making large-scale agent training practically feasible within academic research budgets.
 
 \textbf{GRPO Optimization for Agents}: We demonstrate that Group Relative Policy Optimization provides substantial advantages over traditional actor-critic methods for coding agents, achieving 5.5\% performance improvements while dramatically reducing computational overhead through elimination of value network training.
@@ -85,7 +84,6 @@ By providing complete open-source implementations, we enable broader academic in
 
 \subsection{Validation of Fundamental AI Principles}
 
-
 \section{Limitations and Constraints}
 \label{sec:limitations}
 
@@ -95,7 +93,7 @@ Our evaluation focuses exclusively on Python debugging tasks. Comprehensive eval
 
 \subsection{Computational Resource Requirements}
 
-Despite optimizations, interactive training remains computationally intensive compared to traditional supervised learning. Training 8B models requires 4×A100 GPUs, while 32B models need 8×A100 GPUs, limiting accessibility for researchers with modest computational budgets. The complexity of distributed training infrastructure also presents implementation barriers for smaller research groups.
+Despite optimizations, interactive training remains computationally intensive compared to traditional supervised learning. Training 8B models requires 3×A100 GPUs, while 32B models need 6×A100 GPUs, limiting accessibility for researchers with modest computational budgets. The complexity of distributed training infrastructure also presents implementation barriers for smaller research groups.
 
 \subsection{Reward Function Simplifications}
 

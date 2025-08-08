@@ -10,10 +10,10 @@ Traditional approaches to training LLMs for code repair rely on supervised fine-
 
 The core innovation lies in our integration of existing coding agent frameworks directly into the RL training pipeline. Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can:
 \begin{itemize}
-    \item Navigate repository structures using terminal commands
-    \item Examine multiple files to understand code context
-    \item Iteratively refine solutions based on environmental feedback
-    \item Learn from the outcomes of their actions rather than just imitating examples
+	\item Navigate repository structures using terminal commands
+	\item Examine multiple files to understand code context
+	\item Iteratively refine solutions based on environmental feedback
+	\item Learn from the outcomes of their actions rather than just imitating examples
 \end{itemize}
 
 By implementing an OpenAI-compatible API server with asynchronous token streaming capabilities, we enable seamless integration between RL training and agent execution. This allows our Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
@@ -31,45 +31,45 @@ We define our code repair environment as the tuple $\langle \mathcal{S}, \mathca
 
 \textbf{State Space} $\mathcal{S}$: Each state $s_t \in \mathcal{S}$ represents the current conversational context and implicit repository state:
 \begin{align}
-s_t = (h_t, \mathcal{R}_t, I)
+	s_t = (h_t, \mathcal{R}_t, I)
 \end{align}
 where:
 \begin{itemize}
-    \item $h_t = \{(a_1, o_1), (a_2, o_2), \ldots, (a_t, o_t)\}$ is the conversation history of action-observation pairs
-    \item $\mathcal{R}_t$ represents the implicit repository state (filesystem, working directory, applied modifications)
-    \item $I$ is the initial issue description provided to the agent
+	\item $h_t = \{(a_1, o_1), (a_2, o_2), \ldots, (a_t, o_t)\}$ is the conversation history of action-observation pairs
+	\item $\mathcal{R}_t$ represents the implicit repository state (filesystem, working directory, applied modifications)
+	\item $I$ is the initial issue description provided to the agent
 \end{itemize}
 
 The state space is effectively $\mathcal{S} = \mathcal{H} \times \mathcal{R} \times \mathcal{I}$ where $\mathcal{H}$ is the space of possible conversation histories, $\mathcal{R}$ is the space of repository configurations, and $\mathcal{I}$ is the space of issue descriptions.
 
 \textbf{Action Space} $\mathcal{A}$: Actions consist of both structured tool invocations and natural language reasoning:
 \begin{align}
-\mathcal{A} = \mathcal{A}_{\text{tool}} \cup \mathcal{A}_{\text{text}}
+	\mathcal{A} = \mathcal{A}_{\text{tool}} \cup \mathcal{A}_{\text{text}}
 \end{align}
 where:
 \begin{itemize}
-    \item $\mathcal{A}_{\text{tool}} = \{\text{bash}(c), \text{read\_file}(p), \text{apply\_patch}(\text{old}, \text{new})\}$ represents structured tool calls
-    \item $\mathcal{A}_{\text{text}}$ represents natural language reasoning and explanation
+	\item $\mathcal{A}_{\text{tool}} = \{\text{bash}(c), \text{read\_file}(p), \text{apply\_patch}(\text{old}, \text{new})\}$ represents structured tool calls
+	\item $\mathcal{A}_{\text{text}}$ represents natural language reasoning and explanation
 \end{itemize}
 
 Each action $a_t$ is realized as a sequence of tokens generated autoregressively by the language model policy.
 
 \textbf{Transition Function} $\mathcal{P}$: The transition dynamics are largely predictable for tool interactions:
 \begin{align}
-\mathcal{P}(s_{t+1} | s_t, a_t) = \begin{cases}
-1 & \text{if } s_{t+1} = f(s_t, a_t) \text{ for consistent tool responses} \\
-0 & \text{otherwise}
-\end{cases}
+	\mathcal{P}(s_{t+1} | s_t, a_t) = \begin{cases}
+		                                  1 & \text{if } s_{t+1} = f(s_t, a_t) \text{ for consistent tool responses} \\
+		                                  0 & \text{otherwise}
+	                                  \end{cases}
 \end{align}
 
 The function $f$ updates the conversation history $h_{t+1} = h_t \cup \{(a_t, o_t)\}$ and repository state $\mathcal{R}_{t+1}$ based on the tool's response $o_t$, which is consistent given the same repository state and command inputs.
 
 \textbf{Reward Function} $\mathcal{R}$: We employ a sparse terminal reward based on multi-component evaluation against ground truth:
 \begin{align}
-\mathcal{R}(s_t, a_t) = \begin{cases}
-R_{\text{total}}(p_{\text{generated}}, p_{\text{true}}) & \text{if } t = T \text{ (terminal state)} \\
-0 & \text{otherwise}
-\end{cases}
+	\mathcal{R}(s_t, a_t) = \begin{cases}
+		                        R_{\text{total}}(p_{\text{generated}}, p_{\text{true}}) & \text{if } t = T \text{ (terminal state)} \\
+		                        0                                                       & \text{otherwise}
+	                        \end{cases}
 \end{align}
 
 where $p_{\text{generated}}$ is the patch produced by executing all \texttt{apply\_patch} operations, $p_{\text{true}}$ is the ground-truth solution, and $R_{\text{total}}$ combines file targeting, functional similarity, and testing alignment components (detailed in Section~\ref{sec:reward-design}).
@@ -80,7 +80,7 @@ where $p_{\text{generated}}$ is the patch produced by executing all \texttt{appl
 
 The policy $\pi_\theta: \mathcal{S} \rightarrow \Delta(\mathcal{A})$ is parameterized by a large language model with parameters $\theta$:
 \begin{align}
-\pi_\theta(a_t | s_t) = \prod_{i=1}^{|a_t|} p_\theta(a_t^{(i)} | s_t, a_t^{(1:i-1)})
+	\pi_\theta(a_t | s_t) = \prod_{i=1}^{|a_t|} p_\theta(a_t^{(i)} | s_t, a_t^{(1:i-1)})
 \end{align}
 
 where $a_t^{(i)}$ represents the $i$-th token in action $a_t$, and the policy factorizes autoregressively over the token sequence.
@@ -89,10 +89,10 @@ where $a_t^{(i)}$ represents the $i$-th token in action $a_t$, and the policy fa
 
 Episodes begin with initial state $s_0 = (\emptyset, \mathcal{R}_0, I)$ containing an empty conversation history, initial repository state, and issue description. Episodes terminate when:
 \begin{itemize}
-    \item The agent signals completion (implicitly through not calling a tool and having made changes to the repository)
-    \item Maximum action limit $T_{\max}$ is reached (Nano has a finite action budget)
-    \item Token limit exceeded: $\text{tokencount}(h_{t+1}) > \text{MAX\_TOKENS} - \text{SAFETY\_THRESHOLD}$
-    \item The agent produces an invalid action sequence
+	\item The agent signals completion (implicitly through not calling a tool and having made changes to the repository)
+	\item Maximum action limit $T_{\max}$ is reached (Nano has a finite action budget)
+	\item Token limit exceeded: $\text{tokencount}(h_{t+1}) > \text{MAX\_TOKENS} - \text{SAFETY\_THRESHOLD}$
+	\item The agent produces an invalid action sequence
 \end{itemize}
 
 Importantly, inaction (i.e., not calling any tools) counts as an action toward the $T_{\max}$ limit, making this a finite time horizon MDP. The token-based termination criterion reflects Nano's compute-aware design—the agent operates while the conversation history fits comfortably in GPU memory, ensuring tractable resource usage during both training and inference.
@@ -104,10 +104,10 @@ A complete trajectory is $\tau = (s_0, a_0, r_0, s_1, a_1, r_1, \ldots, s_T, r_T
 The finite horizon and token-based termination criteria reflect a key design philosophy: Nano is inherently compute-aware. Rather than allowing unbounded exploration that could exhaust computational resources, the agent operates within well-defined memory and computational budgets. This approach ensures:
 
 \begin{itemize}
-    \item \textbf{Predictable Memory Usage}: Token limits guarantee that conversation histories remain within GPU memory constraints during training and inference
-    \item \textbf{Bounded Computational Cost}: Action limits prevent runaway episodes that could consume excessive computational resources
-    \item \textbf{Practical Deployment}: Resource awareness makes the system suitable for real-world deployment where computational budgets matter
-    \item \textbf{Training Stability}: Finite horizons prevent extremely long episodes that could destabilize training dynamics
+	\item \textbf{Predictable Memory Usage}: Token limits guarantee that conversation histories remain within GPU memory constraints during training and inference
+	\item \textbf{Bounded Computational Cost}: Action limits prevent runaway episodes that could consume excessive computational resources
+	\item \textbf{Practical Deployment}: Resource awareness makes the system suitable for real-world deployment where computational budgets matter
+	\item \textbf{Training Stability}: Finite horizons prevent extremely long episodes that could destabilize training dynamics
 \end{itemize}
 
 This compute-aware design represents a departure from traditional RL environments with unbounded action spaces, reflecting the practical constraints of deploying large language models in resource-constrained settings.
@@ -120,7 +120,7 @@ With finite state and action spaces, Q-learning becomes theoretically applicable
 
 This MDP formulation enables direct application of Group Relative Policy Optimization. GRPO operates on batches of trajectories $\{\tau_1, \tau_2, \ldots, \tau_B\}$, computing advantages by comparing terminal rewards within each batch. The policy update maximizes:
 \begin{align}
-\mathcal{L}_{\text{GRPO}}(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{T} A_t \log \pi_\theta(a_t | s_t) \right]
+	\mathcal{L}_{\text{GRPO}}(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{T} A_t \log \pi_\theta(a_t | s_t) \right]
 \end{align}
 
 where advantages $A_t$ are computed via the GRPO procedure using terminal rewards and within-batch normalization.
@@ -136,10 +136,10 @@ Our experimental design carefully separates training and evaluation data to demo
 
 \textbf{Training Dataset:} We use SWE-Gym, a curated collection of approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories. Each task includes:
 \begin{itemize}
-    \item A containerized repository snapshot at the time of the bug report
-    \item The original issue description
-    \item The ground-truth patch that resolved the issue
-    \item Isolated execution environments for safe agent interaction
+	\item A containerized repository snapshot at the time of the bug report
+	\item The original issue description
+	\item The ground-truth patch that resolved the issue
+	\item Isolated execution environments for safe agent interaction
 \end{itemize}
 
 SWE-Gym's containerized design makes it ideal for RL training, as agents can freely explore and modify code without risk while receiving deterministic feedback based on their actions.
@@ -156,53 +156,51 @@ We base our experiments on the Qwen2.5-Coder family, specifically targeting both
 
 Qwen models exhibit exceptional structured output generation, critical for reliable agent behavior:
 \begin{itemize}
-    \item \textbf{Function call accuracy}: Qwen consistently generates valid JSON function calls with correct parameter types
-    \item \textbf{Context retention}: Superior ability to maintain conversation state across multi-step tool interactions
-    \item \textbf{Error recovery}: Robust handling of tool execution failures and adaptive strategy adjustment
-    \item \textbf{Schema adherence}: Reliable conformance to function signatures and parameter constraints
+	\item \textbf{Function call accuracy}: Qwen consistently generates valid JSON function calls with correct parameter types
+	\item \textbf{Context retention}: Superior ability to maintain conversation state across multi-step tool interactions
+	\item \textbf{Error recovery}: Robust handling of tool execution failures and adaptive strategy adjustment
+	\item \textbf{Schema adherence}: Reliable conformance to function signatures and parameter constraints
 \end{itemize}
 
 \subsubsection{Code Understanding Capabilities}
 
 Beyond tool calling, Qwen demonstrates strong foundational coding abilities:
 \begin{itemize}
-    \item State-of-the-art performance on HumanEval, MBPP, and CodeContests benchmarks
-    \item Superior Python code generation and tool-calling capabilities
-    \item Excellent repository-level understanding and cross-file reasoning capabilities
-    \item Strong performance on debugging and code repair tasks in baseline evaluations
+	\item State-of-the-art performance on HumanEval, MBPP, and CodeContests benchmarks
+	\item Superior Python code generation and tool-calling capabilities
+	\item Excellent repository-level understanding and cross-file reasoning capabilities
+	\item Strong performance on debugging and code repair tasks in baseline evaluations
 \end{itemize}
 
 The model undergoes continued training rather than traditional fine-tuning, preserving its general capabilities while acquiring specialized agent skills through reinforcement learning. This approach maintains Qwen's robust tool-calling foundation while enabling learning of complex debugging behaviors.
 
-\section{The Nano Coding Agent: Implementing the Bitter Lesson}
+\section{The Nano Coding Agent}
 \label{sec:nano-agent}
 
-Our Nano coding agent implements the bitter lesson philosophy in automated code repair: rather than engineering sophisticated tools and guided workflows, we provide only essential capabilities and let effective behaviors emerge through reinforcement learning. This approach tests whether computation and learning can overcome the apparent disadvantage of minimal tooling.
+Our Nano coding agent adopts a minimalist design: rather than engineering sophisticated tools and guided workflows, we provide only essential capabilities and allow effective behaviors to emerge through reinforcement learning. This isolates the contribution of learning under a simple action space and avoids confounds introduced by heavyweight scaffolding.
 
 \subsection{Core Capabilities}
 
 The Nano agent provides a streamlined set of tools for repository interaction:
 
 \begin{itemize}
-    \item \texttt{bash}: Execute shell commands for navigation and file system operations
-    \item \texttt{str\_replace}: Perform precise string replacements for code modification
-    \item \texttt{view\_file}: Examine file contents with optional line range specification
-    \item \texttt{write\_file}: Create new files when necessary
+	\item \texttt{bash}: Execute shell commands for navigation and file system operations
+	\item \texttt{str\_replace}: Perform precise string replacements for code modification
+	\item \texttt{view\_file}: Examine file contents with optional line range specification
+	\item \texttt{write\_file}: Create new files when necessary
 \end{itemize}
 
 This minimal toolset encourages models to develop their own strategies for code understanding and modification rather than relying on pre-engineered heuristics. The agent must learn to:
 \begin{itemize}
-    \item Navigate unfamiliar codebases using standard Unix commands
-    \item Identify relevant files through grep searches and directory exploration
-    \item Understand code context by examining multiple related files
-    \item Apply targeted fixes using precise string replacements
+	\item Navigate unfamiliar codebases using standard Unix commands
+	\item Identify relevant files through grep searches and directory exploration
+	\item Understand code context by examining multiple related files
+	\item Apply targeted fixes using precise string replacements
 \end{itemize}
 
-\subsection{The Bitter Lesson Applied to Code Repair}
+\subsection{Minimalist Design Rationale}
 
-The Nano agent's design directly applies Rich Sutton's bitter lesson to automated software engineering. This lesson, learned from decades of AI research, teaches us that methods leveraging computation and learning consistently outperform approaches relying on human knowledge and engineering—even when the latter initially seem more promising.
-
-Applied to coding agents, this principle suggests:
+The agent's design emphasizes learning over engineered heuristics. The objective is to evaluate whether simple tools combined with interactive RL suffice to develop robust debugging strategies without bespoke, task-specific machinery.
 
 \textbf{Learning Over Engineering:} Rather than pre-programming sophisticated debugging heuristics, we provide minimal tools and let effective strategies emerge through extensive training.
 
@@ -217,16 +215,16 @@ Applied to coding agents, this principle suggests:
 The Nano agent integrates seamlessly with our RL training pipeline through a structured action-observation loop:
 
 \begin{enumerate}
-    \item The agent receives an issue description and repository state
-    \item It generates a sequence of tool calls to explore and understand the codebase
-    \item Each action produces observations (command outputs, file contents, etc.)
-    \item The agent iteratively refines its understanding and proposes fixes
-    \item The final patch is evaluated against the ground truth for reward computation
+	\item The agent receives an issue description and repository state
+	\item It generates a sequence of tool calls to explore and understand the codebase
+	\item Each action produces observations (command outputs, file contents, etc.)
+	\item The agent iteratively refines its understanding and proposes fixes
+	\item The final patch is evaluated against the ground truth for reward computation
 \end{enumerate}
 
 This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes. The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
 
-This learning-centric approach embodies the bitter lesson: rather than engineering away the difficulty of code repair through sophisticated tooling, we embrace the challenge and let the model develop its own solutions through extensive experience.
+This learning-centric approach avoids overfitting to tooling idiosyncrasies. Rather than engineering away the difficulty of code repair through sophisticated tooling, we provide a stable, minimal interface and train the model to develop its own solutions through experience.
 
 \section{Training-Inference Duality in Online RL for LLMs}
 \label{sec:training-inference}
@@ -237,16 +235,16 @@ A fundamental innovation in our approach is the collapse of the traditional trai
 
 In traditional RL, models alternate between:
 \begin{enumerate}
-    \item \textbf{Inference phase}: Collecting trajectories with a frozen policy
-    \item \textbf{Training phase}: Computing gradients and updating parameters offline
+	\item \textbf{Inference phase}: Collecting trajectories with a frozen policy
+	\item \textbf{Training phase}: Computing gradients and updating parameters offline
 \end{enumerate}
 
 Our interactive system eliminates this separation. The GRPO process operates as a continuous cycle where:
 \begin{enumerate}
-    \item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
-    \item \textbf{Trajectory streaming}: Completed agent episodes stream to the training pipeline in real-time
-    \item \textbf{Immediate updates}: GRPO computes gradients and updates weights continuously
-    \item \textbf{Live synchronization}: Updated weights propagate to the inference server without interruption
+	\item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
+	\item \textbf{Trajectory streaming}: Completed agent episodes stream to the training pipeline in real-time
+	\item \textbf{Immediate updates}: GRPO computes gradients and updates weights continuously
+	\item \textbf{Live synchronization}: Updated weights propagate to the inference server without interruption
 \end{enumerate}
 
 This unified paradigm enables true online learning where the policy improves continuously throughout the training session, rather than in discrete update cycles.
@@ -269,9 +267,9 @@ This unified paradigm enables true online learning where the policy improves con
 We employ Group Relative Policy Optimization (GRPO) as our primary RL algorithm. GRPO offers several advantages for our interactive setting:
 
 \begin{itemize}
-    \item \textbf{No value model required:} Unlike traditional actor-critic methods, GRPO estimates advantages using relative performance within a batch, eliminating the need for a separate value network
-    \item \textbf{Reduced variance:} By normalizing rewards across groups of trajectories, GRPO provides more stable training signals
-    \item \textbf{Simplified pipeline:} The absence of value estimation reduces computational overhead and implementation complexity
+	\item \textbf{No value model required:} Unlike traditional actor-critic methods, GRPO estimates advantages using relative performance within a batch, eliminating the need for a separate value network
+	\item \textbf{Reduced variance:} By normalizing rewards across groups of trajectories, GRPO provides more stable training signals
+	\item \textbf{Simplified pipeline:} The absence of value estimation reduces computational overhead and implementation complexity
 \end{itemize}
 
 \subsection{Masked Loss Computation for Tool-Augmented RL}
@@ -287,20 +285,20 @@ We introduce a dual-masking approach that preserves contextual information durin
 
 \textbf{Forward Pass:} The model processes the complete sequence with full attention:
 \begin{align}
-\mathbf{M}_{\text{att}} &= \mathbf{1}_{n \times n} \quad \text{(full attention mask)} \\
-\mathbf{h} &= \text{Transformer}(\mathbf{x}, \mathbf{M}_{\text{att}}) \\
-\mathbf{L} &= \text{LinearHead}(\mathbf{h})
+	\mathbf{M}_{\text{att}} & = \mathbf{1}_{n \times n} \quad \text{(full attention mask)} \\
+	\mathbf{h}              & = \text{Transformer}(\mathbf{x}, \mathbf{M}_{\text{att}})    \\
+	\mathbf{L}              & = \text{LinearHead}(\mathbf{h})
 \end{align}
 
 where $\mathbf{h}$ contains representations informed by all tokens, including tool outputs. Crucially, when computing log probabilities for agent-authored tokens, the model maintains full access to tool response content through the attention mechanism.
 
 \textbf{Loss Computation:} We apply selective masking to focus optimization exclusively on agent-authored tokens:
 \begin{align}
-\mathbf{M}_{\text{loss}}[i] &= \begin{cases} 
-1 & \text{if } i \notin \mathcal{T} \text{ (agent-authored)} \\
-0 & \text{if } i \in \mathcal{T} \text{ (tool-generated)}
-\end{cases} \\
-\mathcal{L}_{\text{GRPO}} &= \frac{\sum_{i=1}^{n} \mathbf{M}_{\text{loss}}[i] \cdot \ell_i \cdot A_i}{\sum_{i=1}^{n} \mathbf{M}_{\text{loss}}[i]}
+	\mathbf{M}_{\text{loss}}[i] & = \begin{cases}
+		                                1 & \text{if } i \notin \mathcal{T} \text{ (agent-authored)} \\
+		                                0 & \text{if } i \in \mathcal{T} \text{ (tool-generated)}
+	                                \end{cases}                                                         \\
+	\mathcal{L}_{\text{GRPO}}   & = \frac{\sum_{i=1}^{n} \mathbf{M}_{\text{loss}}[i] \cdot \ell_i \cdot A_i}{\sum_{i=1}^{n} \mathbf{M}_{\text{loss}}[i]}
 \end{align}
 
 where $\ell_i$ represents the per-token policy loss and $A_i$ denotes advantages computed via GRPO.
@@ -311,12 +309,12 @@ Figure~\ref{fig:tool-perplexity-analysis} demonstrates the importance of masked 
 
 % TODO: Create figure showing perplexity breakdown
 \begin{figure}[ht]
-    \centering
-    \fbox{\parbox{0.8\textwidth}{\centering 
-        \textit{[Figure placeholder: Perplexity decomposition across agent trajectories showing tool-generated tokens contribute disproportionately to sequence-level perplexity. Left panel: trajectory timeline with color-coded regions (agent reasoning, tool calls, tool outputs). Right panel: per-token perplexity highlighting the spike at tool response boundaries where model predictions diverge from external content that, while partially predictable, is not the target learning objective.]}
-    }}
-    \caption{Perplexity analysis revealing the dominance of tool-generated tokens in sequence-level prediction difficulty. The majority of perplexity arises from tool responses, which while not entirely unpredictable, represent a different learning objective than the desired focus on contextual tool selection and agent reasoning.}
-    \label{fig:tool-perplexity-analysis}
+	\centering
+	\fbox{\parbox{0.8\textwidth}{\centering
+			\textit{[Figure placeholder: Perplexity decomposition across agent trajectories showing tool-generated tokens contribute disproportionately to sequence-level perplexity. Left panel: trajectory timeline with color-coded regions (agent reasoning, tool calls, tool outputs). Right panel: per-token perplexity highlighting the spike at tool response boundaries where model predictions diverge from external content that, while partially predictable, is not the target learning objective.]}
+		}}
+	\caption{Perplexity analysis revealing the dominance of tool-generated tokens in sequence-level prediction difficulty. The majority of perplexity arises from tool responses, which while not entirely unpredictable, represent a different learning objective than the desired focus on contextual tool selection and agent reasoning.}
+	\label{fig:tool-perplexity-analysis}
 \end{figure}
 
 Without selective masking, the optimization objective allocates significant capacity to predicting tool outputs rather than focusing on the primary training goal: learning to make appropriate tool calls and reason effectively about their results.
@@ -338,10 +336,10 @@ This masked loss formulation represents an important design choice for tool-augm
 Our training follows an iterative process where the agent attempts to solve bugs from the SWE-Gym dataset:
 
 \begin{enumerate}
-    \item \textbf{Trajectory Generation:} For each bug in a training batch, the agent generates a complete trajectory—from initial exploration through final patch submission
-    \item \textbf{Reward Computation:} Each trajectory receives a reward based on the similarity between the generated patch and the ground-truth solution (detailed in Section~\ref{sec:reward-design})
-    \item \textbf{Advantage Estimation:} GRPO computes advantages by comparing each trajectory's reward to the mean reward within its group
-    \item \textbf{Policy Update:} The model parameters are updated to increase the likelihood of high-advantage actions while maintaining proximity to the reference policy through KL regularization
+	\item \textbf{Trajectory Generation:} For each bug in a training batch, the agent generates a complete trajectory—from initial exploration through final patch submission
+	\item \textbf{Reward Computation:} Each trajectory receives a reward based on the similarity between the generated patch and the ground-truth solution (detailed in Section~\ref{sec:reward-design})
+	\item \textbf{Advantage Estimation:} GRPO computes advantages by comparing each trajectory's reward to the mean reward within its group
+	\item \textbf{Policy Update:} The model parameters are updated to increase the likelihood of high-advantage actions while maintaining proximity to the reference policy through KL regularization
 \end{enumerate}
 
 \subsection{Hyperparameters}
@@ -349,11 +347,11 @@ Our training follows an iterative process where the agent attempts to solve bugs
 Key hyperparameters for our GRPO implementation include:
 
 \begin{itemize}
-    \item \textbf{Batch size:} 32 trajectories per update
-    \item \textbf{Learning rate:} $1 \times 10^{-5}$ with cosine annealing
-    \item \textbf{KL coefficient:} $\beta = 0.1$ to balance exploration and stability
-    \item \textbf{Maximum trajectory length:} 8192 tokens to accommodate multi-step agent interactions
-    \item \textbf{Training iterations:} 5,000 episodes covering the SWE-Gym dataset
+	\item \textbf{Batch size:} 32 trajectories per update
+	\item \textbf{Learning rate:} $1 \times 10^{-5}$ with cosine annealing
+	\item \textbf{KL coefficient:} $\beta = 0.1$ to balance exploration and stability
+	\item \textbf{Maximum trajectory length:} 8192 tokens to accommodate multi-step agent interactions
+	\item \textbf{Training iterations:} 5,000 episodes covering the SWE-Gym dataset
 \end{itemize}
 
 These values were selected through preliminary experiments to ensure stable convergence while allowing sufficient exploration of the action space.
@@ -387,14 +385,13 @@ Training and serving 8B to 32B parameter models for interactive RL requires soph
 The combination of these optimizations enables training of state-of-the-art agent behaviors while maintaining practical computational budgets:
 
 \begin{itemize}
-    \item \textbf{8B models:} Trainable on 4x A100 GPUs with full agent interaction
-    \item \textbf{32B models:} Scalable to 8x A100 GPUs with maintained training throughput
-    \item \textbf{Memory efficiency:} 90\%+ memory utilization through careful optimization
-    \item \textbf{Training speed:} Agent trajectory processing at near real-time rates
+	\item \textbf{8B models:} Trainable on 4x A100 GPUs with full agent interaction
+	\item \textbf{32B models:} Scalable to 8x A100 GPUs with maintained training throughput
+	\item \textbf{Memory efficiency:} 90\%+ memory utilization through careful optimization
+	\item \textbf{Training speed:} Agent trajectory processing at near real-time rates
 \end{itemize}
 
 These innovations make large-scale interactive RL practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
-
 
 \section{Reward Design}
 \label{sec:reward-design}
@@ -404,9 +401,9 @@ These innovations make large-scale interactive RL practically feasible for acade
 Our reward function focuses on the final outcome—the generated patch—rather than intermediate steps. This design choice offers several benefits:
 
 \begin{itemize}
-    \item \textbf{Simplicity:} Evaluating final patches is straightforward and deterministic
-    \item \textbf{Flexibility:} Agents can discover diverse problem-solving strategies without being constrained by process-specific rewards
-    \item \textbf{Alignment:} The reward directly measures what we care about—correct bug fixes
+	\item \textbf{Simplicity:} Evaluating final patches is straightforward and deterministic
+	\item \textbf{Flexibility:} Agents can discover diverse problem-solving strategies without being constrained by process-specific rewards
+	\item \textbf{Alignment:} The reward directly measures what we care about—correct bug fixes
 \end{itemize}
 
 \subsection{Multi-Component Reward Computation}
@@ -414,7 +411,7 @@ Our reward function focuses on the final outcome—the generated patch—rather 
 Our reward function decomposes the complex task of bug fixing into three distinct components, each capturing a different aspect of repair quality:
 
 \begin{equation}
-R_{\text{total}} = 0.2 \cdot R_{\text{files}} + 0.4 \cdot R_{\text{functional}} + 0.4 \cdot R_{\text{testing}}
+	R_{\text{total}} = 0.2 \cdot R_{\text{files}} + 0.4 \cdot R_{\text{functional}} + 0.4 \cdot R_{\text{testing}}
 \end{equation}
 
 where each component evaluates a specific dimension of the agent's solution:
@@ -434,10 +431,10 @@ Our approach elegantly separates semantic understanding from syntactic formattin
 Only after the complete interaction do we execute \texttt{git diff} to compute the actual patch for evaluation. This separation of concerns offers several advantages:
 
 \begin{itemize}
-\item \textbf{Error Elimination}: Models cannot fail due to diff formatting issues, as the patch is computed automatically
-\item \textbf{Semantic Focus}: Agents concentrate entirely on identifying and fixing bugs rather than wrestling with syntax requirements
-\item \textbf{Perfect Formatting}: Git ensures all patches are properly formatted and applicable
-\item \textbf{Complete Information}: Every intended modification is captured accurately for reward computation
+	\item \textbf{Error Elimination}: Models cannot fail due to diff formatting issues, as the patch is computed automatically
+	\item \textbf{Semantic Focus}: Agents concentrate entirely on identifying and fixing bugs rather than wrestling with syntax requirements
+	\item \textbf{Perfect Formatting}: Git ensures all patches are properly formatted and applicable
+	\item \textbf{Complete Information}: Every intended modification is captured accurately for reward computation
 \end{itemize}
 
 This architectural choice transforms a major source of technical failures into a reliable, automated process while preserving full fidelity of the agent's debugging intentions.
@@ -447,9 +444,9 @@ This architectural choice transforms a major source of technical failures into a
 The sparse nature of exact patch matching presents challenges for RL training. We address this through:
 
 \begin{itemize}
-    \item \textbf{Curriculum learning:} Starting with simpler bugs where rewards are more attainable
-    \item \textbf{Partial credit:} Rewarding patches that target correct files and functions even if the exact fix differs
-    \item \textbf{Large batch sizes:} Ensuring sufficient positive examples within each training batch
+	\item \textbf{Curriculum learning:} Starting with simpler bugs where rewards are more attainable
+	\item \textbf{Partial credit:} Rewarding patches that target correct files and functions even if the exact fix differs
+	\item \textbf{Large batch sizes:} Ensuring sufficient positive examples within each training batch
 \end{itemize}
 
 \subsection{Future Extensions}
@@ -457,9 +454,9 @@ The sparse nature of exact patch matching presents challenges for RL training. W
 While our current approach uses patch similarity for computational efficiency, the framework naturally extends to test-based evaluation. Future work could incorporate:
 
 \begin{itemize}
-    \item Execution of project test suites to verify functional correctness
-    \item Multi-objective rewards balancing correctness, code quality, and efficiency
-    \item Human preference learning for subjective aspects of code style
+	\item Execution of project test suites to verify functional correctness
+	\item Multi-objective rewards balancing correctness, code quality, and efficiency
+	\item Human preference learning for subjective aspects of code style
 \end{itemize}
 
 These extensions would require significant infrastructure investment but could lead to more robust and generalizable repair capabilities.
@@ -534,11 +531,11 @@ This NCCL-based approach represents a significant engineering achievement, enabl
 The complete interactive RL system consists of several interconnected components operating in parallel:
 
 \begin{enumerate}
-    \item \textbf{vLLM Inference Cluster:} Multi-GPU serving infrastructure with KV-cache optimization and real-time weight updates
-    \item \textbf{Agent Worker Pool:} Distributed Nano agent instances operating in parallel across containerized environments
-    \item \textbf{GRPO Training Pipeline:} Continuous gradient computation and parameter updates with advanced memory management
-    \item \textbf{NCCL Communication Layer:} High-bandwidth weight synchronization enabling training-inference duality
-    \item \textbf{Resource Orchestration:} Dynamic load balancing and memory management across training and inference workloads
+	\item \textbf{vLLM Inference Cluster:} Multi-GPU serving infrastructure with KV-cache optimization and real-time weight updates
+	\item \textbf{Agent Worker Pool:} Distributed Nano agent instances operating in parallel across containerized environments
+	\item \textbf{GRPO Training Pipeline:} Continuous gradient computation and parameter updates with advanced memory management
+	\item \textbf{NCCL Communication Layer:} High-bandwidth weight synchronization enabling training-inference duality
+	\item \textbf{Resource Orchestration:} Dynamic load balancing and memory management across training and inference workloads
 \end{enumerate}
 
 \subsection{Real-Time Weight Updates}
@@ -546,9 +543,9 @@ The complete interactive RL system consists of several interconnected components
 Unlike traditional RL setups where inference and training are separate phases, our system enables continuous learning:
 
 \begin{itemize}
-    \item Model weights are updated after each batch of trajectories
-    \item Updates are immediately synchronized to all inference processes
-    \item Agents benefit from improvements within the same training session
+	\item Model weights are updated after each batch of trajectories
+	\item Updates are immediately synchronized to all inference processes
+	\item Agents benefit from improvements within the same training session
 \end{itemize}
 
 This tight integration between serving and training represents a significant departure from conventional approaches, enabling more efficient exploration and faster convergence.
@@ -558,10 +555,10 @@ This tight integration between serving and training represents a significant dep
 Key implementation choices include:
 
 \begin{itemize}
-    \item \textbf{Collective RPC:} For efficient weight sharing across distributed processes
-    \item \textbf{LoRA adaptation:} Optional use of low-rank adapters to reduce communication overhead
-    \item \textbf{Containerized environments:} Each agent runs in an isolated Docker container for safety
-    \item \textbf{Request batching:} Multiple agent requests are processed concurrently for efficiency
+	\item \textbf{Collective RPC:} For efficient weight sharing across distributed processes
+	\item \textbf{LoRA adaptation:} Optional use of low-rank adapters to reduce communication overhead
+	\item \textbf{Containerized environments:} Each agent runs in an isolated Docker container for safety
+	\item \textbf{Request batching:} Multiple agent requests are processed concurrently for efficiency
 \end{itemize}
 
 Figure~\ref{fig:system-architecture} presents the complete system architecture, illustrating data flow between the vLLM inference cluster, distributed agent worker pool, and GRPO training pipeline. The diagram highlights the NCCL communication layer that enables real-time weight synchronization, supporting the training-inference duality that distinguishes our approach from conventional RL systems.
@@ -574,10 +571,10 @@ Figure~\ref{fig:system-architecture} presents the complete system architecture, 
 We assess model performance using several complementary metrics:
 
 \begin{itemize}
-    \item \textbf{Success Rate:} Percentage of bugs for which the agent generates an exactly correct patch
-    \item \textbf{Partial Success Rate:} Including fixes that target the correct location with minor differences
-    \item \textbf{Time to Solution:} Average wall-clock time required to generate a fix
-    \item \textbf{Exploration Efficiency:} Number of files examined and commands executed per bug
+	\item \textbf{Success Rate:} Percentage of bugs for which the agent generates an exactly correct patch
+	\item \textbf{Partial Success Rate:} Including fixes that target the correct location with minor differences
+	\item \textbf{Time to Solution:} Average wall-clock time required to generate a fix
+	\item \textbf{Exploration Efficiency:} Number of files examined and commands executed per bug
 \end{itemize}
 
 \subsection{Baseline Comparisons}
@@ -585,10 +582,10 @@ We assess model performance using several complementary metrics:
 To contextualize our results, we compare against several baselines:
 
 \begin{enumerate}
-    \item \textbf{Base Model:} The pretrained Qwen2.5-Coder without any bug-fixing training
-    \item \textbf{Supervised Fine-Tuning:} The same model fine-tuned on bug-fix pairs using standard supervised learning
-    \item \textbf{Direct Generation:} Models prompted to generate fixes without agent capabilities
-    \item \textbf{State-of-the-art Systems:} Published results from other automated repair approaches
+	\item \textbf{Base Model:} The pretrained Qwen2.5-Coder without any bug-fixing training
+	\item \textbf{Supervised Fine-Tuning:} The same model fine-tuned on bug-fix pairs using standard supervised learning
+	\item \textbf{Direct Generation:} Models prompted to generate fixes without agent capabilities
+	\item \textbf{State-of-the-art Systems:} Published results from other automated repair approaches
 \end{enumerate}
 
 \subsection{Generalization Testing}
@@ -596,9 +593,9 @@ To contextualize our results, we compare against several baselines:
 Beyond in-domain performance, we evaluate generalization through:
 
 \begin{itemize}
-    \item \textbf{Cross-dataset evaluation:} Testing on SWE-Bench-Verified after training on SWE-Gym
-    \item \textbf{Transfer to code generation:} Evaluating on HumanEval to assess whether debugging skills improve general programming capabilities
-    \item \textbf{Temporal generalization:} Testing on bugs from time periods not covered in training
+	\item \textbf{Cross-dataset evaluation:} Testing on SWE-Bench-Verified after training on SWE-Gym
+	\item \textbf{Transfer to code generation:} Evaluating on HumanEval to assess whether debugging skills improve general programming capabilities
+	\item \textbf{Temporal generalization:} Testing on bugs from time periods not covered in training
 \end{itemize}
 
 \subsection{Ablation Studies}
@@ -606,10 +603,10 @@ Beyond in-domain performance, we evaluate generalization through:
 To understand the contribution of different components, we conduct ablations:
 
 \begin{itemize}
-    \item \textbf{Without RL:} Using only supervised fine-tuning on the same data
-    \item \textbf{Without agent:} Direct patch generation without repository interaction
-    \item \textbf{Varying trajectory lengths:} Impact of allowing more or fewer exploration steps
-    \item \textbf{Different reward functions:} Comparing patch similarity vs. binary success rewards
+	\item \textbf{Without RL:} Using only supervised fine-tuning on the same data
+	\item \textbf{Without agent:} Direct patch generation without repository interaction
+	\item \textbf{Varying trajectory lengths:} Impact of allowing more or fewer exploration steps
+	\item \textbf{Different reward functions:} Comparing patch similarity vs. binary success rewards
 \end{itemize}
 
 \subsection{Statistical Significance}
@@ -617,9 +614,9 @@ To understand the contribution of different components, we conduct ablations:
 All reported improvements are tested for statistical significance using:
 
 \begin{itemize}
-    \item Bootstrap confidence intervals for success rate differences
-    \item McNemar's test for paired comparisons on the same test set
-    \item Effect size measurements (Cohen's d) to quantify practical significance
+	\item Bootstrap confidence intervals for success rate differences
+	\item McNemar's test for paired comparisons on the same test set
+	\item Effect size measurements (Cohen's d) to quantify practical significance
 \end{itemize}
 
 This comprehensive evaluation framework ensures that our conclusions about interactive RL are well-supported and reproducible.

@@ -11,10 +11,10 @@ This chapter describes the comprehensive implementation effort required to reali
 Implementing interactive RL for code repair presented several unique engineering challenges not addressed by existing frameworks. Traditional RL libraries assume simple observation-action spaces and stateless environments, while our system requires:
 
 \begin{itemize}
-\item \textbf{Persistent Environment State}: Agent sessions maintain complex file system states, command histories, and repository contexts across multiple interaction steps
-\item \textbf{Heterogeneous Action Spaces}: Unlike standard RL environments with fixed action sets, our agents invoke diverse tools with varying parameter structures and execution semantics
-\item \textbf{Distributed State Management}: Multiple agent instances must operate concurrently without interference while sharing training infrastructure
-\item \textbf{Real-time Synchronization}: Training and inference processes must coordinate weight updates without disrupting ongoing agent interactions
+	\item \textbf{Persistent Environment State}: Agent sessions maintain complex file system states, command histories, and repository contexts across multiple interaction steps
+	\item \textbf{Heterogeneous Action Spaces}: Unlike standard RL environments with fixed action sets, our agents invoke diverse tools with varying parameter structures and execution semantics
+	\item \textbf{Distributed State Management}: Multiple agent instances must operate concurrently without interference while sharing training infrastructure
+	\item \textbf{Real-time Synchronization}: Training and inference processes must coordinate weight updates without disrupting ongoing agent interactions
 \end{itemize}
 
 \subsection{Core System Components}
@@ -22,8 +22,6 @@ Implementing interactive RL for code repair presented several unique engineering
 Our implementation comprises several interconnected subsystems, each addressing specific aspects of the interactive paradigm:
 
 \subsubsection{Agent Framework Integration}
-
-\todoinline{Remove any remaining references to multi-scaffold experiments elsewhere.}
 
 \textbf{OpenAI API Compatibility}: The nano-agent originally designed for commercial LLM APIs was adapted to work with our vLLM serving infrastructure through a compatibility layer that translates between API formats while preserving all agent capabilities.
 
@@ -175,7 +173,6 @@ Preparing SWE-Bench-Verified for evaluation required several processing steps:
 
 \textbf{Baseline Establishment}: Running baseline evaluations to establish performance floors and validate evaluation infrastructure.
 
-
 \section{Experimental Execution and Validation}
 \label{sec:experimental-execution}
 
@@ -233,10 +230,10 @@ A key objective of this work was providing open-source implementations to democr
 The complete training framework has been released as open source, including:
 
 \begin{itemize}
-\item GRPO implementation optimized for coding agents
-\item vLLM integration with real-time weight updates
-\item NCCL-based distributed training infrastructure
-\item Complete evaluation and benchmarking suites
+	\item GRPO implementation optimized for coding agents
+	\item vLLM integration with real-time weight updates
+	\item NCCL-based distributed training infrastructure
+	\item Complete evaluation and benchmarking suites
 \end{itemize}
 
 \subsection{Nano-Agent Implementation}
@@ -244,10 +241,10 @@ The complete training framework has been released as open source, including:
 The nano-agent framework is provided as a standalone library that can be integrated with other training systems or used for inference-only applications. Key features include:
 
 \begin{itemize}
-\item Minimalist tool interface for maximum learning flexibility
-\item Robust safety and isolation mechanisms
-\item Integration with multiple LLM serving backends
-\item Comprehensive logging and debugging capabilities
+	\item Minimalist tool interface for maximum learning flexibility
+	\item Robust safety and isolation mechanisms
+	\item Integration with multiple LLM serving backends
+	\item Comprehensive logging and debugging capabilities
 \end{itemize}
 
 \subsection{Training Configurations and Recipes}
@@ -255,10 +252,10 @@ The nano-agent framework is provided as a standalone library that can be integra
 To enable reproducible research, we provide:
 
 \begin{itemize}
-\item Complete training configurations for different model scales
-\item Optimal hyperparameter settings discovered through experimentation
-\item Infrastructure setup and deployment guides
-\item Evaluation protocols and baseline implementations
+	\item Complete training configurations for different model scales
+	\item Optimal hyperparameter settings discovered through experimentation
+	\item Infrastructure setup and deployment guides
+	\item Evaluation protocols and baseline implementations
 \end{itemize}
 
 \subsection{Community Impact and Adoption}
@@ -266,10 +263,10 @@ To enable reproducible research, we provide:
 The open-source release aims to enable broader academic research in this domain by providing:
 
 \begin{itemize}
-\item Complete implementation details typically unavailable in research papers
-\item Practical infrastructure for running large-scale coding agent experiments
-\item Baseline results and evaluation frameworks for future comparisons
-\item Documentation and tutorials for researchers entering this field
+	\item Complete implementation details typically unavailable in research papers
+	\item Practical infrastructure for running large-scale coding agent experiments
+	\item Baseline results and evaluation frameworks for future comparisons
+	\item Documentation and tutorials for researchers entering this field
 \end{itemize}
 
 This comprehensive open-source contribution represents a significant step toward democratizing advanced coding agent research, providing the academic community with tools previously available only to well-resourced industry laboratories.
