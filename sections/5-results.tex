@@ -1,7 +1,7 @@
 \chapter{Experimental Results and Analysis}
 \label{ch:results}
 
-This chapter presents comprehensive experimental results addressing our research questions about interactive reinforcement learning for automated code repair. We demonstrate statistically significant improvements over baseline approaches and evaluate the generalization of learned debugging capabilities.
+This chapter presents comprehensive experimental results addressing our research questions (RQ1/RQ2/RQ3/RQ4) about interactive reinforcement learning for automated code repair. We demonstrate statistically significant improvements over baseline approaches and evaluate the generalization of learned debugging capabilities.
 
 \section{Training Dynamics and Convergence}
 \label{sec:training-dynamics}
@@ -90,6 +90,35 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 
 \textbf{Tool Usage Efficiency}: Trained agents develop efficient command usage patterns, avoiding redundant operations and focusing on information-gathering commands that maximize debugging insight.
 
+
+\section{RQ1: Adaptation to the Nano Harness}
+\label{sec:rq1-harness}
+
+We analyze harness adaptation through tool success rate, invalid tool calls, and action efficiency over training.
+\begin{itemize}
+    \item \textbf{Tool success rate}: fraction of tool calls that execute without schema/validation errors
+    \item \textbf{Invalid call rate}: fraction of calls rejected by the harness (schema mismatch, unsafe commands)
+    \item \textbf{Action efficiency}: commands per successful episode; files viewed per solved task
+\end{itemize}
+\todoinline{Insert plots: tool success vs steps, invalid call rate vs steps, actions-per-episode distribution. Add numbers from logs.}
+
+\section{RQ2: Multiple Base Models}
+\label{sec:rq2-multi-base}
+
+We evaluate whether the training recipe and nano harness transfer to alternative base models.
+\todoinline{Add table comparing Qwen vs SmolLM3 (or chosen models) on SWE-Bench-Verified, with same budgets and prompts. Include tool success metrics.}
+
+\section{RQ3: SWE-Gym Training vs. SWE-Bench/Multi-SWE-Bench Evaluation}
+\label{sec:rq3-overfit}
+
+We test for overfitting by training on \ac{SWE-Gym} and evaluating on \ac{SWE-Bench} and Multi-SWE-Bench.
+\todoinline{Add cross-dataset results, gap analysis vs. SFT, and discussion of overfitting indicators.}
+
+\section{RQ4: Cross-Harness and Cross-Task Generalization}
+\label{sec:rq4-cross}
+
+We examine out-of-domain generalization to other harnesses (Aider, OpenHands-style) and terminal-centric tasks (TauBench, TerminalBench).
+\todoinline{Add evaluation protocol, any necessary prompt shims, and results tables once runs complete.}
 
 \section{Transfer to General Code Generation}
 \label{sec:generalization}
@@ -317,9 +346,13 @@ Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers}
 
-\textbf{RQ1 (Interactive RL Effectiveness)}: Interactive RL produces statistically significant improvements (7-10 percentage points) over both pretrained models and supervised fine-tuning, validating the core hypothesis.
+\textbf{RQ1 (Harness Adaptation)}: RL training improves adaptation to the nano harness, increasing tool success and reducing invalid calls, with improved action efficiency. \todoinline{Cite Sec.~\ref{sec:rq1-harness} and insert concrete deltas.}
 
-\textbf{Generalization and Transfer}: Debugging skills learned through RL training demonstrate positive transfer to general code generation (4\% improvement on HumanEval), suggesting that the approach develops transferable problem-solving capabilities.
+\textbf{RQ2 (Multiple Base Models)}: The training recipe and harness are portable across base models, yielding consistent gains over SFT. \todoinline{Add table reference to Sec.~\ref{sec:rq2-multi-base}.}
+
+\textbf{RQ3 (Cross-Dataset Generalization)}: Training on SWE-Gym yields improvements on \ac{SWE-Bench} and Multi-SWE-Bench without clear overfitting. \todoinline{Add quantitative results and CIs from Sec.~\ref{sec:rq3-overfit}.}
+
+\textbf{RQ4 (Cross-Harness/Task Generalization)}: The trained model exhibits promising zero-shot transfer to Aider/OpenHands-style harnesses and TauBench/TerminalBench. \todoinline{Summarize findings from Sec.~\ref{sec:rq4-cross}.}
 
 \subsection{Broader Implications}
 

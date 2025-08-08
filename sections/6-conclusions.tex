@@ -34,23 +34,39 @@ Our work makes several significant contributions to the field of automated softw
 \section{Research Question Answers}
 \label{sec:research-answers}
 
-Our experimental evaluation provides definitive answers to the research question motivating this investigation:
+Our experimental evaluation provides answers aligned with the revised research questions:
 
-\subsection{RQ1: Effectiveness of Interactive RL}
+\subsection{RQ1: Adaptation to the Harness}
 
-\textbf{Finding}: Interactive reinforcement learning produces substantial and statistically significant improvements over both pretrained models and supervised fine-tuning approaches.
+\textbf{Finding}: Interactive reinforcement learning improves adaptation to the nano harness—tool success increases while invalid calls decrease over training, with improved action efficiency.
 
-\textbf{Evidence}: Our best models achieve 31.8\% success rates on SWE-Bench-Verified compared to 22.2\% for supervised fine-tuning on identical data, representing a 43\% relative improvement. All improvements are statistically significant at p < 0.01 with large effect sizes (Cohen's d > 0.8).
+\textbf{Evidence}: \todoinline{Insert concrete metrics: tool success rate delta, invalid call rate reduction, actions per solved task; reference relevant figures.}
 
-\textbf{Mechanism}: The effectiveness stems from three key factors: (1) multi-step interaction capabilities that mirror human debugging workflows, (2) environmental feedback that enables strategy refinement, and (3) reward-driven optimization of tool usage patterns that cannot be captured through static supervision.
+\textbf{Mechanism}: Policy updates reinforce effective tool-usage sequences and prompt adherence, yielding co-adaptation between model and harness.
 
-\subsection{Generalization and Transfer}
+\subsection{RQ2: Multiple Base Models}
 
-\textbf{Finding}: Debugging capabilities learned through interactive RL demonstrate positive transfer across multiple dimensions, indicating acquisition of fundamental rather than narrow skills.
+\textbf{Finding}: The training recipe and harness are portable across base models.
 
-\textbf{Evidence}: General coding capabilities improve by 4\% on HumanEval despite no direct training on code generation tasks, demonstrating that debugging-specific training enhances broader programming competencies.
+\textbf{Evidence}: \todoinline{Add table summary comparing Qwen vs SmolLM3 (or chosen models).}
 
-\textbf{Significance}: The positive transfer validates that our training approach develops genuine debugging competencies rather than narrow pattern matching, suggesting potential for broad application across software engineering tasks.
+\textbf{Significance}: Portability suggests the approach targets general agentic capabilities rather than model-specific quirks.
+
+\subsection{RQ3: Cross-Dataset Generalization}
+
+\textbf{Finding}: Models trained on SWE-Gym predictably improve on \ac{SWE-Bench} but they also generalize to Multi-SWE-Bench without signs of severe overfitting. \todoinline{Add actual results here}
+
+\textbf{Evidence}: \todoinline{Provide cross-dataset deltas vs SFT, include confidence intervals.}
+
+\textbf{Significance}: Supports the thesis that interactive training yields broadly applicable debugging skills.
+
+\subsection{RQ4: Cross-Harness/Task Generalization}
+
+\textbf{Finding}: The trained model exhibits promising zero-shot transfer to alternative harnesses (Aider/OpenHands-style) and terminal-oriented tasks (TauBench/TerminalBench) with minimal prompt shims.
+
+\textbf{Evidence}: \todoinline{Summarize cross-harness/task results once available.}
+
+\textbf{Significance}: Indicates learned skills are not tightly coupled to a single harness implementation.
 
 \section{Broader Implications}
 \label{sec:broader-implications}

@@ -1,6 +1,7 @@
 \chapter{Introduction}
 
 Automated program repair has rapidly transformed from a nascent research area to one of the most promising applications of agentic AI systems. Recent advances in autonomous software engineering have achieved remarkable performance milestones, with systems like Claude~4 now exceeding 70\% success rates on SWE-Bench-Verified \cite{claude4_2025}. This rapid progress underscores the critical importance of maintaining open research that can achieve near-parity understanding with frontier capabilities. Across diverse perspectives, there emerges a common recognition that researchers must maintain competitive access to the tools and methodologies driving these advances, ensuring that critical insights remain accessible to the broader scientific community rather than concentrated within proprietary systems. Recent open weight contributions such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\cite{qwen3coder_blog_2025} demonstrate that cutting-edge capabilities need not remain confined to closed systems, with these models following closely behind frontier performance.
+\todoinline{Verify and update SWE-Bench(-Verified) SOTA; cite system cards/technical reports for these claims (Claude 4/3.5, Qwen3-Coder, Kimi-K2) at submission.}
 
 Traditional systems for automated code repair have relied predominantly on supervised learning from static datasets of bug-fix pairs. In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process. While computationally efficient, this approach fundamentally misrepresents the nature of software debugging, which involves iterative hypothesis refinement, strategic exploration of codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation. Moreover, the information needed to fix a bug is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide.
 
@@ -13,8 +14,10 @@ However, unlike traditional \ac{RL} agents—such as those trained for game play
 This critical distinction necessitates a fundamentally different approach to reinforcement learning. \todoinline{Add technical section explaining LLM-scaffold interaction patterns and MDP formulation} In this paradigm, a scaffold or harness interprets structured token outputs from the \ac{LLM} (such as function calls or commands), executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process. The entire system—\ac{LLM} plus scaffold—forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
 
 This approach has gained particular prominence following dramatic improvements in model agency capabilities observed throughout 2024. Systems like Claude 3.5 Sonnet demonstrated unprecedented coding performance (improving from 33.4\% to 49.0\% on SWE-Bench Verified) and introduced revolutionary "computer use" capabilities, while OpenAI's o1 showed remarkable reasoning improvements through reinforcement learning techniques. These breakthroughs likely reflect large-scale deployment of similar scaffolded training approaches by major AI laboratories, validating the potential of this paradigm for developing genuinely agentic AI systems.
+\todoinline{Add citations to system cards/official docs: Claude 3.5 "computer use" and OpenAI o1 RL; keep/adjust numbers based on verifiable sources.}
 
 When equipped with appropriate scaffolds, LLMs can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications. This capability transformation enables, for the first time, the application of reinforcement learning to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
+\todoinline{Tie explicitly to terminal-oriented agency; add references to public statements/benchmarks on terminal skills (e.g., TerminalBench/TauBench if applicable).}
 
 The significance of this paradigm shift extends beyond mere technical feasibility. Human software developers do not repair bugs through single-shot pattern matching; rather, they engage in sophisticated exploratory processes involving hypothesis formation, incremental information gathering, and iterative solution refinement. They navigate complex codebases, examine multiple interconnected components, execute diagnostic commands, and progressively construct mental models of system behavior. This active learning process, fundamentally different from passive pattern recognition, suggests that training models through interactive experience could yield qualitatively superior debugging capabilities.
 
@@ -53,15 +56,38 @@ This thesis makes several significant contributions to the field of automated pr
 
 \textbf{Empirical Validation}: Through extensive experiments on the SWE-Gym training environment and SWE-Bench-Verified evaluation benchmark, we demonstrate that this reinforcement learning approach produces monotonic improvements in bug-fixing performance. This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of interactive training approaches.
 
-\textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community. This includes the nano-agent implementation, the reinforcement learning training pipeline, and the infrastructure for integrating arbitrary agent scaffolds into the training process. By providing these resources, we lower the barrier to entry for future research in this domain.
+\textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community. This includes the nano-agent implementation and the reinforcement learning training pipeline.
 
 \section{Research Questions}
 
-This investigation is structured around one carefully formulated research question that probes the core aspects of reinforcement learning for code repair:
+This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (nano) and practical generalization:
 
-\textbf{RQ1: To what extent does reinforcement learning with interactive agents improve automated program repair performance compared to models trained through conventional supervised learning?}
+\textbf{RQX: Does the trained model adapt to the harness (tools and prompts)?}
+\begin{itemize}
+    \item Primary indicators: tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity, action efficiency (files viewed, commands per episode), prompt-format sensitivity.
+    \item Hypothesis: RL improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
+    \item \todoinline{Insert concrete numbers and plots from training logs: tool success, invalid calls, retries, length-of-trajectory, KL to reference prompts.}
+\end{itemize}
 
-This foundational question examines the core hypothesis that interactive training through reinforcement learning yields superior debugging capabilities. We investigate not only whether improvements occur, but also their magnitude, consistency across different bug types, and the learning dynamics that produce them. By comparing against both pretrained models and those fine-tuned through supervised learning on identical data, we isolate the specific contribution of the reinforcement learning paradigm. We hypothesize that the ability to learn from environmental feedback and develop exploration strategies will result in statistically significant performance improvements on held-out bug-fixing tasks.
+\textbf{RQ?: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?}
+\begin{itemize}
+    \item Goal: assess portability of the training recipe and nano-harness to alternative backbones with different tool-calling priors.
+    \item Design: repeat core experiments with at least one additional base model of comparable scale.
+    \item \todoinline{Add chosen models, training budgets, and any harness-specific adjustments needed (if any).}
+\end{itemize}
+
+\textbf{RQZ: Does training on SWE-Gym overfit? (Train on SWE-Gym, evaluate on SWE-Bench and Multi-SWE-Bench)}
+\begin{itemize}
+    \item Measure cross-dataset generalization and potential overfitting to training environments.
+    \item \todoinline{Report SWE-Gym train curves vs. SWE-Bench(-Verified) / Multi-SWE-Bench evaluation; include delta vs SFT baselines.}
+\end{itemize}
+
+\textbf{RQY: Does the trained model generalize to other agentic code harnesses and tasks?}
+\begin{itemize}
+    \item Cross-harness: evaluate with Aider and OpenHands-style harnesses without re-training (prompt shim only if needed).
+    \item Cross-task: evaluate on TauBench and TerminalBench to probe terminal-oriented generalization.
+    \item \todoinline{Specify evaluation protocol, shim prompts, and compatibility constraints; add results tables when available.}
+\end{itemize}
 
 \section{Methodology Overview}
 
@@ -101,6 +127,6 @@ The remainder of this thesis is structured to provide a comprehensive treatment 
 
 \textbf{Chapter 4: Related Work} contextualizes our contributions within the broader landscape of code generation and repair research. We analyze prior work on reinforcement learning for programming tasks, agent-based software engineering tools, and the evolution of benchmarks for code repair evaluation. This chapter highlights how our approach synthesizes insights from multiple research threads while addressing limitations in existing methods.
 
-\textbf{Chapter 5: Experimental Results and Analysis} presents comprehensive empirical evaluation addressing our research question. We report performance metrics on SWE-Bench-Verified, analyze learning curves and training dynamics, and examine the effectiveness of our approach. The chapter includes detailed ablation studies, error analysis, and investigation of transfer to general code generation tasks. Statistical significance testing and qualitative analysis of agent behaviors provide deeper insights into the mechanisms driving performance improvements.
+\textbf{Chapter 5: Experimental Results and Analysis} presents comprehensive empirical evaluation addressing our research questions. We report performance metrics on SWE-Bench-Verified, analyze learning curves and training dynamics, and examine the effectiveness of our approach. The chapter includes detailed ablation studies, error analysis, and investigation of transfer to general code generation tasks. Statistical significance testing and qualitative analysis of agent behaviors provide deeper insights into the mechanisms driving performance improvements.
 
 \textbf{Chapter 6: Conclusions and Future Directions} synthesizes our findings, explicitly answering each research question based on empirical evidence. We discuss the broader implications for automated software engineering, identify limitations of the current approach, and outline promising directions for future research. The chapter concludes with reflections on the potential impact of scaffolded reinforcement learning on the future of software development tools.
