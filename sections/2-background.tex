@@ -7,7 +7,7 @@ We review key concepts in reinforcement learning for language models, automated 
 
 Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
 
-The evolution of automated program repair (\ac{APR}) can be traced through three distinct paradigms.
+The evolution of \ac{APR} can be traced through three distinct paradigms.
 Early search-based approaches like GenProg~\cite{genProg2012} and PAR~\cite{PAR2013} employed genetic programming and pattern-based transformations to search for valid patches within a predefined space of mutations.
 These systems demonstrated the feasibility of automated repair but suffered from low precision and limited generalization capabilities.
 
@@ -105,7 +105,7 @@ This limitation becomes particularly problematic for language models, where sequ
 
 \subsection{Proximal Policy Optimization (PPO)}
 
-Proximal Policy Optimization has emerged as the dominant algorithm for fine-tuning large language models due to its ability to stabilize training while maintaining sample efficiency.
+Proximal Policy Optimization~\cite{schulman2017proximalpolicyoptimizationalgorithms} has emerged as the dominant algorithm for fine-tuning large language models due to its ability to stabilize training while maintaining sample efficiency.
 \ac{PPO} addresses the fundamental challenge of policy optimization: making meaningful progress without taking overly large steps that destabilize learning.
 
 \subsubsection{The Clipping Mechanism}
@@ -144,7 +144,7 @@ However, \ac{PPO} also introduces significant computational overhead through the
 
 \subsection{Group Relative Policy Optimization (GRPO)}
 
-Group Relative Policy Optimization is fundamentally \ac{PPO} with a crucial simplification: instead of training a separate value network to estimate advantages, \ac{GRPO} computes advantages directly from relative performance within sampled action groups.
+\ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} is fundamentally \ac{PPO} with a crucial simplification: instead of training a separate value network to estimate advantages, \ac{GRPO} computes advantages directly from relative performance within sampled action groups.
 This elegant modification preserves \ac{PPO}'s theoretical guarantees while dramatically reducing computational overhead.
 
 \subsubsection{The Core Simplification}
@@ -272,30 +272,20 @@ Premature convergence prevents the model from discovering these diverse strategi
 
 Several mitigation strategies have been proposed in the literature:
 
-\textbf{Entropy Regularization}~\cite{entropyRL2022}: Adding an entropy bonus to the objective function explicitly encourages diverse outputs: \begin{equation}
-L_{total} = L_{GRPO} + \beta H(\pi_\theta)
-\end{equation} where $H(\pi_\theta) = -\mathbb{E}_{a \sim \pi_\theta}[\log \pi_\theta(a|s)]$ measures policy entropy.
+\textbf{\ac{KL} Divergence Constraints}: A standard stabilization augments the clipped objective with a penalty that constrains divergence from a \emph{frozen} reference policy $\pi_{\mathrm{ref}}$.
+In the \ac{GRPO} setting, the optimization can be written as \begin{equation}
+    J_{\mathrm{GRPO}}(\theta) = \mathbb{E}_{q \sim P(Q),\; \{o_i\}_{i=1}^{G} \sim \pi_{\theta_{\mathrm{old}}}(\cdot|q)}\left[ \frac{1}{G} \sum_{i=1}^{G} \min\!\left( \frac{\pi_{\theta}(o_i|q)}{\pi_{\theta_{\mathrm{old}}}(o_i|q)} A_i,\; \text{clip}\!\left(\frac{\pi_{\theta}(o_i|q)}{\pi_{\theta_{\mathrm{old}}}(o_i|q)}, 1-\epsilon, 1+\epsilon\right) A_i \right) \right]
+    - \beta\, \mathrm{KL}(\pi_{\theta}\,\|\,\pi_{\mathrm{ref}}),
+\end{equation} where $\epsilon$ and $\beta$ are hyperparameters and $A_i$ is the group-relative advantage computed from group rewards.
+A practical surrogate for the KL term at the sampled output is \begin{equation}
+    \mathrm{KL}(\pi_{\theta}\,\|\,\pi_{\mathrm{ref}}) \approx \frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)} - \log\!\left( \frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)} \right) - 1,
+\end{equation} and, for token-level implementation from logits, with pre-softmax logits $z_{\theta}(s_t)$ and $z_{\mathrm{ref}}(s_t)$, \begin{equation}
+    \mathrm{KL}(\pi_{\theta}\,\|\,\pi_{\mathrm{ref}}) = \mathbb{E}_t\left[\mathrm{KL}\left(\sigma(z_{\theta}(s_t))\,\|\,\sigma(z_{\mathrm{ref}}(s_t))\right)\right].
+\end{equation} \todoinline{Standardize notation with the \ac{GRPO} section (e.g., $q$, $\{o_i\}_{i=1}^{G}$, $\pi_{\theta_{\mathrm{old}}}$, $\epsilon$, $\beta$, $\pi_{\mathrm{ref}}$) across the document.
+}
 
-\textbf{\ac{KL} Divergence Constraints}~\cite{klConstraints2023}: Constraining the \ac{KL} divergence between successive policies prevents rapid mode collapse:
-\begin{equation}
-\text{\ac{KL}}(\pi_\theta || \pi_{ref}) \leq \delta
-\end{equation}
-This approach is already partially addressed by \ac{PPO}'s clipping mechanism but can be strengthened with explicit penalties.
-
-\textbf{Diverse Sampling Strategies}~\cite{diverseSampling2024}: Instead of sampling all actions from the current policy, hybrid approaches sample from mixtures of the current policy and exploration distributions, maintaining diversity in the action groups used for advantage computation.
-
-\textbf{Periodic Policy Resets}~\cite{periodicResets2023}: Periodically resetting the policy to a more entropic state or mixing with the base model prevents complete collapse while retaining learned improvements.
-
-For code repair specifically, we adopt a multi-pronged approach:
-\begin{itemize}
-	\item Moderate entropy bonuses ($\beta = 0.01$) to maintain exploration without overwhelming the primary objective
-	\item Temperature scaling during sampling to control output diversity
-	\item Diverse prompt augmentation to encourage different solution approaches
-	\item Early stopping based on validation diversity metrics rather than just success rates
-\end{itemize}
-
-Understanding and mitigating variance collapse remains an active area of research, with implications extending beyond code repair to all applications of RL-based language model training.
-The trade-off between exploitation of successful strategies and exploration of alternatives represents a fundamental challenge in making these systems both effective and robust.
+\textbf{Sampling Strategies}:
+todoinline{Is it worthwhile to drag LLM sampling parameters into the mix and tie them to "exploration vs exploitation"?}
 
 \subsection{Group Sequence Policy Optimization (GSPO)}
 
@@ -922,7 +912,8 @@ This design captures the full complexity of real software development: understan
 
 Human annotators achieve 97\% success on \ac{SWE-Bench-Verified} compared to 73\% on the original, confirming the removal of problematic instances while maintaining challenging, realistic tasks.
 
-\textbf{\ac{SWE-Bench} Extensions}: While extensions to other programming languages have been proposed, our work focuses exclusively on the original Python-based benchmark suite, which provides the most mature and extensively validated evaluation framework.
+\textbf{\ac{SWE-Bench}
+	Extensions}: While extensions to other programming languages have been proposed, our work focuses exclusively on the original Python-based benchmark suite, which provides the most mature and extensively validated evaluation framework.
 
 This diversity demonstrates the complexity and realism of the evaluation framework.
 

@@ -129,8 +129,8 @@ However, [placeholder for discussion of practical considerations, scalability ch
 
 \subsection{Connection to GRPO}
 
-This \ac{MDP} formulation enables direct application of Group Relative Policy Optimization.
-\ac{GRPO} operates on batches of trajectories $\{\tau_1, \tau_2, \ldots, \tau_B\}$, computing advantages by comparing terminal rewards within each batch.
+This \ac{MDP} formulation enables direct application of \ac{GRPO}.
+\ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} operates on batches of trajectories $\{\tau_1, \tau_2, \ldots, \tau_B\}$, computing advantages by comparing terminal rewards within each batch.
 The policy update maximizes: \begin{align}
 	\mathcal{L}_{\text{GRPO}}(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{T} A_t \log \pi_\theta(a_t | s_t) \right]
 \end{align}
@@ -296,7 +296,7 @@ This unified paradigm enables true online learning where the policy improves con
 
 \subsection{Group Relative Policy Optimization (GRPO)}
 
-We employ Group Relative Policy Optimization (\ac{GRPO}) as our primary \ac{RL} algorithm.
+We employ Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical} as our primary \ac{RL} algorithm.
 \ac{GRPO} offers several advantages for our interactive setting:
 
 \begin{itemize}

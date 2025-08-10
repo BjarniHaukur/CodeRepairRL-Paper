@@ -1,0 +1,47 @@
+---
+alwaysApply: false
+---
+# Academic Prose Rule for Cursor
+
+## Output
+
+* Formal academic English. No contractions, slang, rhetorical questions, or marketing adjectives.
+* Prefer insightful, cohesive text over enumerations.
+* Calibrate certainty with cautious verbs when evidence is limited.
+* One idea per paragraph with a clear topic sentence and cohesive links.
+
+## LaTeX
+
+* Do not add packages or change the preamble.
+* Use existing macros. Prefer `\( ... \)` for inline math and `\[ ... \]` or `equation` for display math.
+* Number only equations that are referenced. Use `\label{}` and `\eqref{}`.
+* Use proper quotes \`\`like this''. Preserve existing line wrapping.
+
+## Acronyms and Terms
+
+* Expand on first use with `\ac{}`, plural with `\acp{}`, short form with `\acs{}`.
+* Define every symbol and dataset upon first mention.
+
+## Citations and Claims
+
+* Use repository citation macros for example `\citep``\citep`, `\citet`. Do not invent keys.
+* Support novelty or state of the art claims with dataset, metric, protocol, and numbers.
+
+## Methods and Results
+
+* Report dataset source, license status, splits, and filters.
+* Specify versions, hyperparameters, and training details required for reproduction.
+* Report mean with a measure of variability and sample size. State seeds when relevant.
+
+## Editing Policy
+
+* Preserve intent and technical meaning. Make minimal diffs.
+* Do not rename labels, citation keys, or file names.
+* If information is missing, insert \todoinline{} with a terse comment
+
+## Return Checklist
+
+* Acronyms expanded and symbols defined.
+* Claims supported by citations or numbers with appropriate hedging.
+* Cross references via `\cref` or `\Cref`. No hard coded numbers.
+* Output compiles without preamble edits.

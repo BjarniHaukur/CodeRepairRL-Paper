@@ -96,7 +96,7 @@ This clean-slate approach validates that effective code repair capabilities aris
 
 \textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient \ac{RL} with interactive agents.
 This includes a custom integration layer between vLLM inference servers and \ac{RL} trainers, real-time weight synchronization via \ac{NCCL} for live policy updates, and optimizations enabling training of models up to 32B parameters with limited computational resources.
-The infrastructure supports both Group Relative Policy Optimization (\ac{GRPO}) and can be extended to other policy gradient methods.
+The infrastructure supports both Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical} and can be extended to other policy gradient methods.
 
 \textbf{Empirical Validation}: Through extensive experiments on the \ac{SWE-Gym} training environment and \ac{SWE-Bench-Verified} evaluation benchmark, we demonstrate that this \ac{RL} approach produces monotonic improvements in bug-fixing performance.
 This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of interactive training approaches.
@@ -146,7 +146,7 @@ Our approach combines theoretical insights from \ac{RL} with practical engineeri
 The methodology centers on a two-stage training pipeline that progressively refines model capabilities.
 The first stage employs \ac{SFT} on curated datasets of high-quality bug fixes, establishing a foundation of code understanding and basic repair patterns.
 This stage ensures that models begin reinforcement learning with sufficient capability to generate meaningful actions within the environment.
-The second stage implements \ac{GRPO}, a variant of \ac{PPO} that forgoes value function estimation in favor of group-relative reward baselines.
+The second stage implements \ac{GRPO}, a variant of \ac{PPO}~\cite{schulman2017proximalpolicyoptimizationalgorithms} that forgoes value function estimation in favor of group-relative reward baselines.
 During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch quality.
 
 Our experimental design implements careful controls to ensure valid comparisons between different training paradigms.
@@ -192,7 +192,7 @@ While this simplicity enables clean experimental validation of the \ac{RL} appro
 
 The remainder of this thesis is structured to provide a comprehensive treatment of \ac{RL} for automated program repair, progressing from theoretical foundations through empirical validation.
 
-\textbf{Chapter 2: Background and Theoretical Foundations} establishes the theoretical context for our work, reviewing \ac{RL} algorithms for language models with particular emphasis on Group Relative Policy Optimization.
+\textbf{Chapter 2: Background and Theoretical Foundations} establishes the theoretical context for our work, reviewing \ac{RL} algorithms for language models with particular emphasis on \ac{GRPO}.
 We examine the evolution of automated program repair approaches, from rule-based systems through modern neural methods, and analyze the emergence of tool-augmented language models.
 The chapter introduces key concepts including agent scaffolding, reward design for code repair, and the training-inference duality that characterizes our approach.
 

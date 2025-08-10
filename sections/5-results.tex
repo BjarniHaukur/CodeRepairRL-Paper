@@ -9,7 +9,7 @@ We demonstrate statistically significant improvements over baseline approaches a
 
 \subsection{Learning Curve Analysis}
 
-Our \ac{GRPO} training demonstrates clear and consistent learning dynamics across multiple experimental runs.
+Our \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} training demonstrates clear and consistent learning dynamics across multiple experimental runs.
 Figure~\ref{fig:training-curves} shows the evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the Nano agent.
 
 \subsubsection{Reward Progression}
@@ -27,7 +27,7 @@ The learning curves demonstrate monotonic improvement throughout training, valid
 
 \subsubsection{Training Stability}
 
-\ac{GRPO} training exhibits remarkable stability compared to traditional \ac{PPO} implementations.
+\ac{GRPO} training exhibits remarkable stability compared to traditional \ac{PPO}~\cite{schulman2017proximalpolicyoptimizationalgorithms} implementations.
 The group-relative advantage estimation effectively reduces gradient variance, leading to smooth convergence without the oscillations typically observed in policy gradient methods.
 Standard deviation across training runs remains consistently low (σ < 0.03 success rate) throughout the training process.
 
