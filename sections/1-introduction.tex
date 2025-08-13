@@ -4,7 +4,8 @@ Automated program repair has rapidly transformed from a nascent research area to
 Recent advances in autonomous software engineering have achieved remarkable performance milestones, with systems like Claude~4 now exceeding 70\% success rates on \ac{SWE-Bench-Verified} \cite{claude4_2025}.
 This rapid progress underscores the critical importance of maintaining open research that can achieve near-parity understanding with frontier capabilities.
 Across diverse perspectives, there emerges a common recognition that researchers must maintain competitive access to the tools and methodologies driving these advances, ensuring that critical insights remain accessible to the broader scientific community rather than concentrated within proprietary systems.
-Recent open weight contributions such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\cite{qwen3coder_blog_2025} demonstrate that cutting-edge capabilities need not remain confined to closed systems, with these models following closely behind frontier performance.
+Recent open weight releases such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\cite{qwen3coder_blog_2025} follow closely behind frontier performance, but do not include full training recipes.
+This reinforces the need for open, reproducible methods and analysis.
 \todoinline{Verify and update SWE-Bench(-Verified) SOTA; cite system cards/technical reports for these claims (Claude 4/3.5, Qwen3-Coder, Kimi-K2) at submission.}
 
 Traditional systems for automated code repair have relied predominantly on supervised learning from static datasets of bug-fix pairs.
@@ -14,27 +15,21 @@ Moreover, the information needed to fix a bug is rarely contained within the bug
 
 The question becomes: how do we train such interactive agents when the very complexity that necessitates their existence also makes traditional training approaches intractable?
 \ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaZero2018}.
-These successes typically follow a progression from imitation learning to self-play, where agents refine their strategies through iterative experience.
-However, this approach fundamentally requires that learning systems can meaningfully participate in the task from the beginning—they must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space.
+However, \ac{RL} fundamentally requires that learning systems can meaningfully participate in the task from the beginning—they must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space.
 For complex reasoning tasks like software debugging, this prerequisite participation threshold has historically been insurmountable.
 
 \acp{LLM} have altered this fundamental constraint by providing the world knowledge and reasoning capabilities necessary to attempt tasks of unprecedented complexity.
 When equipped with appropriate interfaces, these models can navigate file systems, interpret error messages, execute diagnostic commands, and generate syntactically valid code modifications.
 This capability foundation transforms previously intractable problems into domains where \ac{RL} becomes feasible.
-The models possess sufficient latent understanding to generate meaningful action sequences and interpret environmental responses, providing the crucial foundation upon which \ac{RL} optimization can build.
+In effect, \acp{LLM} provide the first rung on the ladder that makes applying \ac{RL} to software engineering feasible.
 
-However, unlike traditional \ac{RL} agents—such as those trained for game playing—that directly produce actions from observations (e.g., selecting chess moves or joystick inputs), \acp{LLM} fundamentally operate as token generators.
+However, unlike traditional game playing \ac{RL} agents, which directly produce actions from observations (e.g., selecting chess moves or joystick inputs), \acp{LLM} fundamentally operate as token generators.
 They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental responses back into text.
 
 This critical distinction necessitates a fundamentally different approach to \ac{RL}.
-\todoinline{Add technical section explaining LLM-scaffold interaction patterns and MDP formulation}
+\todoinline{Would it be nice to fully model this process as an MDP?}
 In this paradigm, a scaffold or harness interprets structured token outputs from the \ac{LLM} (such as function calls or commands), executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
 The entire system—\ac{LLM} plus scaffold—forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
-
-This approach has gained particular prominence following dramatic improvements in model agency capabilities observed throughout 2024.
-Systems like Claude 3.5 Sonnet demonstrated unprecedented coding performance (improving from 33.4\% to 49.0\% on \ac{SWE-Bench-Verified}) and introduced revolutionary "computer use" capabilities, while OpenAI's o1 showed remarkable reasoning improvements through \ac{RL} techniques.
-These breakthroughs likely reflect large-scale deployment of similar scaffolded training approaches by major \ac{AI} laboratories, validating the potential of this paradigm for developing genuinely agentic \ac{AI} systems.
-\todoinline{Add citations to system cards/official docs: Claude 3.5 "computer use" and OpenAI o1 RL; keep/adjust numbers based on verifiable sources.}
 
 When equipped with appropriate scaffolds, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
 This capability transformation enables, for the first time, the application of \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
@@ -45,10 +40,10 @@ Human software developers do not repair bugs through single-shot pattern matchin
 They navigate complex codebases, examine multiple interconnected components, execute diagnostic commands, and progressively construct mental models of system behavior.
 This active learning process, fundamentally different from passive pattern recognition, suggests that training models through interactive experience could yield qualitatively superior debugging capabilities.
 
-Recent investigations into agent-based approaches have demonstrated the potential of tool-augmented \acp{LLM} for software engineering tasks \cite{openHands2024, aider2024}.
-However, these systems typically employ a two-stage approach: first training models on static datasets through supervised learning, then deploying them as agents with access to various tools and interfaces.
-This training-deployment mismatch potentially limits their effectiveness, as models never learn to optimize their tool usage or develop exploration strategies during training.
-The disconnect between the passive training regime and the active deployment environment represents a fundamental limitation that our work addresses.
+This direction aligns with widely observed advances at the frontier: agentic capabilities are clearly improving, with public reports of stronger coding performance and "computer use" features.
+These developments heighten the need for open, reproducible understanding of how agentic training works, rather than reliance on closed systems.
+Our work addresses this need by studying \ac{RL} with interactive coding agents in an open setting.
+\todoinline{Add citations to public system cards or technical reports where appropriate.}
 
 \section{Problem Statement}
 
