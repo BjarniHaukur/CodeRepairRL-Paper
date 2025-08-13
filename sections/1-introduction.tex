@@ -8,10 +8,13 @@ Recent open weight releases such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\
 This reinforces the need for open, reproducible methods and analysis.
 \todoinline{Verify and update SWE-Bench(-Verified) SOTA; cite system cards/technical reports for these claims (Claude 4/3.5, Qwen3-Coder, Kimi-K2) at submission.}
 
+\section{Background}
+
 Traditional systems for automated code repair have relied predominantly on supervised learning from static datasets of bug-fix pairs.
 In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process.
 While computationally efficient, this approach fundamentally misrepresents the nature of software debugging, which involves iterative hypothesis refinement, strategic exploration of codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation.
 Moreover, the information needed to fix a bug is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide.
+\todoinline{which traditional paper to cite here}
 
 The question becomes: how do we train such interactive agents when the very complexity that necessitates their existence also makes traditional training approaches intractable?
 \ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaZero2018}.
@@ -27,8 +30,7 @@ However, unlike traditional game playing \ac{RL} agents, which directly produce 
 They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental responses back into text.
 
 This critical distinction necessitates a fundamentally different approach to \ac{RL}.
-\todoinline{Would it be nice to fully model this process as an MDP?}
-In this paradigm, a scaffold or harness interprets structured token outputs from the \ac{LLM} (such as function calls or commands), executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
+In this paradigm, a scaffold or harness interprets tool calls from the \ac{LLM}, executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
 The entire system—\ac{LLM} plus scaffold—forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
 
 When equipped with appropriate scaffolds, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
@@ -45,13 +47,13 @@ These developments heighten the need for open, reproducible understanding of how
 Our work addresses this need by studying \ac{RL} with interactive coding agents in an open setting.
 \todoinline{Add citations to public system cards or technical reports where appropriate.}
 
-\section{Problem Statement}
+\section{Problem}
 
 The central challenge addressed in this thesis concerns the fundamental disconnect between the training methodologies employed for code repair models and the interactive, exploratory nature of real-world debugging.
 Contemporary approaches to automated program repair exhibit a critical limitation: models trained on static datasets of bug-fix pairs are subsequently expected to perform dynamic, multi-step reasoning in complex software environments.
 This paradigm mismatch constrains their effectiveness and generalization capabilities.
 
-We identify three specific limitations that characterize current approaches:
+We identify two specific limitations that characterize current approaches:
 
 \textbf{Exploration Capability Deficit}: Models trained exclusively on static data lack the ability to develop effective exploration strategies.
 Unlike human developers who actively navigate codebases, execute diagnostic commands, and iteratively gather contextual information, these models never experience the exploratory aspects of debugging during training.
@@ -63,12 +65,10 @@ Models trained for single-shot generation lack the temporal reasoning capabiliti
 
 These limitations converge to a fundamental research question: How can we develop training methodologies that enable language models to acquire genuine debugging skills through interactive experience, and what architectural choices maximize the effectiveness of such training?
 This question motivates our investigation into \ac{RL} with interactive agents as a paradigm for training more capable code repair systems.
-\todoinline{Recommend defining scaffolded RL once here and using "RL" throughout - the distinction is clear from context}
 
-\section{Research Objectives}
+\section{Purpose}
 
 This thesis investigates a novel training paradigm for automated program repair using \ac{RL} with interactive coding agents.
-\todoinline{Recommend avoiding repeated terminology - just call it "RL" after establishing the scaffolded context}
 The fundamental premise is that language models can acquire more sophisticated debugging capabilities when trained through direct interaction with software environments, rather than passive observation of static bug-fix examples.
 By embedding autonomous coding agents within the \ac{RL} optimization process, we enable models to learn from the consequences of their exploratory actions and develop effective debugging strategies through experience.
 
@@ -77,41 +77,42 @@ We hypothesize that the ability to explore codebases, execute commands, observe 
 
 Through rigorous empirical evaluation, this research aims to establish this interactive \ac{RL} approach as a viable and superior alternative to static supervised learning for training code repair systems, demonstrating that interactive training with real environments leads to more capable debugging agents.
 
-\section{Contributions}
+\section{Goal}
 
-This thesis makes several significant contributions to the field of automated program repair and \ac{RL} for code generation:
+% This thesis makes several significant contributions to the field of automated program repair and \ac{RL} for code generation:
 
-\textbf{Novel Training Paradigm}: We introduce and implement \ac{RL} for code repair, wherein autonomous agents interact with real software environments during training.
-\todoinline{Recommend defining this approach once and dropping the term}
-This approach represents a fundamental departure from static supervised learning, enabling models to learn debugging strategies through direct experience.
-Our implementation demonstrates the feasibility of this paradigm at scale, handling the computational and engineering challenges of simultaneous training and environment interaction.
+% \textbf{Novel Training Paradigm}: We introduce and implement \ac{RL} for code repair, wherein autonomous agents interact with real software environments during training.
+% \todoinline{Recommend defining this approach once and dropping the term}
+% This approach represents a fundamental departure from static supervised learning, enabling models to learn debugging strategies through direct experience.
+% Our implementation demonstrates the feasibility of this paradigm at scale, handling the computational and engineering challenges of simultaneous training and environment interaction.
 
-\textbf{Nano Agent Implementation}: We develop a minimalist "Nano agent" that utilizes only essential terminal commands and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
-This clean-slate approach validates that effective code repair capabilities arise from learning rather than engineered complexity.
+% \textbf{Nano Agent Implementation}: We develop a minimalist "Nano agent" that utilizes only essential terminal commands and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
+% This clean-slate approach validates that effective code repair capabilities arise from learning rather than engineered complexity.
 
-\textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient \ac{RL} with interactive agents.
-This includes a custom integration layer between vLLM inference servers and \ac{RL} trainers, real-time weight synchronization via \ac{NCCL} for live policy updates, and optimizations enabling training of models up to 32B parameters with limited computational resources.
-The infrastructure supports both Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical} and can be extended to other policy gradient methods.
+% \textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient \ac{RL} with interactive agents.
+% This includes a custom integration layer between vLLM inference servers and \ac{RL} trainers, real-time weight synchronization via \ac{NCCL} for live policy updates, and optimizations enabling trainiÂng of models up to 32B parameters with limited computational resources.
+% The infrastructure supports both Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical} and can be extended to other policy gradient methods.
 
-\textbf{Empirical Validation}: Through extensive experiments on the \ac{SWE-Gym} training environment and \ac{SWE-Bench-Verified} evaluation benchmark, we demonstrate that this \ac{RL} approach produces monotonic improvements in bug-fixing performance.
-This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of interactive training approaches.
+% \textbf{Empirical Validation}: Through extensive experiments on the \ac{SWE-Gym} training environment and \ac{SWE-Bench-Verified} evaluation benchmark, we demonstrate that this \ac{RL} approach produces monotonic improvements in bug-fixing performance.
+% This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of interactive training approaches.
 
-\textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community.
-This includes the Nano agent implementation and the \ac{RL} training pipeline.
+% \textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community.
+% This includes the Nano agent implementation and the \ac{RL} training pipeline.
 
-\section{Research Questions}
-
-This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
+The overarching goal of this thesis is to develop and empirically validate an interactive \ac{RL} training paradigm for automated program repair.
+To make this goal concrete, we address the following research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
 
 \textbf{RQ1: Does the trained model adapt to the harness (tools and prompts)?
+	% This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
 }
 \begin{itemize}
 	\item Primary indicators: tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity, action efficiency (files viewed, commands per episode), prompt-format sensitivity.
 	\item Hypothesis: \ac{RL} improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
-	\item \todoinline{Insert concrete numbers and plots from training logs: tool success, invalid calls, retries, length-of-trajectory, \ac{KL} to reference prompts.}
 \end{itemize}
 
-\textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?}
+\todoinline{should be how much of the gains can be attributed to the specific model being post-trained.
+	Common failure point of recent papers only training Qwen} \textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?
+}
 \begin{itemize}
 	\item Goal: assess portability of the training recipe and Nano agent to alternative backbones with different tool-calling priors.
 	\item Design: repeat core experiments with at least one additional base model of comparable scale.
@@ -133,15 +134,29 @@ This investigation is organized around four research questions aligned to our cu
 	\item \todoinline{Specify evaluation protocol, shim prompts, and compatibility constraints; add results tables when available.}
 \end{itemize}
 
-\section{Methodology Overview}
+\section{Benefits, Ethics and Sustainability}
 
-This research employs a rigorous experimental methodology designed to systematically evaluate \ac{RL} for automated program repair.
-Our approach combines theoretical insights from \ac{RL} with practical engineering solutions to create a comprehensive experimental framework.
+This work contributes to open research in a field dominated by closed frontier labs by releasing methods, code, and evaluation protocols in an open format.
+All implementation details needed to reproduce results are documented, including configuration files, prompts, and harness interfaces.
+We use standard datasets with clear licensing and provide exact commit hashes for benchmarks and dependencies.
+To enable critical scrutiny, we specify evaluation scripts and random seeds, and we will archive artifacts to ensure long-term accessibility.
+By reducing barriers to entry and facilitating independent replication, the project strengthens transparency and community-driven progress in automated program repair.
 
-The methodology centers on a two-stage training pipeline that progressively refines model capabilities.
-The first stage employs \ac{SFT} on curated datasets of high-quality bug fixes, establishing a foundation of code understanding and basic repair patterns.
-This stage ensures that models begin reinforcement learning with sufficient capability to generate meaningful actions within the environment.
-The second stage implements \ac{GRPO}, a variant of \ac{PPO}~\cite{schulman2017proximalpolicyoptimizationalgorithms} that forgoes value function estimation in favor of group-relative reward baselines.
+Ethical considerations arise from the potential misuse of agentic systems and the provenance of training data.
+We restrict experiments to permissively licensed repositories and avoid exposing sensitive credentials or private data within environments.
+We emphasize safe tooling (read/write-limited file access, sandboxed execution) and encourage downstream users to adopt similar safeguards.
+We also discuss risks of model hallucination and uncontrolled code changes, and we outline mitigations in evaluation protocols and harness design.
+\todoinline{Cite dataset licenses and note any filtering rules used; add a brief risk assessment reference.}
+
+We closely monitor the amount of compute per experiment and report tokens processed and \ac{GPU}-hours to support reproducibility and minimize unnecessary energy use.
+We adopt efficiency practices such as mixed-precision training, reuse of checkpoints and shared inference servers via training-inference duality, and targeted ablations to avoid redundant runs.
+
+\section{Methodology}
+\todoinline{Coin the repository level term earlier?}
+This research employs a rigorous experimental methodology designed to systematically evaluate \ac{RL} for repository level bug fixing.
+% Our approach combines theoretical insights from \ac{RL} with practical engineering solutions to create a comprehensive experimental framework.
+
+We employ \ac{GRPO}, a variant of \ac{PPO}~\cite{schulman2017proximalpolicyoptimizationalgorithms} that forgoes value function estimation in favor of group-relative reward baselines.
 During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch quality.
 
 Our experimental design implements careful controls to ensure valid comparisons between different training paradigms.
@@ -160,7 +175,17 @@ We employ both the \ac{SWE-Gym} environment for training, which provides thousan
 Statistical analysis includes significance testing for performance differences, learning curve analysis to understand training dynamics, and qualitative examination of agent behaviors to identify emergent strategies.
 This multi-faceted approach enables both quantitative validation of our hypotheses and deeper insights into the mechanisms driving performance improvements.
 
-\section{Scope and Limitations}
+\section{Stakeholders}
+
+Primary stakeholders include \ac{ML} and software engineering researchers interested in \ac{APR}, open-source maintainers whose repositories inform benchmarks and evaluation, and practitioners seeking reliable automated debugging tools.
+Secondary stakeholders include infrastructure providers supporting large-scale training and serving, and the broader \ac{AI} community working on agentic systems.
+We design our methods and releases to maximize utility for these groups while balancing privacy, security, and sustainability concerns.
+
+\section{Delimitations}
+
+\begin{enumerate}
+	\item no Docker access on compute cluster, limits scalability
+\end{enumerate}
 
 This investigation operates within carefully defined boundaries that balance scientific rigor with practical constraints.
 Understanding these delimitations is essential for interpreting our findings and their applicability to broader contexts.
@@ -183,7 +208,7 @@ Additionally, our evaluation emphasizes single-commit bug fixes rather than comp
 \textbf{Agent Implementation}: Our Nano agent represents a deliberately minimalist approach to agent design, providing only essential terminal commands and file operations.
 While this simplicity enables clean experimental validation of the \ac{RL} approach, more sophisticated tool sets could potentially yield different performance characteristics.
 
-\section{Thesis Organization}
+\section{Outline}
 
 The remainder of this thesis is structured to provide a comprehensive treatment of \ac{RL} for automated program repair, progressing from theoretical foundations through empirical validation.
 
@@ -191,7 +216,7 @@ The remainder of this thesis is structured to provide a comprehensive treatment 
 We examine the evolution of automated program repair approaches, from rule-based systems through modern neural methods, and analyze the emergence of tool-augmented language models.
 The chapter introduces key concepts including agent scaffolding, reward design for code repair, and the training-inference duality that characterizes our approach.
 
-\textbf{Chapter 3: Methodology and System Design} presents our technical approach in detail, beginning with the scaffolded training paradigm and its implementation. \todoinline{Add section on MDP formulation and tool usage patterns here}
+\textbf{Chapter 3: Methodology and System Design} presents our technical approach in detail, beginning with the scaffolded training paradigm and its implementation.
 We describe the architecture of our Nano agent, explaining design decisions and rationale for the minimalist approach.
 The chapter details our two-stage training pipeline, reward formulation, and the engineering innovations that enable efficient large-scale training.
 Particular attention is given to the integration of vLLM inference servers with \ac{RL} trainers and the \ac{NCCL}-based weight synchronization system.

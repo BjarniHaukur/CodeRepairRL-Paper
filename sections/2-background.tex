@@ -1,9 +1,12 @@
-\chapter{Background and Related Work}
+\chapter{Theoretical Background and Related Work}
 
 This chapter provides the theoretical foundation for interactive reinforcement learning applied to automated code repair.
 We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
 
-\section{Automated Code Repair with Language Models}
+\section{Automated Code Repair before LLMs}
+\todoinline{GENProg, Defect4j, etc.}
+
+\section{Automated Code Repair with LLMs}
 
 Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
 
@@ -24,16 +27,8 @@ Most recently, \ac{SWE-Bench}~\cite{sweBench2024} introduced repository-level ta
 
 Current \ac{LLM}-based approaches exhibit several fundamental limitations that constrain their effectiveness:
 
-\textbf{Single-step generation}: Most models generate patches in a single forward pass without the ability to explore the codebase, test hypotheses, or iteratively refine solutions based on feedback.
-
-\textbf{Limited context windows}: Even with recent advances extending context lengths to 128K+ tokens, models struggle to maintain coherent understanding across large codebases with complex dependencies.
-
-\textbf{Poor multi-file coordination}: Real-world bugs often require coordinated changes across multiple files.
-Current models frequently produce inconsistent edits that fail to maintain invariants across file boundaries.
-
-\textbf{Lack of environmental interaction}: Models cannot execute code, run tests, or observe runtime behavior, limiting their ability to understand dynamic program properties and verify correctness.
-
 Recent specialized models like RepairLLaMA~\cite{repairllama2024} have attempted to address these limitations through continued pre-training on bug-fix datasets, achieving modest improvements on benchmarks.
+% \textbf{Lack of environmental interaction}: Models cannot execute code, run tests, or observe runtime behavior, limiting their ability to understand dynamic program properties and verify correctness.% \textbf{Single-step generation}: Most models generate patches in a single forward pass without the ability to explore the codebase, test hypotheses, or iteratively refine solutions based on feedback.% \textbf{Limited context windows}: Even with recent advances extending context lengths to 128K+ tokens, models struggle to maintain coherent understanding across large codebases with complex dependencies.% \textbf{Poor multi-file coordination}: Real-world bugs often require coordinated changes across multiple files.% Current models frequently produce inconsistent edits that fail to maintain invariants across file boundaries.
 However, these approaches still operate within the fundamental constraint of single-pass generation without environmental feedback.
 
 Current approaches primarily rely on supervised fine-tuning on bug-fix datasets, where models learn to map broken code snippets to corrected versions.
@@ -88,6 +83,8 @@ Reinforcement learning has emerged as a powerful technique for improving languag
 Unlike supervised learning, which relies on fixed input-output pairs, \ac{RL} enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
 
 \subsection{Policy Gradient Foundations}
+
+\todoinline{Would it be nice to fully model this process as an MDP?}
 
 The foundation of \ac{RL} for language models lies in treating text generation as a Markov Decision Process (\ac{MDP}).
 In this formulation, the language model serves as a policy $\pi_\theta(a_t|s_t)$ that selects actions (tokens) $a_t$ given states (context sequences) $s_t$, parameterized by model weights $\theta$.
@@ -433,12 +430,10 @@ The combination of \ac{LoRA}'s efficiency with interactive \ac{RL} creates oppor
 
 The ability for language models to interact with external tools and \acp{API} represents a fundamental shift from purely generative models to interactive agents capable of performing complex, multi-step tasks in real environments.
 
-\subsection{Function Calling Mechanisms}
+\subsection{Stuctured output Calling}
 
 Modern \acp{LLM} implement tool calling through structured output generation, where models learn to produce specially formatted function calls that can be parsed and executed by external systems.
 This capability emerged from training models on datasets containing examples of tool usage patterns, enabling them to understand when and how to invoke external functions.
-
-\subsubsection{\ac{JSON}-Based Function Calling}
 
 The dominant paradigm uses \ac{JSON}-formatted function calls embedded within model outputs:
 
