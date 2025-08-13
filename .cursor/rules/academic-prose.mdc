@@ -1,47 +1,81 @@
 ---
-alwaysApply: false
+alwaysApply: true
 ---
-# Academic Prose Rule for Cursor
+# Academic Writing Assistant for LaTeX Thesis
 
-## Output
+## Core Writing Philosophy
+* Write continuous, flowing academic prose that prioritizes clarity and precision over unnecessary complexity
+* Build arguments progressively through connected paragraphs, not bullet points or lists
+* Choose simple, precise words over jargon unless technical terms are essential
+* Maintain formal academic tone without being unnecessarily verbose or obscure
 
-* Formal academic English. No contractions, slang, rhetorical questions, or marketing adjectives.
-* Prefer insightful, cohesive text over enumerations.
-* Calibrate certainty with cautious verbs when evidence is limited.
-* One idea per paragraph with a clear topic sentence and cohesive links.
+## Prose Style and Flow
+* **Paragraph Structure**: Each paragraph develops one clear idea with 4-7 sentences typically
+  - Topic sentence states the main point
+  - Supporting sentences provide evidence, explanation, or analysis
+  - Transitional elements connect to previous and following paragraphs
+* **Sentence Variety**: Mix sentence lengths and structures for readability
+  - Combine short, punchy statements with longer, complex sentences
+  - Use active voice when possible; passive voice only when conventional or necessary
+* **Transitions**: Explicitly connect ideas using transitional phrases
+  - Between paragraphs: "Building on this foundation...", "In contrast to...", "This approach reveals..."
+  - Within paragraphs: "moreover", "however", "consequently", "specifically"
+* **Academic Hedging**: Calibrate certainty appropriately
+  - Strong evidence: "demonstrates", "establishes", "confirms"
+  - Moderate evidence: "suggests", "indicates", "appears to"
+  - Limited evidence: "may", "could potentially", "preliminary findings suggest"
 
-## LaTeX
+## LaTeX Technical Requirements
+* **Math**: Use `\( ... \)` for inline, `\[ ... \]` or `equation` environment for display
+* **Equations**: Number only when referenced; use `\label{eq:descriptive-name}` and `\eqref{eq:descriptive-name}`
+* **Quotes**: Use LaTeX quotes ``like this'' not straight quotes
+* **Cross-references**: Always use `\cref{label}` or `\Cref{label}` at sentence start
+* **Line breaks**: Preserve existing line wrapping patterns in the source
 
-* Do not add packages or change the preamble.
-* Use existing macros. Prefer `\( ... \)` for inline math and `\[ ... \]` or `equation` for display math.
-* Number only equations that are referenced. Use `\label{}` and `\eqref{}`.
-* Use proper quotes \`\`like this''. Preserve existing line wrapping.
+## Acronyms and Terminology
+* **ALWAYS use `\ac{}`** for acronyms - the package handles expansion automatically
+  - First use: `\ac{CNN}` (renders as "Convolutional Neural Network (CNN)")
+  - Subsequent uses: `\ac{CNN}` (renders as "CNN")
+  - Plural forms: `\acp{CNN}` when needed
+  - Never manually write "Convolutional Neural Network (CNN)"
+* **Define all symbols** immediately upon introduction: "where $\alpha$ denotes the learning rate"
+* **Introduce technical terms** with brief, clear explanations on first use
 
-## Acronyms and Terms
+## Citations and Evidence
+* **Citation commands**: Use existing macros like `\citep{}`, `\citet{}`, `\citealp{}`
+* **Citation placement**: 
+  - End of sentence: "...as shown in previous work \citep{key1,key2}."
+  - Integrated: "\citet{key1} demonstrated that..."
+* **Supporting claims**: Every claim needs either:
+  - Citation to published work
+  - Reference to your own results (with section/figure/table reference)
+  - Explicit acknowledgment of speculation: "We hypothesize that..."
+* **Quantitative claims**: Always include specific numbers, metrics, and datasets
 
-* Expand on first use with `\ac{}`, plural with `\acp{}`, short form with `\acs{}`.
-* Define every symbol and dataset upon first mention.
+## Writing Process Instructions
+* **Generate continuous text**: Write complete paragraphs that flow naturally
+* **Maintain momentum**: Don't interrupt prose with meta-comments or questions
+* **Missing information**: Insert `\todoinline{need: specific detail}` and continue writing
+* **Build on existing text**: Read surrounding context and ensure smooth integration
+* **Preserve technical accuracy**: Never sacrifice precision for style
 
-## Citations and Claims
+## Methods and Results Specifics
+* **Experimental details**: Include model versions, hyperparameters, hardware, training time
+* **Statistical reporting**: "achieving 92.3\% accuracy (σ=1.2, n=5 runs)"
+* **Dataset description**: Name, version, split sizes, preprocessing steps
+* **Reproducibility**: Enough detail for another researcher to replicate
 
-* Use repository citation macros for example `\citep``\citep`, `\citet`. Do not invent keys.
-* Support novelty or state of the art claims with dataset, metric, protocol, and numbers.
+## Editing Principles
+* **Minimal changes**: When editing, preserve original structure and labels
+* **Diff-friendly**: Make small, focused changes that are easy to review
+* **Never modify**: Citation keys, label names, macro definitions, preamble
+* **Improve clarity**: Simplify convoluted sentences, fix ambiguous pronouns, strengthen transitions
 
-## Methods and Results
-
-* Report dataset source, license status, splits, and filters.
-* Specify versions, hyperparameters, and training details required for reproduction.
-* Report mean with a measure of variability and sample size. State seeds when relevant.
-
-## Editing Policy
-
-* Preserve intent and technical meaning. Make minimal diffs.
-* Do not rename labels, citation keys, or file names.
-* If information is missing, insert \todoinline{} with a terse comment
-
-## Return Checklist
-
-* Acronyms expanded and symbols defined.
-* Claims supported by citations or numbers with appropriate hedging.
-* Cross references via `\cref` or `\Cref`. No hard coded numbers.
-* Output compiles without preamble edits.
+## Quality Checklist Before Returning Text
+- [ ] Text flows as continuous prose, not fragments or lists
+- [ ] All acronyms use `\ac{}` commands exclusively  
+- [ ] Transitions connect paragraphs and ideas smoothly
+- [ ] Technical terms are clear to a graduate student in the field
+- [ ] Claims have appropriate evidence and hedging
+- [ ] Cross-references use `\cref` not hard-coded numbers
+- [ ] LaTeX compiles without errors
