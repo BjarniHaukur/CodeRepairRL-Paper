@@ -4,6 +4,7 @@ This chapter provides the theoretical foundation for interactive reinforcement l
 We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
 
 \section{Automated Code Repair before LLMs}
+\label{sec:apr-pre-llm}
 \todoinline{GENProg, Defect4j, etc.}
 The evolution of \ac{APR} can be traced through three distinct paradigms.
 Early search-based approaches like GenProg~\cite{genProg2012} and PAR~\cite{PAR2013} employed genetic programming and pattern-based transformations to search for valid patches within a predefined space of mutations.
@@ -658,20 +659,23 @@ However, it focused on single-function synthesis rather than repository-scale de
 \textbf{PPOCoder}~\cite{ppoCoder2023} extended CodeRL with proximal policy optimization but maintained the limitation of single-file, single-step generation.
 The work demonstrated improved sample efficiency but did not address the fundamental mismatch between training and real-world debugging workflows.
 
-\textbf{RLTF}~\cite{rltf2023} (Reinforcement Learning from Test Feedback) introduced more sophisticated reward shaping using test coverage and execution traces.
+\textbf{RLTF}~\cite{liu2023rltfreinforcementlearningunit} (Reinforcement Learning from Unit Test Feedback) introduced more sophisticated reward shaping using test coverage and execution traces.
 While innovative, it still operated on isolated functions without repository context or tool usage.
+
+\textbf{SWE-RL}~\cite{wei2025swerladvancingllmreasoning} introduced a static, single-turn formulation—where a model given full file contexts produces a patch after a reasoning step.
+\todoinline{elaborate}
 
 \textbf{Critical limitations of existing work}:
 \begin{itemize}
 	\item Focus on generation rather than repair: Creating new code differs fundamentally from debugging existing systems
 	\item Isolated task formulation: Single-function tasks ignore the complexity of real software systems
 	\item Lack of environmental interaction: No exploration, tool usage, or iterative refinement
-	\item Limited scale: Experiments on small datasets don't demonstrate practical viability
 \end{itemize}
 
 \subsubsection{Agent-Based Debugging Systems}
 
-The proliferation of coding agents has occurred almost entirely in the inference domain:
+The proliferation of coding agents has occurred almost entirely in the inference domain.
+Only very recent efforts by OpenHands, Alibaba's Qwen team ~\cite{qwen3coder_blog_2025} and others have ad
 
 \textbf{AutoCodeRover}~\cite{autoCodeRover2024} combines code search, static analysis, and \ac{LLM}-based patch generation.
 While effective (achieving 15\% on \ac{SWE-Bench}), it operates purely at inference time with no learning from experience.

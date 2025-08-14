@@ -8,6 +8,10 @@ Recent open weight releases such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\
 This reinforces the need for open, reproducible methods and analysis.
 \todoinline{Verify and update SWE-Bench(-Verified) SOTA; cite system cards/technical reports for these claims (Claude 4/3.5, Qwen3-Coder, Kimi-K2) at submission.}
 
+An important contemporaneous effort is SWE-RL~\cite{wei2025swerladvancingllmreasoning}, which applies \ac{GRPO} with a rule-based reward based on patch similarity (Python's \texttt{difflib.SequenceMatcher}) to train models in a static, single-turn setting where the full file contexts are provided and the model directly outputs a patch that is compared to ground truth.
+Our work is complementary: we also use \ac{GRPO} and a patch-similarity reward, but in an agentic, multi-step regime where the model must first acquire its own context through tool use before proposing edits.
+This distinction—static one-shot patch generation versus interactive context acquisition and repair—motivates our focus on agent-integrated training rather than purely prompt-time scaffolding.
+
 \section{Background}
 
 Traditional systems for automated code repair have relied predominantly on supervised learning from static datasets of bug-fix pairs.
@@ -35,14 +39,14 @@ The entire system—\ac{LLM} plus scaffold—forms the \ac{RL} agent, with learn
 
 When equipped with appropriate scaffolds, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
 This capability transformation enables, for the first time, the application of \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
-\todoinline{Tie explicitly to terminal-oriented agency; add references to public statements/benchmarks on terminal skills (e.g., TerminalBench/TauBench if applicable).}
+\todoinline{Tie explicitly to terminal-oriented agency; add references to public statements/benchmarks on terminal skills (e.g., TerminalBench/TauBench  ).}
 
 The significance of this paradigm shift extends beyond mere technical feasibility.
 Human software developers do not repair bugs through single-shot pattern matching; rather, they engage in sophisticated exploratory processes involving hypothesis formation, incremental information gathering, and iterative solution refinement.
 They navigate complex codebases, examine multiple interconnected components, execute diagnostic commands, and progressively construct mental models of system behavior.
 This active learning process, fundamentally different from passive pattern recognition, suggests that training models through interactive experience could yield qualitatively superior debugging capabilities.
 
-This direction aligns with widely observed advances at the frontier: agentic capabilities are clearly improving, with public reports of stronger coding performance and "computer use" features.
+This direction aligns with widely observed advances at the frontier: agentic capabilities are clearly improving, with public reports of stronger coding performance and enhanced interactive capabilities.
 These developments heighten the need for open, reproducible understanding of how agentic training works, rather than reliance on closed systems.
 Our work addresses this need by studying \ac{RL} with interactive coding agents in an open setting.
 \todoinline{Add citations to public system cards or technical reports where appropriate.}
@@ -117,17 +121,17 @@ To make this goal concrete, we address the following research questions aligned 
 	% This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
 }
 \begin{itemize}
-	\item Primary indicators: tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity, action efficiency (files viewed, commands per episode), prompt-format sensitivity.
+	\item Primary indicators: increasing reward, tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity
 	\item Hypothesis: \ac{RL} improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
 \end{itemize}
 
 \todoinline{should be how much of the gains can be attributed to the specific model being post-trained.
-	Common failure point of recent papers only training Qwen} \textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?
+	Common failure point of recent papers only training Qwen}	\textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?
 }
 \begin{itemize}
-	\item Goal: assess portability of the training recipe and Nano agent to alternative backbones with different tool-calling priors.
-	\item Design: repeat core experiments with at least one additional base model of comparable scale.
-	\item \todoinline{Add chosen models, training budgets, and any agent-specific adjustments needed (if any).}
+	\item Goal: validate that our training recipe generalizes beyond the Qwen3 family used for development.
+	\item Design: replicate final experiments on Gemma3 and Llama3.1 to assess portability across different model architectures and tool-calling capabilities. \todoinline{Is this a sensible set of models?}
+	\item This approach tests whether our findings are Qwen-specific or represent broader principles for interactive \ac{RL} training.
 \end{itemize}
 
 \textbf{RQ3: Does training on \ac{SWE-Gym} overfit? (Train on \ac{SWE-Gym}, evaluate on \ac{SWE-Bench} and Multi-SWE-Bench)}
@@ -140,9 +144,8 @@ To make this goal concrete, we address the following research questions aligned 
 
 \textbf{RQ4: Does the trained model generalize to other agentic code harnesses and tasks?}
 \begin{itemize}
-	\item Cross-harness: evaluate with Aider and OpenHands-style harnesses without re-training (prompt shim only if needed).
-	\item Cross-task: evaluate on TauBench and TerminalBench to probe terminal-oriented generalization.
-	\item \todoinline{Specify evaluation protocol, shim prompts, and compatibility constraints; add results tables when available.}
+	\item Cross-harness: evaluate with MiniAgent (should work) and OpenHands harnesses without.
+	\item Cross-task: evaluate on TauBench and TerminalBench to probe terminal-oriented generalization. \todoinline{TerminalBench is probably too hard}
 \end{itemize}
 
 \section{Benefits, Ethics and Sustainability}
@@ -155,9 +158,7 @@ By reducing barriers to entry and facilitating independent replication, the proj
 
 Ethical considerations arise from the potential misuse of agentic systems and the provenance of training data.
 We restrict experiments to permissively licensed repositories and avoid exposing sensitive credentials or private data within environments.
-We emphasize safe tooling (read/write-limited file access, sandboxed execution) and encourage downstream users to adopt similar safeguards.
-We also discuss risks of model hallucination and uncontrolled code changes, and we outline mitigations in evaluation protocols and harness design.
-\todoinline{Cite dataset licenses and note any filtering rules used; add a brief risk assessment reference.}
+We emphasize safe tooling (read/write-limited file access, sandboxed execution) and encourage downstream \todoinline{I believe we can better isolate each agent with some apptainer flags I found, decide if the final iteration of experiments will use those}
 
 We closely monitor the amount of compute per experiment and report tokens processed and \ac{GPU}-hours to support reproducibility and minimize unnecessary energy use.
 We adopt efficiency practices such as mixed-precision training, reuse of checkpoints and shared inference servers via training-inference duality, and targeted ablations to avoid redundant runs.
@@ -194,10 +195,6 @@ We design our methods and releases to maximize utility for these groups while ba
 
 \section{Delimitations}
 
-\begin{enumerate}
-	\item no Docker access on compute cluster, limits scalability
-\end{enumerate}
-
 This investigation operates within carefully defined boundaries that balance scientific rigor with practical constraints.
 Understanding these delimitations is essential for interpreting our findings and their applicability to broader contexts.
 
@@ -208,9 +205,12 @@ This focus allows deep investigation of the debugging process while acknowledgin
 \textbf{Language and Environment Constraints}: Our experiments focus exclusively on Python repositories due to the availability of high-quality benchmarks and the language's popularity in open-source development.
 We specifically exclude bugs requiring complex runtime environments, external service interactions, or hardware-specific behaviors, as these cannot be reliably simulated in our containerized training environment.
 
-\textbf{Model Architecture Limitations}: While our approach is theoretically model-agnostic, computational constraints necessitate focusing on the Qwen3 model family (8B and 32B variants).
-These models were selected for their exceptional tool-calling capabilities and open availability, but our findings may not directly generalize to models with different architectural characteristics or training objectives.
-The \ac{RL} approach demands substantial computational resources for both training and inference, limiting the scope of hyperparameter exploration and model scaling experiments.
+\textbf{Compute Environment Constraints}: Experiments were conducted on the Berzelius and Alvis Swedish national \ac{GPU} clusters, which use SLURM scheduling and do not support horizontal scalability via Docker-based container orchestration.
+This constraint informed the design of both the Nano agent and the training pipeline, leading us to adopt parallelization and isolation mechanisms compatible with SLURM scheduling.
+
+\textbf{Model Architecture Scope}: Our primary development and analysis focuses on the Qwen3 model family (reasoning turned off), selected for their exceptional tool-calling capabilities and open availability.
+We deliberately avoud reasoning models as they generate excessively verbose outputs that rapidly exhaust token budgets in our interactive training environment.
+To validate generalizability, we replicate key experiments on Gemma3 and Llama3.1.
 
 \textbf{Evaluation Protocol Boundaries}: Our reward function relies on automated patch comparison rather than full test suite execution, trading perfect functional correctness assessment for computational tractability.
 While this approach aligns with established benchmarks and enables large-scale experiments, it may occasionally miss functionally equivalent but syntactically different solutions.
@@ -218,6 +218,8 @@ Additionally, our evaluation emphasizes single-commit bug fixes rather than comp
 
 \textbf{Agent Implementation}: Our Nano agent represents a deliberately minimalist approach to agent design, providing only essential terminal commands and file operations.
 While this simplicity enables clean experimental validation of the \ac{RL} approach, more sophisticated tool sets could potentially yield different performance characteristics.
+
+\textbf{Methodological Boundaries}: We briefly explored distillation via \ac{SFT}, but did not pursue it further due to limited empirical benefit and because reliance on proprietary teacher models would run counter to the thesis objective of advancing open RL training for agentic coding behaviour.
 
 \section{Outline}
 

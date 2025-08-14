@@ -12,26 +12,25 @@
 
 	\subsection*{Supervisor} André Afonso Nunes Silva <andreans@kth.se>\\ Division of Theoretical Computer Science\\ KTH Royal Institute of Technology ~ }
 
-\newpage \thispagestyle{plain} \chapter*{Abstract}
-
-Software engineering agents have emerged as the dominant approach for automated program repair, with systems like SWE-agent, AutoCodeRover, and OpenHands achieving unprecedented success on real-world debugging tasks.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  The English abstract          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Topic
+\newpage \thispagestyle{plain} \chapter*{Abstract} Software engineering agents have emerged as the dominant approach for automated program repair, with systems like SWE-agent, OpenHands and Claude Code achieving unprecedented success on real-world software engineering tasks.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  The English abstract% Topic
 These agents augment large language models with tools for repository navigation, code execution, and iterative refinement—capabilities essential for solving complex software engineering problems.
 
 % Motivation
-However, a critical disconnect exists between how these models are trained and deployed: while inference relies on sophisticated agent scaffolding for multi-step reasoning and environmental interaction, training typically uses static datasets of code changes without any agent capabilities.
-This train-test distribution mismatch fundamentally limits model performance, as they never learn to leverage the very tools and iterative processes that define successful debugging.
+However, a critical disconnect exists between how these models are trained and deployed: while deployment requires dynamic, multi-step interactions with complex software environments, training typically relies on static datasets of isolated code changes that capture none of this interactive complexity.
+This train-test distribution mismatch fundamentally limits model performance, as they never learn to leverage the very tools and iterative processes that enable successful debugging.
 Frontier labs have likely addressed this gap—systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting agent-based training—but their methods remain proprietary.
 Similarly, while companies like OpenHands have achieved impressive results, they have not released their training procedures, leaving the open-source community without access to these critical techniques.
 
 % Contribution
+\todoinline{Easy to make specialists, hard to make generalists, frontier labs probably have a wide range of RL tasks}
 This thesis presents \textit{one of the first fully open training recipes} for coding agents, addressing a fundamental misalignment in current practice: while deployment combines models with agent scaffolds (tools, memory, action spaces), training typically optimizes models in isolation.
-We introduce a \ac{RL} approach that trains the complete agent—model plus scaffold—as an integrated system.
+We introduce a \ac{RL} approach that trains the \ac{LLM} within its deployment scaffold, enabling the model to learn optimal tool usage and debugging strategies through environmental interaction.
 By training models within the exact scaffolding they will use at deployment, we enable them to learn debugging strategies through environmental feedback rather than mere pattern matching.
-Our work bridges the gap between closed-source frontier capabilities and open research, providing complete implementation details, training procedures, and infrastructure specifications that have previously been closely guarded industry secrets.
+Our work attempts to bridge the gap between closed-source frontier capabilities and open research, providing complete implementation details, training procedures and infrastructure specifications.
 
 % Detail/Nuance
-We implement this through a two-stage pipeline combining \ac{SFT} with Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical}, where models actively debug real repositories during training.
+We implement this through \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical}, where models actively debug real repositories during training.
 The key technical innovation lies in our training-inference duality: a custom integration layer enables simultaneous model training and serving, with \ac{NCCL} facilitating live weight synchronization across distributed \acp{GPU} [expand: specific throughput numbers, latency implications].
 Our \textit{Nano-agent} architecture provides essential bash and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
 

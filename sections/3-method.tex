@@ -4,12 +4,13 @@
 This chapter presents our novel approach to training large language models for automated code repair through interactive \ac{RL}.
 We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the \ac{RL} training loop improves bug-fixing performance.
 
-\section{Overview of Interactive Reinforcement Learning}
+\section{Overview of our approach}
 \label{sec:method-overview}
 
 Traditional approaches to training \acp{LLM} for code repair rely on supervised fine-tuning with static datasets of code-patch pairs.
 In contrast, our method pioneers interactive \ac{RL}, where coding agents actively interact with real software repositories during training.
 This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
+% We retain the same outcome-driven similarity principle as SWE-RL~\cite{wei2025swerladvancingllmreasoning} while embedding it within an interactive, multi-step setting that rewards successful end-to-end repair after autonomous context acquisition.
 
 The core innovation lies in our integration of existing coding agent frameworks directly into the \ac{RL} training pipeline.
 Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can:
@@ -25,6 +26,111 @@ This allows our Nano coding agent to interact naturally with repositories throug
 
 Figure~\ref{fig:agent-loop-architecture} illustrates the complete training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation.
 This diagram demonstrates how traditional \ac{RL} training is enhanced by embedding interactive agents directly within the optimization loop.
+
+\section{Nano Coding Agent}
+\label{sec:nano-agent}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{plotting/figures/nano_blank.png}
+	\label{fig:nano-sprite}
+\end{figure}
+
+Our Nano coding agent adopts a minimalist design: rather than engineering sophisticated tools and guided workflows, we provide only essential capabilities and allow effective behaviors to emerge through \ac{RL}.
+This isolates the contribution of learning under a simple action space and avoids confounds introduced by heavyweight scaffolding.
+
+\subsection{Tool Interface}
+
+Nano agent has access to two streamlined tools for terminal based repository interaction:
+
+\textbf{Shell Command Execution} (\texttt{shell(cmd)}): This tool allows the agent to execute unix commands within a restricted bash environment (rbash), such as exploration commands like \texttt{ls}, \texttt{rg}, \texttt{grep}, and \texttt{find}, as well as content inspection commands such as \texttt{cat}, \texttt{head}, \texttt{tail}, and \texttt{sed}.
+
+\textbf{File Patching} (\texttt{apply\_patch}): This tool enables precise code modifications through a search-and-replace mechanism.
+The agent specifies the target file path where changes should be made, the exact text that needs to be replaced (old\_content), the new replacement text (new\_content).
+
+This minimal toolset encourages models to develop their own strategies for code understanding and modification.
+
+\subsection{Sidestepping the Diff Generation Problem}
+
+A critical design decision in the Nano agent architecture demonstrates how thoughtful tool design can eliminate entire classes of errors.
+Generating valid unified diffs represents one of the most challenging output formatting tasks for language models.
+The unified diff format requires:
+
+\begin{verbatim}
+--- a/src/utils.py
++++ b/src/utils.py
+@@ -45,7 +45,7 @@ class DataProcessor:
+     def process(self, data):
+         if not data:
+             return None
+-        return data.strip().lower()
++        return data.strip().lower().replace(' ', '_')
+     
+     def validate(self, data):
+         return len(data) > 0
+\end{verbatim}
+
+This format demands precise coordination across multiple dimensions.
+The line numbers must accurately reflect the current file state, while context lines need to exactly match the existing content.
+The diff must properly handle whitespace, indentation, and special characters throughout.
+Additionally, it requires consistent header formatting with correct file paths and accurate chunk headers containing proper line counts.
+This intricate coordination makes diff generation particularly challenging for language models.
+
+Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers, incorrect context, or formatting errors that prevent patch application.
+\todoinline{Back this up}
+
+The Nano agent completely sidesteps this challenge through an elegant architectural choice.
+Instead of requiring diff generation, it provides a simple \texttt{apply\_patch} interface:
+
+\begin{verbatim}
+apply_patch(
+    file_path="src/utils.py",
+    old_content="return data.strip().lower()",
+    new_content="return data.strip().lower().replace(' ', '_')"
+)
+\end{verbatim}
+
+This format is naturally conducive to language model generation because:
+\begin{itemize}
+	\item \textbf{Semantic clarity}: The model specifies what to change in natural terms
+	\item \textbf{No numerical coordination}: No line numbers or offsets to calculate
+	\item \textbf{Robust matching}: String matching handles minor formatting variations
+	\item \textbf{Clear intent}: The transformation is explicit and unambiguous
+\end{itemize}
+
+After the model applies changes using this simple interface, the actual diff is computed using \texttt{git diff}—a battle-tested tool that handles all formatting complexities correctly.
+
+\subsection{Sidestepping Setup Constraints}
+
+\todoinline{This will always look bad... We can say we attempt "safety" with rbash, readonly access and timeouts}
+
+% Security is paramount when allowing language models to execute arbitrary commands.
+% The Nano agent employs several safety mechanisms:
+
+% \textbf{Restricted Bash (rbash)}: All shell commands execute within a restricted bash environment that prevents:
+% \begin{itemize}
+% 	\item Network access and external communication
+% 	\item File system access outside the designated workspace
+% 	\item Process spawning beyond allowed utilities
+% 	\item Modification of system files or configurations
+% \end{itemize}
+
+\subsection{Integration with RL Training}
+
+The Nano agent integrates seamlessly with our \ac{RL} training pipeline through a structured action-observation loop:
+
+\begin{enumerate}
+	\item The agent receives an issue description and repository state
+	\item It generates a sequence of tool calls to explore and understand the codebase
+	\item Each action produces observations (command outputs, file contents, etc.)
+	\item The agent iteratively refines its understanding and proposes fixes
+	\item The final patch is evaluated against the ground truth for reward computation
+\end{enumerate}
+
+This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes.
+The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
+
+This learning-centric approach avoids overfitting to tooling idiosyncrasies.
+Rather than engineering away the difficulty of code repair through sophisticated tooling, we provide a stable, minimal interface and train the model to develop its own solutions through experience.
 
 \section{Formal Problem Formulation as a Markov Decision Process}
 \label{sec:mdp-formulation}
@@ -194,128 +300,6 @@ Beyond tool calling, Qwen demonstrates strong foundational coding abilities:
 
 The model undergoes continued training rather than traditional fine-tuning, preserving its general capabilities while acquiring specialized agent skills through \ac{RL}.
 This approach maintains Qwen's robust tool-calling foundation while enabling learning of complex debugging behaviors.
-
-\section{Nano Coding Agent}
-\label{sec:nano-agent}
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.6\textwidth]{plotting/figures/nano_blank.png}
-	\label{fig:nano-sprite}
-\end{figure}
-
-Our Nano coding agent adopts a minimalist design: rather than engineering sophisticated tools and guided workflows, we provide only essential capabilities and allow effective behaviors to emerge through \ac{RL}.
-This isolates the contribution of learning under a simple action space and avoids confounds introduced by heavyweight scaffolding.
-
-\subsection{Tool Interface}
-
-Nano agent has access to two streamlined tools for terminal based repository interaction:
-
-\textbf{Shell Command Execution} (\texttt{shell(cmd)}): This tool allows the agent to execute unix commands within a restricted bash environment (rbash).
-\begin{itemize}
-	\item File system navigation: \texttt{ls}, \texttt{cd}, \texttt{pwd}, \texttt{find}
-	\item Content inspection: \texttt{cat}, \texttt{head}, \texttt{tail}, \texttt{less}
-	\item Text processing: \texttt{grep}, \texttt{awk}, \texttt{sed}, \texttt{sort}
-\end{itemize}
-
-\textbf{File Patching} (\texttt{apply\_patch}): This tool enables precise code modifications through a search-and-replace mechanism. The agent specifies:
-\begin{itemize}
-	\item Target file path
-	\item Exact text to be replaced (old\_content)
-	\item Replacement text (new\_content)
-	\item Optional context for disambiguation
-\end{itemize}
-
-This minimal toolset encourages models to develop their own strategies for code understanding and modification rather than relying on pre-engineered heuristics.
-The agent must learn to:
-\begin{itemize}
-	\item Navigate unfamiliar codebases using standard Unix commands
-	\item Identify relevant files through grep searches and directory exploration
-	\item Understand code context by examining multiple related files
-	\item Apply targeted fixes using precise string replacements
-\end{itemize}
-
-\subsection{Sidestepping the Diff Generation Problem}
-
-A critical design decision in the Nano agent architecture demonstrates how thoughtful tool design can eliminate entire classes of errors.
-Generating valid unified diffs represents one of the most challenging output formatting tasks for language models.
-The unified diff format requires:
-
-\begin{verbatim}
---- a/src/utils.py
-+++ b/src/utils.py
-@@ -45,7 +45,7 @@ class DataProcessor:
-     def process(self, data):
-         if not data:
-             return None
--        return data.strip().lower()
-+        return data.strip().lower().replace(' ', '_')
-     
-     def validate(self, data):
-         return len(data) > 0
-\end{verbatim}
-
-This format demands precise coordination across multiple dimensions.
-The line numbers must accurately reflect the current file state, while context lines need to exactly match the existing content.
-The diff must properly handle whitespace, indentation, and special characters throughout.
-Additionally, it requires consistent header formatting with correct file paths and accurate chunk headers containing proper line counts.
-This intricate coordination makes diff generation particularly challenging for language models.
-
-Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers, incorrect context, or formatting errors that prevent patch application.
-\todoinline{Back this up}
-
-The Nano agent completely sidesteps this challenge through an elegant architectural choice.
-Instead of requiring diff generation, it provides a simple \texttt{apply\_patch} interface:
-
-\begin{verbatim}
-apply_patch(
-    file_path="src/utils.py",
-    old_content="return data.strip().lower()",
-    new_content="return data.strip().lower().replace(' ', '_')"
-)
-\end{verbatim}
-
-This format is naturally conducive to language model generation because:
-\begin{itemize}
-	\item \textbf{Semantic clarity}: The model specifies what to change in natural terms
-	\item \textbf{No numerical coordination}: No line numbers or offsets to calculate
-	\item \textbf{Robust matching}: String matching handles minor formatting variations
-	\item \textbf{Clear intent}: The transformation is explicit and unambiguous
-\end{itemize}
-
-After the model applies changes using this simple interface, the actual diff is computed using \texttt{git diff}—a battle-tested tool that handles all formatting complexities correctly.
-
-\subsection{Sidestepping Setup Constraints}
-
-\todoinline{This will always look bad... We can say we attempt "safety" with rbash, readonly access and timeouts}
-
-% Security is paramount when allowing language models to execute arbitrary commands.
-% The Nano agent employs several safety mechanisms:
-
-% \textbf{Restricted Bash (rbash)}: All shell commands execute within a restricted bash environment that prevents:
-% \begin{itemize}
-% 	\item Network access and external communication
-% 	\item File system access outside the designated workspace
-% 	\item Process spawning beyond allowed utilities
-% 	\item Modification of system files or configurations
-% \end{itemize}
-
-\subsection{Integration with RL Training}
-
-The Nano agent integrates seamlessly with our \ac{RL} training pipeline through a structured action-observation loop:
-
-\begin{enumerate}
-	\item The agent receives an issue description and repository state
-	\item It generates a sequence of tool calls to explore and understand the codebase
-	\item Each action produces observations (command outputs, file contents, etc.)
-	\item The agent iteratively refines its understanding and proposes fixes
-	\item The final patch is evaluated against the ground truth for reward computation
-\end{enumerate}
-
-This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes.
-The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
-
-This learning-centric approach avoids overfitting to tooling idiosyncrasies.
-Rather than engineering away the difficulty of code repair through sophisticated tooling, we provide a stable, minimal interface and train the model to develop its own solutions through experience.
 
 \section{Training-Inference Duality in Online RL for LLMs}
 \label{sec:training-inference}
@@ -504,7 +488,7 @@ The combination of these optimizations enables training of state-of-the-art agen
 
 \begin{itemize}
 	\item \textbf{8B models:}
-	      Trainable on 4x A100 GPUs with full agent interaction \item \textbf{32B models:} Scalable to 8x A100 \acp{GPU} with maintained training throughput \item \textbf{Memory efficiency:} 90\%+ memory utilization through careful optimization \item \textbf{Training speed:} Agent trajectory processing at near real-time rates \end{itemize}
+	      Trainable on 3x A100 \acsp{GPU} with full agent interaction \item \textbf{32B models:} Trainable on 6x A100 \acsp{GPU} with maintained training throughput \item \textbf{Memory efficiency:} 90\%+ memory utilization through careful optimization \item \textbf{Training speed:} Agent trajectory processing at near real-time rates \end{itemize}
 
 These innovations make large-scale interactive \ac{RL} practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
 
@@ -512,11 +496,12 @@ These innovations make large-scale interactive \ac{RL} practically feasible for 
 \label{sec:reward-design}
 
 \todoinline{Add discussion on the problem / necessity of reward sparsity / std}
+\todoinline{Say that we tried a range of different rewards but converged on doing only patch similarity}
 
 \subsection{Outcome-Based Patch Similarity}
 
-Our reward function focuses on the final outcome—the generated patch—rather than intermediate steps.
-This design choice offers several benefits:
+Our reward function inspired by the method proposed in SWE-RL~\cite{wei2025swerladvancingllmreasoning} compares the generated diff to the repository with the ground truth using \textit{Python's SequenceMatcher}.
+\todoinline{elaborate / improve}
 
 \begin{itemize}
 	\item \textbf{Simplicity:}
