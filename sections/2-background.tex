@@ -653,14 +653,14 @@ This section synthesizes the most directly relevant prior work across three crit
 
 Despite the natural fit between \ac{RL} and interactive programming tasks, surprisingly little work has explored this intersection:
 
-\textbf{CodeRL}~\cite{codeRL2022} pioneered applying \ac{RL} to code generation, using unit test execution as rewards.
-However, it focused on single-function synthesis rather than repository-scale debugging, and critically, used traditional synchronous generation without environmental interaction.
+\textbf{CodeRL}~\cite{le2022coderlmasteringcodegeneration} pioneered applying \ac{RL} to code generation, using unit test execution as rewards.
+However, it focused on single-function synthesis rather than repository-scale debugging.
 
-\textbf{PPOCoder}~\cite{ppoCoder2023} extended CodeRL with proximal policy optimization but maintained the limitation of single-file, single-step generation.
+\textbf{PPOCoder}~\cite{shojaee2023executionbasedcodegenerationusing} extended CodeRL with proximal policy optimization but maintained the limitation of single-file, single-step generation.
 The work demonstrated improved sample efficiency but did not address the fundamental mismatch between training and real-world debugging workflows.
 
-\textbf{RLTF}~\cite{liu2023rltfreinforcementlearningunit} (Reinforcement Learning from Unit Test Feedback) introduced more sophisticated reward shaping using test coverage and execution traces.
-While innovative, it still operated on isolated functions without repository context or tool usage.
+% \textbf{RLTF}~\cite{liu2023rltfreinforcementlearningunit} (Reinforcement Learning from Unit Test Feedback) introduced more sophisticated reward shaping using test coverage and execution traces.
+% While innovative, it still operated on isolated functions without repository context or tool usage.
 
 \textbf{SWE-RL}~\cite{wei2025swerladvancingllmreasoning} introduced a static, single-turn formulation—where a model given full file contexts produces a patch after a reasoning step.
 \todoinline{elaborate}
