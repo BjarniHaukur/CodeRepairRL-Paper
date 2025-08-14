@@ -195,21 +195,34 @@ Beyond tool calling, Qwen demonstrates strong foundational coding abilities:
 The model undergoes continued training rather than traditional fine-tuning, preserving its general capabilities while acquiring specialized agent skills through \ac{RL}.
 This approach maintains Qwen's robust tool-calling foundation while enabling learning of complex debugging behaviors.
 
-\section{The Nano Coding Agent}
+\section{Nano Coding Agent}
 \label{sec:nano-agent}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{plotting/figures/nano_blank.png}
+	\label{fig:nano-sprite}
+\end{figure}
 
 Our Nano coding agent adopts a minimalist design: rather than engineering sophisticated tools and guided workflows, we provide only essential capabilities and allow effective behaviors to emerge through \ac{RL}.
 This isolates the contribution of learning under a simple action space and avoids confounds introduced by heavyweight scaffolding.
 
-\subsection{Core Capabilities}
+\subsection{Tool Interface}
 
-The Nano agent provides a streamlined set of tools for repository interaction:
+Nano agent has access to two streamlined tools for terminal based repository interaction:
 
+\textbf{Shell Command Execution} (\texttt{shell(cmd)}): This tool allows the agent to execute unix commands within a restricted bash environment (rbash).
 \begin{itemize}
-	\item \texttt{bash}: Execute shell commands for navigation and file system operations
-	\item \texttt{str\_replace}: Perform precise string replacements for code modification
-	\item \texttt{view\_file}: Examine file contents with optional line range specification
-	\item \texttt{write\_file}: Create new files when necessary
+	\item File system navigation: \texttt{ls}, \texttt{cd}, \texttt{pwd}, \texttt{find}
+	\item Content inspection: \texttt{cat}, \texttt{head}, \texttt{tail}, \texttt{less}
+	\item Text processing: \texttt{grep}, \texttt{awk}, \texttt{sed}, \texttt{sort}
+\end{itemize}
+
+\textbf{File Patching} (\texttt{apply\_patch}): This tool enables precise code modifications through a search-and-replace mechanism. The agent specifies:
+\begin{itemize}
+	\item Target file path
+	\item Exact text to be replaced (old\_content)
+	\item Replacement text (new\_content)
+	\item Optional context for disambiguation
 \end{itemize}
 
 This minimal toolset encourages models to develop their own strategies for code understanding and modification rather than relying on pre-engineered heuristics.
@@ -221,22 +234,70 @@ The agent must learn to:
 	\item Apply targeted fixes using precise string replacements
 \end{itemize}
 
-\subsection{Minimalist Design Rationale}
+\subsection{Sidestepping the Diff Generation Problem}
 
-The agent's design emphasizes learning over engineered heuristics.
-The objective is to evaluate whether simple tools combined with interactive \ac{RL} suffice to develop robust debugging strategies without bespoke, task-specific machinery.
+A critical design decision in the Nano agent architecture demonstrates how thoughtful tool design can eliminate entire classes of errors.
+Generating valid unified diffs represents one of the most challenging output formatting tasks for language models.
+The unified diff format requires:
 
-\textbf{Learning Over Engineering:}
-Rather than pre-programming sophisticated debugging heuristics, we provide minimal tools and let effective strategies emerge through extensive training.
+\begin{verbatim}
+--- a/src/utils.py
++++ b/src/utils.py
+@@ -45,7 +45,7 @@ class DataProcessor:
+     def process(self, data):
+         if not data:
+             return None
+-        return data.strip().lower()
++        return data.strip().lower().replace(' ', '_')
+     
+     def validate(self, data):
+         return len(data) > 0
+\end{verbatim}
 
-\textbf{Computation Over Complexity:}
-Complex behaviors should arise from simple primitives and large-scale learning rather than from engineering complex tool interfaces.
+This format demands precise coordination across multiple dimensions.
+The line numbers must accurately reflect the current file state, while context lines need to exactly match the existing content.
+The diff must properly handle whitespace, indentation, and special characters throughout.
+Additionally, it requires consistent header formatting with correct file paths and accurate chunk headers containing proper line counts.
+This intricate coordination makes diff generation particularly challenging for language models.
 
-\textbf{Generality Over Specialization:}
-Basic, general-purpose tools should ultimately prove more effective than specialized, engineered solutions as models learn to use them creatively.
+Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers, incorrect context, or formatting errors that prevent patch application.
+\todoinline{Back this up}
 
-\textbf{Scalability Focus:}
-The design prioritizes scalability to massive training regimens rather than immediate performance optimization through sophisticated tooling.
+The Nano agent completely sidesteps this challenge through an elegant architectural choice.
+Instead of requiring diff generation, it provides a simple \texttt{apply\_patch} interface:
+
+\begin{verbatim}
+apply_patch(
+    file_path="src/utils.py",
+    old_content="return data.strip().lower()",
+    new_content="return data.strip().lower().replace(' ', '_')"
+)
+\end{verbatim}
+
+This format is naturally conducive to language model generation because:
+\begin{itemize}
+	\item \textbf{Semantic clarity}: The model specifies what to change in natural terms
+	\item \textbf{No numerical coordination}: No line numbers or offsets to calculate
+	\item \textbf{Robust matching}: String matching handles minor formatting variations
+	\item \textbf{Clear intent}: The transformation is explicit and unambiguous
+\end{itemize}
+
+After the model applies changes using this simple interface, the actual diff is computed using \texttt{git diff}—a battle-tested tool that handles all formatting complexities correctly.
+
+\subsection{Sidestepping Setup Constraints}
+
+\todoinline{This will always look bad... We can say we attempt "safety" with rbash, readonly access and timeouts}
+
+% Security is paramount when allowing language models to execute arbitrary commands.
+% The Nano agent employs several safety mechanisms:
+
+% \textbf{Restricted Bash (rbash)}: All shell commands execute within a restricted bash environment that prevents:
+% \begin{itemize}
+% 	\item Network access and external communication
+% 	\item File system access outside the designated workspace
+% 	\item Process spawning beyond allowed utilities
+% 	\item Modification of system files or configurations
+% \end{itemize}
 
 \subsection{Integration with RL Training}
 
@@ -419,8 +480,8 @@ FP16 training with automatic loss scaling reduces memory usage and increases thr
 \textbf{Communication Optimization:}
 Overlapped gradient communication during backward passes minimizes the impact of all-reduce operations on training throughput.
 
-\textbf{\ac{KL} Divergence Computational Efficiency:}
-\ac{GRPO} training often requires computing \ac{KL} divergence between the current policy and a reference model to ensure training stability—preventing the model from deviating excessively from its original training objectives while optimizing for the new task.
+\textbf{\ac{KL}
+	Divergence Computational Efficiency:} \ac{GRPO} training often requires computing \ac{KL} divergence between the current policy and a reference model to ensure training stability—preventing the model from deviating excessively from its original training objectives while optimizing for the new task.
 This stability constraint typically necessitates maintaining two complete model instances in memory to compute $D_{\ac{KL}}(\pi_{\theta}(a|s) \| \pi_{\text{ref}}(a|s))$, effectively doubling \ac{GPU} memory requirements.
 \ac{LoRA}'s additive parameter structure provides a natural solution to this computational burden: since base model weights $\mathbf{W}_0$ remain frozen while only low-rank adaptations $\mathbf{W}_0 + \mathbf{BA}$ are trained, the reference policy corresponds exactly to the base model without adapters.
 We can therefore compute reference policy outputs by temporarily disabling the \ac{LoRA} adapters on the same model instance, eliminating the need for a separate reference model.
@@ -449,6 +510,8 @@ These innovations make large-scale interactive \ac{RL} practically feasible for 
 
 \section{Reward Design}
 \label{sec:reward-design}
+
+\todoinline{Add discussion on the problem / necessity of reward sparsity / std}
 
 \subsection{Outcome-Based Patch Similarity}
 
@@ -514,11 +577,18 @@ Future work could incorporate:
 
 \begin{itemize}
 	\item Execution of project test suites to verify functional correctness
-	\item Multi-objective rewards balancing correctness, code quality, and efficiency
-	\item Human preference learning for subjective aspects of code style
+	\item Multi-objective rewards, training on a wide set of tasks to improve generalization
 \end{itemize}
 
 These extensions would require significant infrastructure investment but could lead to more robust and generalizable repair capabilities.
+
+\section{Long context}
+\label{sec:long-context}
+\textbf{Computational Scaling Challenges}: Agent interactions are orders of magnitude more expensive than simple text generation:
+\begin{itemize}
+	\item Each training step involves multiple model calls (often 10-50 per trajectory)
+	\item Memory requirements scale with trajectory length
+\end{itemize}
 
 \section{High-Performance Training Infrastructure}
 \label{sec:training-infrastructure}

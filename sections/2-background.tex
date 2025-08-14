@@ -5,17 +5,16 @@ We review key concepts in reinforcement learning for language models, automated 
 
 \section{Automated Code Repair before LLMs}
 \todoinline{GENProg, Defect4j, etc.}
-
-\section{Automated Code Repair with LLMs}
-
-Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
-
 The evolution of \ac{APR} can be traced through three distinct paradigms.
 Early search-based approaches like GenProg~\cite{genProg2012} and PAR~\cite{PAR2013} employed genetic programming and pattern-based transformations to search for valid patches within a predefined space of mutations.
 These systems demonstrated the feasibility of automated repair but suffered from low precision and limited generalization capabilities.
 
 The transition to learning-based approaches began with Prophet~\cite{prophet2016} and DeepFix~\cite{deepfix2017}, which introduced \ac{ML} to rank patch candidates and fix compilation errors respectively.
 The emergence of neural sequence-to-sequence models marked a fundamental shift, with works like SequenceR~\cite{sequencer2019} and CoCoNuT~\cite{coconut2020} treating program repair as a neural machine translation task.
+
+\section{Automated Code Repair with LLMs}
+
+Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
 
 The advent of large language models has transformed the landscape entirely.
 Modern systems leveraging models like Codex~\cite{codex2021}, CodeT5~\cite{codet5}, and more recently CodeLlama~\cite{codellama2023} and DeepSeek-Coder~\cite{deepseek2024} have achieved unprecedented performance on established benchmarks.
@@ -215,30 +214,30 @@ The computational benefits of \ac{GRPO} are substantial:
 
 \textbf{Memory Efficiency}: Eliminating the value network reduces GPU memory requirements by approximately 50\%, enabling larger batch sizes or model sizes within the same hardware constraints.
 
-\textbf{Training Simplicity}: The training loop becomes significantly simpler, reducing implementation complexity and potential sources of bugs.
-There are no value network updates to coordinate or balance against policy updates.
+% \textbf{Training Simplicity}: The training loop becomes significantly simpler, reducing implementation complexity and potential sources of bugs.
+% There are no value network updates to coordinate or balance against policy updates.
+% 
+% \textbf{Hyperparameter Robustness}: With fewer moving parts, \ac{GRPO} exhibits reduced sensitivity to hyperparameter choices, making it more reliable across different tasks and model architectures.
 
-\textbf{Hyperparameter Robustness}: With fewer moving parts, \ac{GRPO} exhibits reduced sensitivity to hyperparameter choices, making it more reliable across different tasks and model architectures.
-
-\textbf{Batch Processing Efficiency}: \ac{GRPO} can naturally handle variable batch sizes and sequence lengths without the complications introduced by value network training, which often requires careful batch construction.
+% \textbf{Batch Processing Efficiency}: \ac{GRPO} can naturally handle variable batch sizes and sequence lengths without the complications introduced by value network training, which often requires careful batch construction.
 
 \subsubsection{Advantages for Code Repair}
 
-\ac{GRPO}'s design makes it particularly well-suited for code repair applications:
+% \ac{GRPO}'s design makes it particularly well-suited for code repair applications:
 
-\textbf{Natural Handling of Sparse Rewards}: Code repair often produces binary success/failure outcomes or sparse quality metrics.
-\ac{GRPO}'s relative comparison approach handles this naturally, as the standard score normalization adapts to the reward distribution within each group.
+% \textbf{Natural Handling of Sparse Rewards}: Code repair often produces binary success/failure outcomes or sparse quality metrics.
+% \ac{GRPO}'s relative comparison approach handles this naturally, as the standard score normalization adapts to the reward distribution within each group.
 
-\textbf{Problem Diversity}: Different coding problems require vastly different solution approaches and have different inherent difficulty levels.
-\ac{GRPO}'s group-relative baseline automatically adjusts to each problem's context, whereas a global value function would struggle to capture this diversity.
+% \textbf{Problem Diversity}: Different coding problems require vastly different solution approaches and have different inherent difficulty levels.
+% \ac{GRPO}'s group-relative baseline automatically adjusts to each problem's context, whereas a global value function would struggle to capture this diversity.
 
-\textbf{Exploration Encouragement}: By comparing actions against their immediate peers rather than a global baseline, \ac{GRPO} encourages exploration of diverse solution strategies, which is crucial for learning robust debugging skills.
+% \textbf{Exploration Encouragement}: By comparing actions against their immediate peers rather than a global baseline, \ac{GRPO} encourages exploration of diverse solution strategies, which is crucial for learning robust debugging skills.
 
 \textbf{Computational Scaling}: Code repair training requires processing thousands of agent interactions across diverse repositories and bug types.
 \ac{GRPO}'s computational efficiency makes this scale of training practically feasible.
 
-The mathematical elegance of \ac{GRPO} lies in its ability to preserve all of \ac{PPO}'s theoretical guarantees while dramatically simplifying the implementation.
-For code repair, where relative solution quality matters more than absolute reward prediction, this approach provides an optimal balance of performance, simplicity, and computational efficiency.
+% The mathematical elegance of \ac{GRPO} lies in its ability to preserve all of \ac{PPO}'s theoretical guarantees while dramatically simplifying the implementation.
+% For code repair, where relative solution quality matters more than absolute reward prediction, this approach provides an optimal balance of performance, simplicity, and computational efficiency.
 
 \subsubsection{Variance Collapse: A Fundamental Challenge}
 
@@ -280,9 +279,6 @@ A practical surrogate for the KL term at the sampled output is \begin{equation}
     \mathrm{KL}(\pi_{\theta}\,\|\,\pi_{\mathrm{ref}}) = \mathbb{E}_t\left[\mathrm{KL}\left(\sigma(z_{\theta}(s_t))\,\|\,\sigma(z_{\mathrm{ref}}(s_t))\right)\right].
 \end{equation} \todoinline{Standardize notation with the \ac{GRPO} section (e.g., $q$, $\{o_i\}_{i=1}^{G}$, $\pi_{\theta_{\mathrm{old}}}$, $\epsilon$, $\beta$, $\pi_{\mathrm{ref}}$) across the document.
 }
-
-\textbf{Sampling Strategies}:
-todoinline{Is it worthwhile to drag LLM sampling parameters into the mix and tie them to "exploration vs exploitation"?}
 
 \subsection{Group Sequence Policy Optimization (GSPO)}
 
@@ -472,11 +468,16 @@ Tool calling fundamentally changes the \ac{RL} training dynamics by introducing:
 
 The integration of tool calling with \ac{RL} training enables models to learn not just what tools to use, but when and how to use them effectively within complex problem-solving workflows.
 
+\section{Sampling Strategies}:
+\todoinline{Is it worthwhile to drag LLM sampling parameters into the mix and tie them to "exploration vs exploitation"?}
+
 \section{Agent-Based Programming Environments}
 
 The integration of language models with interactive programming environments has opened new possibilities for automated software engineering, enabling models to perform complex, multi-step reasoning tasks.
 
 \subsection{Coding Agent Frameworks}
+
+\todoinline{Make this more about: "Hey these agents exist and are obviously impactful." Then explain that those like Aider are not training compliant (modifies rollout histories)}
 
 Modern coding agents combine language models with tool access, allowing them to navigate codebases, execute commands, and iteratively refine solutions.
 
@@ -510,9 +511,12 @@ On the Aider-Polyglot benchmark, it achieves 48.3\% success rates with GPT-4, de
 SWE-Agent achieves 12.29\% on SWE-Bench with GPT-4, while OpenHands reaches similar performance levels.
 Notably, both systems employ complex, multi-stage workflows with dozens of specialized tools and heuristics.
 
-\textbf{Critical Distinction: Inference-Time vs Training-Time Integration}
+\textbf{Fitting model to scaffold vs Fitting scaffold to model}
+\todoinline{sloppy}
+\todoinline{Claude Code should illustrate the power of not only making your models good, but making them excel in the environment in which they are deployed (probably trained internally with something highly similar to the Claude Code we use.)}
+\todoinline{This is a recurring theme in the industry, Claude -> Claude Code, o3 -> codex, Gemini -> Gemini \ac{CLI}, Qwen3 coder -> Qwen Coder, etc.}
 
-All existing systems operate exclusively at inference time—they provide scaffolding and tools to pre-trained language models but do not integrate these capabilities into the training process.
+Most existing systems operate exclusively at inference time—they provide scaffolding and tools to pre-trained language models but do not integrate these capabilities into the training process.
 This creates a fundamental limitation:
 
 \textbf{Static tool usage patterns}: Models must adapt to tools they were never trained to use, leading to suboptimal usage patterns and frequent errors in tool invocation.
@@ -523,7 +527,7 @@ This creates a fundamental limitation:
 
 \textbf{Misaligned representations}: Pre-trained models develop representations optimized for text generation, not for planning tool-based interactions in structured environments.
 
-Our work represents a paradigm shift by integrating agent scaffolding directly into the reinforcement learning training loop.
+Integrating agent scaffolding directly into the reinforcement learning training loop.
 This enables:
 
 \begin{itemize}
@@ -535,345 +539,6 @@ This enables:
 
 This training-time integration represents the core innovation of our approach, potentially bridging the gap between current agent capabilities and human-level performance on complex software engineering tasks.
 
-\subsection{The Nano Agent: A Minimalist Approach}
-
-The Nano agent represents a minimalist approach to coding agent design, providing only the most essential tools needed for code interaction.
-This design philosophy allows models to develop their own debugging strategies through reinforcement learning rather than relying on pre-engineered solutions.
-
-\subsubsection{Design Philosophy}
-
-The Nano agent's minimalist design enables models to learn debugging strategies from experience through:
-
-\begin{itemize}
-	\item \textbf{Maximum learning opportunity}: By providing minimal assistance, the model must develop fundamental programming skills through trial and error
-	\item \textbf{Computational focus}: Simple tools enable scaling to thousands of training interactions where learning can emerge from volume rather than engineering
-	\item \textbf{Generalization through simplicity}: Minimal assumptions about programming contexts should enable broader applicability across different Python projects and frameworks
-	\item \textbf{Clear training signals}: Simple operations produce interpretable action sequences that facilitate reward computation and learning analysis
-\end{itemize}
-
-\subsubsection{Tool Interface}
-
-The Nano agent provides exactly two primary tools for interacting with codebases:
-
-\textbf{Shell Command Execution} (\texttt{shell(cmd)}): This tool allows the agent to execute terminal commands within a restricted bash environment (rbash).
-Available commands include standard Unix utilities for navigation and inspection:
-\begin{itemize}
-	\item File system navigation: \texttt{ls}, \texttt{cd}, \texttt{pwd}, \texttt{find}
-	\item Content inspection: \texttt{cat}, \texttt{head}, \texttt{tail}, \texttt{less}
-	\item Text processing: \texttt{grep}, \texttt{awk}, \texttt{sed}, \texttt{sort}
-	\item Repository operations: \texttt{git log}, \texttt{git diff}, \texttt{git status}
-\end{itemize}
-
-\textbf{File Patching} (\texttt{apply\_patch}): This tool enables precise code modifications through a search-and-replace mechanism. The agent specifies:
-\begin{itemize}
-	\item Target file path
-	\item Exact text to be replaced (old\_content)
-	\item Replacement text (new\_content)
-	\item Optional context for disambiguation
-\end{itemize}
-
-\subsubsection{Architectural Elegance: Sidestepping the Diff Generation Problem}
-
-A critical design decision in the Nano agent architecture demonstrates how thoughtful tool design can eliminate entire classes of errors.
-Generating valid unified diffs represents one of the most challenging output formatting tasks for language models.
-The unified diff format requires:
-
-\begin{verbatim}
---- a/src/utils.py
-+++ b/src/utils.py
-@@ -45,7 +45,7 @@ class DataProcessor:
-     def process(self, data):
-         if not data:
-             return None
--        return data.strip().lower()
-+        return data.strip().lower().replace(' ', '_')
-     
-     def validate(self, data):
-         return len(data) > 0
-\end{verbatim}
-
-This format demands precise coordination of:
-\begin{itemize}
-	\item Line numbers that must accurately reflect the file state
-	\item Context lines that must exactly match existing content
-	\item Proper handling of whitespace, indentation, and special characters
-	\item Consistent header formatting with correct file paths
-	\item Accurate chunk headers with line counts
-\end{itemize}
-
-Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers, incorrect context, or formatting errors that prevent patch application.
-Studies show that up to 40\% of LLM-generated diffs fail to apply due to formatting issues alone~\cite{diffGeneration2024}.
-
-The Nano agent completely sidesteps this challenge through an elegant architectural choice.
-Instead of requiring diff generation, it provides a simple \texttt{apply\_patch} interface:
-
-\begin{verbatim}
-apply_patch(
-    file_path="src/utils.py",
-    old_content="return data.strip().lower()",
-    new_content="return data.strip().lower().replace(' ', '_')"
-)
-\end{verbatim}
-
-This format is naturally conducive to language model generation because:
-\begin{itemize}
-	\item \textbf{Semantic clarity}: The model specifies what to change in natural terms
-	\item \textbf{No numerical coordination}: No line numbers or offsets to calculate
-	\item \textbf{Robust matching}: String matching handles minor formatting variations
-	\item \textbf{Clear intent}: The transformation is explicit and unambiguous
-\end{itemize}
-
-After the model applies changes using this simple interface, the actual diff is computed using \texttt{git diff}—a battle-tested tool that handles all formatting complexities correctly.
-This separation of concerns yields multiple benefits:
-
-\textbf{Elimination of formatting errors}: By avoiding diff generation entirely, we remove a major source of failures that plague other systems.
-
-\textbf{Preserved evaluation fidelity}: The final git diff provides complete patch information for evaluation, maintaining compatibility with existing benchmarks.
-
-\textbf{Simplified learning}: The model learns to focus on semantic code changes rather than syntactic formatting requirements.
-
-\textbf{Improved success rates}: Empirical testing shows this approach reduces tool-usage errors by over 60\% compared to systems requiring diff generation.
-
-This architectural decision exemplifies a broader principle in agent design: rather than training models to overcome complex formatting requirements, we can often redesign the interface to be more naturally suited to language model capabilities.
-The Nano agent's apply\_patch mechanism demonstrates how thoughtful tool design can dramatically simplify the learning problem while maintaining full functionality.
-
-\subsubsection{Safety and Isolation}
-
-Security is paramount when allowing language models to execute arbitrary commands.
-The Nano agent employs several safety mechanisms:
-
-\textbf{Restricted Bash (rbash)}: All shell commands execute within a restricted bash environment that prevents:
-\begin{itemize}
-	\item Network access and external communication
-	\item File system access outside the designated workspace
-	\item Process spawning beyond allowed utilities
-	\item Modification of system files or configurations
-\end{itemize}
-
-\textbf{Sandboxed Execution}: Each agent session runs in an isolated container with:
-\begin{itemize}
-	\item Limited computational resources (\ac{CPU}, memory, time)
-	\item No persistent state between sessions
-	\item Comprehensive logging of all actions and outputs
-\end{itemize}
-
-\textbf{Command Validation}: Before execution, all commands undergo validation to ensure they match allowed patterns and don't contain potential exploits.
-
-\subsubsection{Learning Through Constraints}
-
-By constraining the available tools to only the most fundamental operations, the Nano agent creates an environment where sophisticated behaviors must emerge from learning rather than engineering.
-This approach tests whether language models can develop robust debugging skills when forced to work with basic primitives:
-
-\textbf{Self-Directed Exploration}: Models must learn to navigate unfamiliar codebases using standard Unix commands, developing systematic approaches to understanding project structure.
-
-\textbf{Strategy Development}: Without guided workflows, models must discover effective debugging patterns through experience, potentially leading to novel problem-solving approaches.
-
-\textbf{Error Recovery}: Raw command feedback forces models to interpret failures and adapt their strategies, building resilience to unexpected situations.
-
-\textbf{Fundamental Skill Building}: Reliance on basic text processing tools encourages development of core programming intuitions rather than dependence on sophisticated analysis frameworks.
-
-\subsubsection{Advantages for RL Training}
-
-The Nano agent's simplicity offers several advantages specifically for reinforcement learning applications:
-
-\textbf{Complete Action Logging}: Every agent interaction produces clear, interpretable logs that can be analyzed to understand learning dynamics and failure modes.
-There are no hidden internal operations or black-box processing steps.
-
-\textbf{Reward Clarity}: With minimal tool complexity, it becomes easier to attribute successes and failures to specific agent decisions, enabling more accurate reward assignment and training signal propagation.
-
-\textbf{Scalable Batch Processing}: Simple operations can be efficiently parallelized across multiple training instances without the overhead of complex state management or resource coordination required by heavyweight scaffolds.
-
-\textbf{Debugging and Analysis}: When training fails or produces unexpected results, the minimal tool set makes it easier to identify root causes and adjust training procedures accordingly.
-
-\section{Online RL for LLMs}
-
-The integration of agent frameworks directly into model training represents a paradigm shift from traditional supervised learning approaches, enabling models to learn through active interaction rather than passive observation.
-
-Online \ac{RL} training represents a fundamental reimagining of how language models acquire capabilities for complex, interactive tasks.
-Rather than learning from static demonstrations followed by inference-time tool integration, this paradigm embeds full agent capabilities—including environment interaction, tool usage, and iterative refinement—directly into the \ac{RL} training process.
-
-\subsubsection{Paradigm Comparison}
-
-\textbf{Traditional Train-Then-Deploy Approach}:
-\begin{enumerate}
-	\item Pre-train on massive text corpora
-	\item Fine-tune on static datasets of task demonstrations
-	\item Deploy with agent scaffolding added at inference time
-	\item Hope the model generalizes to using unfamiliar tools
-\end{enumerate}
-
-This pipeline treats tool usage as an inference-time adaptation problem.
-Models must bridge the gap between their training distribution (static text) and deployment requirements (dynamic interaction) without explicit preparation.
-
-\textbf{Online \ac{RL} for \acp{LLM}}:
-\begin{enumerate}
-	\item Start with pre-trained model
-	\item Embed model within agent framework
-	\item Train through \ac{RL} while using tools
-	\item Deploy with the same or similar agent frameworks used in training
-\end{enumerate}
-\todoinline{This is a recurring theme in the industry, Claude -> Claude Code, o3 -> codex, Gemini -> Gemini \ac{CLI}, Qwen3 coder -> Qwen Coder, etc.}
-
-This approach ensures perfect alignment between training and deployment conditions.
-The model learns not just task solutions but optimal strategies for tool usage, exploration, and error recovery.
-
-\subsubsection{Technical Novelty and Challenges}
-
-While conceptually straightforward, implementing interactive training presents substantial technical challenges that have limited its adoption:
-
-\textbf{Asynchronous Orchestration}: Traditional \ac{RL} training assumes synchronous batch generation—all samples in a batch complete simultaneously.
-Agent interactions are inherently asynchronous, with different trajectories requiring varying numbers of steps and time to complete.
-Our implementation required developing custom orchestration layers that:
-\begin{itemize}
-	\item Manage thousands of concurrent agent sessions
-	\item Handle variable-length trajectories efficiently
-	\item Synchronize weight updates across distributed workers
-	\item Maintain stable training despite timing variations
-\end{itemize}
-
-\textbf{Reward Engineering Complexity}: Designing rewards for interactive behaviors requires considering entire action sequences rather than single outputs:
-\begin{itemize}
-	\item \textit{Credit assignment}: Which actions in a 50-step debugging sequence deserve credit for success?
-	\item \textit{Exploration incentives}: How to reward information gathering that enables future success?
-	\item \textit{Efficiency trade-offs}: Balancing solution quality against computational cost
-	\item \textit{Partial success recognition}: Crediting progress even when final solutions fail
-\end{itemize}
-
-Our implementation addresses these through hierarchical reward structures that consider both final outcomes and intermediate progress indicators.
-
-\textbf{Environment Stability at Scale}: Running thousands of training episodes requires unprecedented environment reliability:
-\begin{itemize}
-	\item \textit{Deterministic reproduction}: Ensuring identical behavior across training runs
-	\item \textit{Resource isolation}: Preventing agent sessions from interfering
-	\item \textit{Failure recovery}: Gracefully handling environment crashes without corrupting training
-	\item \textit{State management}: Efficiently resetting environments between episodes
-\end{itemize}
-
-We developed containerized execution environments with checkpoint-restart capabilities to maintain stability across extended training runs.
-
-\textbf{Computational Scaling Challenges}: Agent interactions are orders of magnitude more expensive than simple text generation:
-\begin{itemize}
-	\item Each training step involves multiple model calls (often 10-50 per trajectory)
-	\item Environment execution adds significant overhead
-	\item Memory requirements scale with trajectory length and environment state
-	\item Distributed training requires synchronizing both model and environment state
-\end{itemize}
-
-Our solution leverages aggressive batching, environment pooling, and hierarchical resource allocation to make training tractable.
-
-\subsubsection{Open-Source Implementation}
-
-Despite growing evidence that leading \ac{AI} labs employ interactive training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
-
-This work provides the first publicly available implementation of interactive \ac{RL} training, including:
-\begin{itemize}
-	\item Complete training infrastructure built on TRL and vLLM
-	\item Integration modules for arbitrary OpenAI-compatible agents
-	\item Distributed orchestration for large-scale training
-	\item Comprehensive logging and debugging tools
-	\item Reproducible configurations for key experiments
-\end{itemize}
-
-By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into interactive \ac{AI} systems.
-
-The significance extends beyond code repair: interactive training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control.
-This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
-
-Current research in this area is primarily conducted by industry labs (OpenAI, Anthropic, Cognition Labs) with limited open-source replication, creating a significant knowledge gap in the academic community.
-
-\subsection{Reward Design for Code Repair}
-
-Effective reward design is crucial for interactive training, requiring careful balance between task-specific objectives and general coding principles.
-
-\subsubsection{Reward Engineering for Interactive Code Repair}
-
-Designing effective reward functions for code repair in an interactive setting requires balancing multiple objectives while addressing fundamental challenges in automated evaluation.
-The reward signal must capture semantic correctness, encourage efficient exploration, and provide sufficient learning signal despite sparse success rates.
-
-\textbf{Evaluation Paradigms and Their Trade-offs}
-
-Three primary approaches exist for evaluating code repair quality:
-
-\textit{Test-based evaluation} represents the gold standard, directly measuring functional correctness by executing test suites.
-However, this approach faces significant practical challenges:
-\begin{itemize}
-	\item Computational cost: Running full test suites for thousands of repair attempts requires massive infrastructure
-	\item Flaky tests: Real-world test suites often contain non-deterministic failures unrelated to the bug
-	\item Incomplete coverage: Passing tests do not guarantee the absence of introduced bugs
-	\item Binary feedback: Test results provide limited gradient for partial progress
-\end{itemize}
-
-\textit{Similarity-based evaluation} compares generated patches against known-good solutions using various metrics:
-\begin{itemize}
-	\item Tree-edit distance: Measures syntactic similarity at the \ac{AST} level
-	\item Token-based metrics: BLEU, CodeBLEU scores adapted from \ac{NLP}
-	\item Semantic embeddings: Learned representations capturing code functionality
-	\item Exact match: Binary indicator of identical solutions
-\end{itemize}
-
-\textit{Hybrid approaches} combine multiple signals, using cheap similarity metrics for training with periodic test validation.
-
-\textbf{Challenges in Code Repair Reward Design}
-
-\textit{Extreme sparsity}: Success rates on realistic benchmarks hover around 20\%, meaning 80\% of attempts receive zero reward under binary evaluation.
-This sparsity severely hampers gradient-based learning.
-
-\textit{Delayed credit assignment}: Interactive debugging involves long action sequences—exploring files, forming hypotheses, attempting fixes.
-Determining which actions contributed to eventual success requires sophisticated credit assignment.
-
-\textit{Semantic equivalence}: Multiple syntactically different patches can be semantically equivalent.
-Rewarding only exact matches penalizes valid alternative solutions.
-
-\textit{Partial progress recognition}: A model that correctly identifies the bug location but implements an incorrect fix has made meaningful progress that should be rewarded.
-
-\textbf{Our Reward Formulation}
-
-We employ a hierarchical reward structure that balances tractability with semantic meaningfulness, decomposing the complex task of bug fixing into three distinct components:
-
-\begin{equation}
-R_{\text{total}} = 0.2 \cdot R_{\text{files}} + 0.4 \cdot R_{\text{functional}} + 0.4 \cdot R_{\text{testing}}
-\end{equation}
-
-where each component evaluates a specific dimension of repair quality:
-
-\textit{File Targeting Component} $R_{\text{files}} \in [0,1]$: Evaluates whether the agent modified the correct files that should be changed to fix the bug.
-This component rewards the agent for identifying the appropriate locations in the codebase, regardless of the specific changes made.
-
-\textit{Functional Similarity Component} $R_{\text{functional}} \in [0,1]$: Measures how similar the agent's changes are to the ground-truth solution in terms of the functional aspects of fixing the bug.
-This component focuses on whether the core logic changes align with the expected repair strategy.
-
-\textit{Testing Alignment Component} $R_{\text{testing}} \in [0,1]$: Assesses how well the agent's changes align with the testing suite additions or modifications in the ground truth, which monitor the bug and ensure correctness while preventing regression.
-
-The weights $(0.2, 0.4, 0.4)$ reflect that while file targeting is important for localization, the functional and testing aspects are equally critical for comprehensive bug repair.
-
-\textbf{Similarity Computation Details}
-
-For comparing generated and oracle patches, we employ a multi-level approach:
-
-1.
-\textit{Patch normalization}: Remove comments, standardize whitespace, and alpha-rename variables to handle superficial differences
-
-2. \textit{Chunk extraction}: Decompose patches into individual change chunks for fine-grained comparison
-
-3. \textit{Fuzzy matching}: Use token-level sequence alignment to identify partially correct modifications
-
-4. \textit{Semantic grouping}: Cluster related changes (e.g., adding import and using imported function) for holistic evaluation
-
-\textbf{Addressing Reward Sparsity}
-
-To combat the challenge of sparse rewards, we implement several strategies:
-
-\textit{Reward shaping}: Intermediate rewards for productive actions (successfully viewing relevant files, running informative commands) provide dense feedback during exploration.
-
-\textit{Hindsight experience replay}: Failed trajectories are retroactively analyzed to identify partially correct actions that can be positively reinforced in appropriate contexts.
-
-\textit{Curriculum learning}: Training begins with simpler bugs having higher success rates, gradually increasing difficulty as the model improves.
-
-\textit{Exploration bonuses}: Novel action sequences receive small positive rewards to encourage diverse strategy discovery.
-
-This reward formulation, while imperfect, provides sufficient signal for reinforcement learning while remaining computationally tractable for large-scale training.
-Future work could explore learned reward models or integration with test-based evaluation as computational resources permit.
-
 \section{Evaluation Benchmarks}
 
 Rigorous evaluation of automated code repair systems requires diverse, realistic benchmarks that capture the complexity of real-world debugging scenarios.
@@ -882,102 +547,100 @@ Rigorous evaluation of automated code repair systems requires diverse, realistic
 
 The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluating coding agents on realistic software engineering tasks.
 
-The \ac{SWE-Bench} family of benchmarks has revolutionized evaluation of code generation and repair systems by introducing repository-scale tasks that mirror real-world software development challenges.
+% \subsubsection{Evolution of SWE-Bench}
 
-\subsubsection{Evolution of SWE-Bench}
+% \textbf{Original \ac{SWE-Bench} (2023)}~\cite{jimenez2024swebenchlanguagemodelsresolve}: The foundational dataset introduced 2,294 task instances drawn from 12 popular Python repositories. Each instance consists of:
+% \begin{itemize}
+% 	\item A GitHub issue describing a bug or feature request
+% 	\item The repository state at issue creation time
+% 	\item The developer-written patch that resolved the issue
+% 	\item Test cases that fail before and pass after the patch
+% \end{itemize}
 
-\textbf{Original \ac{SWE-Bench} (2023)}~\cite{sweBench2024}: The foundational dataset introduced 2,294 task instances drawn from 12 popular Python repositories. Each instance consists of:
-\begin{itemize}
-	\item A GitHub issue describing a bug or feature request
-	\item The repository state at issue creation time
-	\item The developer-written patch that resolved the issue
-	\item Test cases that fail before and pass after the patch
-\end{itemize}
+% This design captures the full complexity of real software development: understanding natural language descriptions, navigating large codebases, and implementing solutions that satisfy existing tests.
 
-This design captures the full complexity of real software development: understanding natural language descriptions, navigating large codebases, and implementing solutions that satisfy existing tests.
+% \textbf{\ac{SWE-Bench-Verified} (2024)}~\cite{sweBenchVerified2024}: Addressing quality concerns in the original dataset, this refined version includes 500 carefully validated instances that:
+% \begin{itemize}
+% 	\item Eliminate ambiguous issue descriptions
+% 	\item Ensure deterministic test outcomes
+% 	\item Remove trivial string replacements
+% 	\item Verify patch minimality and correctness
+% 	\item Balance difficulty across different problem types
+% \end{itemize}
 
-\textbf{\ac{SWE-Bench-Verified} (2024)}~\cite{sweBenchVerified2024}: Addressing quality concerns in the original dataset, this refined version includes 500 carefully validated instances that:
-\begin{itemize}
-	\item Eliminate ambiguous issue descriptions
-	\item Ensure deterministic test outcomes
-	\item Remove trivial string replacements
-	\item Verify patch minimality and correctness
-	\item Balance difficulty across different problem types
-\end{itemize}
+% Human annotators achieve 97\% success on \ac{SWE-Bench-Verified} compared to 73\% on the original, confirming the removal of problematic instances while maintaining challenging, realistic tasks.
 
-Human annotators achieve 97\% success on \ac{SWE-Bench-Verified} compared to 73\% on the original, confirming the removal of problematic instances while maintaining challenging, realistic tasks.
+% \textbf{\ac{SWE-Bench}
+% 	Extensions}: While extensions to other programming languages have been proposed, our work focuses exclusively on the original Python-based benchmark suite, which provides the most mature and extensively validated evaluation framework.
 
-\textbf{\ac{SWE-Bench}
-	Extensions}: While extensions to other programming languages have been proposed, our work focuses exclusively on the original Python-based benchmark suite, which provides the most mature and extensively validated evaluation framework.
+% This diversity demonstrates the complexity and realism of the evaluation framework.
 
-This diversity demonstrates the complexity and realism of the evaluation framework.
+% \subsubsection{Task Format and Complexity}
 
-\subsubsection{Task Format and Complexity}
+% Each \ac{SWE-Bench} instance presents a naturalistic debugging scenario:
 
-Each \ac{SWE-Bench} instance presents a naturalistic debugging scenario:
+% \begin{verbatim}
+% ISSUE DESCRIPTION:
+% Title: DataFrame.apply() fails with axis=1 when columns have mixed types
 
-\begin{verbatim}
-ISSUE DESCRIPTION:
-Title: DataFrame.apply() fails with axis=1 when columns have mixed types
+% When calling df.apply(func, axis=1) on a DataFrame with both numeric 
+% and string columns, the function receives Series with incorrect dtypes.
 
-When calling df.apply(func, axis=1) on a DataFrame with both numeric 
-and string columns, the function receives Series with incorrect dtypes.
+% Example to reproduce:
+% ```python
+% df = pd.DataFrame({'A': [1, 2], 'B': ['x', 'y']})
+% df.apply(lambda row: row['A'] + len(row['B']), axis=1)
+% # Raises TypeError
+% ```
 
-Example to reproduce:
-```python
-df = pd.DataFrame({'A': [1, 2], 'B': ['x', 'y']})
-df.apply(lambda row: row['A'] + len(row['B']), axis=1)
-# Raises TypeError
-```
+% REPOSITORY STATE:
+% - 847 Python files totaling 284,000 lines
+% - Complex module dependencies
+% - 15,000+ test cases
+% \end{verbatim}
 
-REPOSITORY STATE:
-- 847 Python files totaling 284,000 lines
-- Complex module dependencies
-- 15,000+ test cases
-\end{verbatim}
+% The evaluation system places the model in this repository state and measures whether it can produce a patch functionally equivalent to the developer's solution.
+% This requires:
+% \begin{itemize}
+% 	\item Understanding the issue from natural language description
+% 	\item Reproducing the bug through code execution
+% 	\item Navigating the codebase to locate relevant modules
+% 	\item Understanding existing implementation patterns
+% 	\item Implementing a fix that maintains backward compatibility
+% 	\item Ensuring the fix passes all existing tests
+% \end{itemize}
 
-The evaluation system places the model in this repository state and measures whether it can produce a patch functionally equivalent to the developer's solution.
-This requires:
-\begin{itemize}
-	\item Understanding the issue from natural language description
-	\item Reproducing the bug through code execution
-	\item Navigating the codebase to locate relevant modules
-	\item Understanding existing implementation patterns
-	\item Implementing a fix that maintains backward compatibility
-	\item Ensuring the fix passes all existing tests
-\end{itemize}
+% \subsubsection{Evaluation Methodology}
 
-\subsubsection{Evaluation Methodology}
+% \ac{SWE-Bench} employs rigorous evaluation protocols:
 
-\ac{SWE-Bench} employs rigorous evaluation protocols:
+% \textbf{Functional verification}: Patches are evaluated by running the full test suite, not through textual comparison.
+% This allows semantically equivalent but syntactically different solutions.
 
-\textbf{Functional verification}: Patches are evaluated by running the full test suite, not through textual comparison.
-This allows semantically equivalent but syntactically different solutions.
+% \textbf{Isolated execution}: Each evaluation runs in a fresh Docker container to prevent cross-contamination and ensure reproducibility.
 
-\textbf{Isolated execution}: Each evaluation runs in a fresh Docker container to prevent cross-contamination and ensure reproducibility.
+% \textbf{Time limits}: Solutions must complete within 5 minutes, reflecting real-world constraints on automated tools.
 
-\textbf{Time limits}: Solutions must complete within 5 minutes, reflecting real-world constraints on automated tools.
+% \textbf{Minimal patches}: Credit is given only for patches that don't introduce unnecessary changes, encouraging precise solutions.
 
-\textbf{Minimal patches}: Credit is given only for patches that don't introduce unnecessary changes, encouraging precise solutions.
+% \subsubsection{Why Success Rates Remain Low}
 
-\subsubsection{Why Success Rates Remain Low}
+% Despite rapid progress in \ac{LLM} capabilities, even state-of-the-art systems achieve only ~20-25\% success rates on \ac{SWE-Bench}.
+% This persistent challenge stems from several factors:
 
-Despite rapid progress in \ac{LLM} capabilities, even state-of-the-art systems achieve only ~20-25\% success rates on \ac{SWE-Bench}.
-This persistent challenge stems from several factors:
+% \textbf{Repository complexity}: The average task requires understanding code distributed across 6.3 files, with deep call chains and complex dependencies.
+% Current models struggle to maintain coherent understanding across such scales.
 
-\textbf{Repository complexity}: The average task requires understanding code distributed across 6.3 files, with deep call chains and complex dependencies.
-Current models struggle to maintain coherent understanding across such scales.
+% \textbf{Ambiguity in natural language}: Issue descriptions often assume domain knowledge, use project-specific terminology, or describe symptoms rather than root causes.
+% Models must infer substantial context.
 
-\textbf{Ambiguity in natural language}: Issue descriptions often assume domain knowledge, use project-specific terminology, or describe symptoms rather than root causes.
-Models must infer substantial context.
+% \textbf{Execution feedback requirement}: Unlike code generation tasks solvable through pattern matching, debugging requires iterative hypothesis testing through code execution—a capability most models lack.
 
-\textbf{Execution feedback requirement}: Unlike code generation tasks solvable through pattern matching, debugging requires iterative hypothesis testing through code execution—a capability most models lack.
+% \textbf{Test suite complexity}: Solutions must satisfy not just the reported issue but maintain compatibility with thousands of existing tests, requiring deep understanding of system invariants.
 
-\textbf{Test suite complexity}: Solutions must satisfy not just the reported issue but maintain compatibility with thousands of existing tests, requiring deep understanding of system invariants.
+% \textbf{Long-tail distribution}: Many bugs involve rare edge cases or unique project-specific patterns absent from training data, testing true generalization rather than memorization.
 
-\textbf{Long-tail distribution}: Many bugs involve rare edge cases or unique project-specific patterns absent from training data, testing true generalization rather than memorization.
-
-These challenges make \ac{SWE-Bench} an ideal testbed for interactive training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
+% These challenges make \ac{SWE-Bench} an ideal testbed for interactive training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
 
 \section{Related Work}
 
