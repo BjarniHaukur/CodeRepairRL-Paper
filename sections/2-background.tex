@@ -432,7 +432,7 @@ The ability for language models to interact with external tools and \acp{API} re
 Modern \acp{LLM} implement tool calling through structured output generation, where models learn to produce specially formatted function calls that can be parsed and executed by external systems.
 This capability emerged from training models on datasets containing examples of tool usage patterns, enabling them to understand when and how to invoke external functions.
 
-The dominant paradigm uses \ac{JSON}-formatted function calls embedded within model outputs:
+The dominant paradigm uses \acs{JSON}-formatted function calls embedded within model outputs:
 
 \begin{verbatim}
 {
@@ -480,37 +480,33 @@ The integration of language models with interactive programming environments has
 
 \todoinline{Make this more about: "Hey these agents exist and are obviously impactful." Then explain that those like Aider are not training compliant (modifies rollout histories)}
 
-Modern coding agents combine language models with tool access, allowing them to navigate codebases, execute commands, and iteratively refine solutions.
+% Modern coding agents combine language models with tool access, allowing them to navigate codebases, execute commands, and iteratively refine solutions.
 
-Several sophisticated coding agent frameworks have emerged, each representing different philosophies in agent design and human-\ac{AI} collaboration:
+% Several sophisticated coding agent frameworks have emerged, each representing different philosophies in agent design and human-\ac{AI} collaboration:
 
-\textbf{GitHub Copilot Workspace}~\cite{copilotWorkspace2024} extends the original Copilot paradigm beyond code completion to full task planning and execution.
-It employs a multi-agent architecture where specialized agents handle different aspects of software development—understanding requirements, generating implementations, and managing version control.
-On proprietary evaluations, it achieves approximately 30\% task completion rates for well-specified programming tasks.
+% \textbf{GitHub Copilot Workspace}~\cite{copilotWorkspace2024} extends the original Copilot paradigm beyond code completion to full task planning and execution.
+% It employs a multi-agent architecture where specialized agents handle different aspects of software development—understanding requirements, generating implementations, and managing version control.
+% On proprietary evaluations, it achieves approximately 30\% task completion rates for well-specified programming tasks.
 
-\textbf{Cursor}~\cite{cursor2024} pioneered the \ac{IDE}-integrated agent approach, providing context-aware code generation within the development environment.
-Its key innovation lies in automatic context retrieval, using embedding-based search to identify relevant code sections across large codebases.
-This approach achieves strong performance on code completion tasks but has not been formally evaluated on repair benchmarks.
+% \textbf{Cursor}~\cite{cursor2024} pioneered the \ac{IDE}-integrated agent approach, providing context-aware code generation within the development environment.
+% Its key innovation lies in automatic context retrieval, using embedding-based search to identify relevant code sections across large codebases.
+% This approach achieves strong performance on code completion tasks but has not been formally evaluated on repair benchmarks.
 
-\textbf{Aider}~\cite{aider2024} represents the heavyweight scaffolding approach, incorporating sophisticated features:
-\begin{itemize}
-	\item \textit{Repository mapping}: Automatic generation of codebase summaries and dependency graphs
-	\item \textit{Multi-file coordination}: Tracking and maintaining consistency across file edits
-	\item \textit{Conversation memory}: Maintaining context across multiple interaction turns
-	\item \textit{Git integration}: Automatic commit generation and version management
-\end{itemize}
-On the Aider-Polyglot benchmark, it achieves 48.3\% success rates with GPT-4, demonstrating the value of comprehensive scaffolding.
+% \textbf{Aider}~\cite{aider2024} represents the heavyweight scaffolding approach, incorporating sophisticated features:
+% \begin{itemize}
+% 	\item \textit{Repository mapping}: Automatic generation of codebase summaries and dependency graphs
+% 	\item \textit{Multi-file coordination}: Tracking and maintaining consistency across file edits
+% 	\item \textit{Conversation memory}: Maintaining context across multiple interaction turns
+% 	\item \textit{Git integration}: Automatic commit generation and version management
+% \end{itemize}
 
-\textbf{OpenHands (formerly OpenDevin)}~\cite{openhands2024} and \textbf{SWE-Agent}~\cite{sweAgent2024} represent the state-of-the-art in autonomous software engineering agents. These systems provide:
-\begin{itemize}
-	\item Full shell access within sandboxed environments
-	\item Web browsing capabilities for documentation lookup
-	\item Persistent workspace management across sessions
-	\item Sophisticated error recovery and retry mechanisms
-\end{itemize}
-
-SWE-Agent achieves 12.29\% on SWE-Bench with GPT-4, while OpenHands reaches similar performance levels.
-Notably, both systems employ complex, multi-stage workflows with dozens of specialized tools and heuristics.
+% \textbf{OpenHands (formerly OpenDevin)}~\cite{openhands2024} and \textbf{SWE-Agent}~\cite{sweAgent2024} represent the state-of-the-art in autonomous software engineering agents. These systems provide:
+% \begin{itemize}
+% 	\item Full shell access within sandboxed environments
+% 	\item Web browsing capabilities for documentation lookup
+% 	\item Persistent workspace management across sessions
+% 	\item Sophisticated error recovery and retry mechanisms
+% \end{itemize}
 
 \textbf{Fitting model to scaffold vs Fitting scaffold to model}
 \todoinline{sloppy}
@@ -651,8 +647,6 @@ This section synthesizes the most directly relevant prior work across three crit
 
 \subsubsection{Reinforcement Learning for Code Tasks}
 
-Despite the natural fit between \ac{RL} and interactive programming tasks, surprisingly little work has explored this intersection:
-
 \textbf{CodeRL}~\cite{le2022coderlmasteringcodegeneration} pioneered applying \ac{RL} to code generation, using unit test execution as rewards.
 However, it focused on single-function synthesis rather than repository-scale debugging.
 
@@ -665,6 +659,10 @@ The work demonstrated improved sample efficiency but did not address the fundame
 \textbf{SWE-RL}~\cite{wei2025swerladvancingllmreasoning} introduced a static, single-turn formulation—where a model given full file contexts produces a patch after a reasoning step.
 \todoinline{elaborate}
 
+\textbf{DeepSWE}~\cite{deepsswe2025} is highly similar to our work and validates our approach.
+Our caveat is replicating this in a low resource manner?
+\todoinline{important to make this much better}
+
 \textbf{Critical limitations of existing work}:
 \begin{itemize}
 	\item Focus on generation rather than repair: Creating new code differs fundamentally from debugging existing systems
@@ -672,57 +670,12 @@ The work demonstrated improved sample efficiency but did not address the fundame
 	\item Lack of environmental interaction: No exploration, tool usage, or iterative refinement
 \end{itemize}
 
-\subsubsection{Agent-Based Debugging Systems}
-
-The proliferation of coding agents has occurred almost entirely in the inference domain.
-Only very recent efforts by OpenHands, Alibaba's Qwen team ~\cite{qwen3coder_blog_2025} and others have ad
-
-\textbf{AutoCodeRover}~\cite{autoCodeRover2024} combines code search, static analysis, and \ac{LLM}-based patch generation.
-While effective (achieving 15\% on \ac{SWE-Bench}), it operates purely at inference time with no learning from experience.
-
-\textbf{AgentCoder}~\cite{agentCoder2024} introduces multi-agent collaboration with specialized roles (test writer, debugger, coder).
-Despite sophisticated orchestration, each agent uses a frozen model without improvement mechanisms.
-
-\textbf{RepoAgent}~\cite{repoAgent2024} focuses on repository understanding through graph neural networks and semantic indexing.
-These capabilities enhance inference but aren't integrated into model training.
-
-\textbf{The training-deployment gap}: All existing systems share a fundamental limitation—they apply sophisticated scaffolding to pre-trained models without enabling models to learn optimal usage of these tools. This creates inefficiencies:
-\begin{itemize}
-	\item Models struggle with unfamiliar tool interfaces
-	\item Prompt engineering becomes necessary to elicit proper tool usage
-	\item No improvement from successful task completions
-	\item Inability to discover novel tool combinations
-\end{itemize}
-
-\subsubsection{The Missing Pieces}
-
-Our research addresses three critical gaps in the literature:
-
-\textbf{1.
-	Open-source interactive training}: While rumors suggest industry labs train models interactively (OpenAI's o1, Anthropic's Claude), no public implementation exists.
-We provide:
-\begin{itemize}
-	\item Complete infrastructure for agent-integrated \ac{RL}
-	\item Reproducible training pipelines
-	\item Extensive ablation capabilities
-	\item Detailed instrumentation for analysis
-\end{itemize}
-
-\textbf{2.
-	Minimalist agent design}: Our Nano agent demonstrates that effective debugging behaviors can emerge from simple tools combined with reinforcement learning.
-
-\textbf{3.
-	Demonstrated learning improvements}: We show monotonic improvement through \ac{RL} iterations, validating that interactive training produces measurable capability gains beyond static fine-tuning.
-
-These contributions fill a crucial gap between the theoretical promise of interactive learning and practical implementation for software engineering tasks.
-By open-sourcing our approach, we enable the broader research community to build upon interactive training, potentially transforming how we develop \ac{AI} systems for programming assistance.
-
 \section{Summary and Research Positioning}
 
-This chapter has established the theoretical and empirical foundations for interactive reinforcement learning applied to automated code repair.
-By examining the evolution from rule-based repair systems to modern LLM-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and interactive debugging, the absence of environmental feedback during learning, and the lack of systematic comparison between minimal and engineered scaffolding approaches.
+This chapter has established the theoretical and empirical foundations for interactive \ac{RL} applied to \ac{APR}.
+By examining the evolution from rule-based repair systems to modern \ac{LLM}-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and the interactive nature of debugging.
 
-Our review of reinforcement learning techniques, particularly the elegant simplification offered by GRPO, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees.
+Our review of reinforcement learning techniques, particularly the elegant simplification offered by \ac{GRPO}, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees.
 The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
 
 The Nano agent architecture presents an alternative approach to agent design.
@@ -736,11 +689,7 @@ Our implementation enables researchers to explore interactive learning across di
 
 \textbf{Minimalist agent approach}: We demonstrate that a simple agent design with basic tools can achieve strong performance when combined with reinforcement learning, showing that sophisticated debugging behaviors can emerge from minimal interfaces.
 
-\textbf{Bridge between research and practice}: By demonstrating that models can learn effective debugging strategies through reinforcement learning in realistic environments, we bridge the gap between academic research on program repair and practical tools used by developers.
+\textbf{Bridge between research and practice}: By demonstrating that models can learn effective debugging strategies through \ac{RL} in realistic environments, we bridge the gap between academic research on program repair and practical tools used by developers.
 Our approach shows that the future of coding assistance lies not in ever-more-sophisticated prompt engineering, but in models that learn from experience.
 
-The implications extend beyond code repair.
-Our work demonstrates that effective debugging behaviors can emerge from simple agent designs when combined with reinforcement learning.
-This provides both the theoretical framework and practical tools to explore interactive training.
-
-As we proceed to describe our method in detail, keep in mind that our goal is not merely to improve performance metrics on benchmarks, but to demonstrate a fundamentally different training approach that enables models to learn from environmental interaction.
+As we proceed to describe our method in detail, keep in mind that our goal is not merely to improve performance metrics on benchmarks, but to demonstrate a fundamentally different, nascent training approach that enables \acp{LLM} to learn not from labeled data points, but from experience.

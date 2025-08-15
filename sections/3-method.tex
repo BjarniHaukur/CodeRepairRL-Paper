@@ -1,13 +1,20 @@
 \chapter{Method}
 \label{ch:method}
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{plotting/figures/diagram.png}
+	\caption{Simulatenously too busy and too simplified, I'll make another version}
+	\label{fig:method-diagram}
+\end{figure}
+
 This chapter presents our novel approach to training large language models for automated code repair through interactive \ac{RL}.
 We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the \ac{RL} training loop improves bug-fixing performance.
 
 \section{Overview of our approach}
 \label{sec:method-overview}
 
-Traditional approaches to training \acp{LLM} for code repair rely on supervised fine-tuning with static datasets of code-patch pairs.
+Traditional approaches to training \acp{LLM} for code repair rely on \ac{SFT} with static datasets of code-patch pairs.
 In contrast, our method pioneers interactive \ac{RL}, where coding agents actively interact with real software repositories during training.
 This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
 % We retain the same outcome-driven similarity principle as SWE-RL~\cite{wei2025swerladvancingllmreasoning} while embedding it within an interactive, multi-step setting that rewards successful end-to-end repair after autonomous context acquisition.
@@ -21,11 +28,12 @@ Rather than constraining models to single-pass generation, we enable multi-step 
 	\item Learn from the outcomes of their actions rather than just imitating examples
 \end{itemize}
 
-By implementing an OpenAI-compatible \ac{API} server with asynchronous token streaming capabilities, we enable seamless integration between \ac{RL} training and agent execution.
-This allows our Nano coding agent to interact naturally with repositories through basic terminal commands while maintaining compatibility with the RL training loop.
+Unlike previous approaches that relied on synchronous batched generation, our implementation provides an asynchronous OpenAI-compatible \ac{API} server that enables true multi-turn interaction rather than single-pass generation.
 
-Figure~\ref{fig:agent-loop-architecture} illustrates the complete training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation.
-This diagram demonstrates how traditional \ac{RL} training is enhanced by embedding interactive agents directly within the optimization loop.
+% Our Nano coding agent can therefore engage in natural back-and-forth interaction with repositories through basic terminal commands while remaining fully compatible with the RL training loop.
+
+% Figure~\ref{fig:agent-loop-architecture} illustrates the complete training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation.
+% This diagram demonstrates how traditional \ac{RL} training is enhanced by embedding interactive agents directly within the optimization loop.
 
 \section{Nano Coding Agent}
 \label{sec:nano-agent}
@@ -125,12 +133,24 @@ The Nano agent integrates seamlessly with our \ac{RL} training pipeline through 
 	\item The agent iteratively refines its understanding and proposes fixes
 	\item The final patch is evaluated against the ground truth for reward computation
 \end{enumerate}
+\todoinline{Maybe a small diagram / state machine for this}
 
 This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes.
 The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
 
 This learning-centric approach avoids overfitting to tooling idiosyncrasies.
 Rather than engineering away the difficulty of code repair through sophisticated tooling, we provide a stable, minimal interface and train the model to develop its own solutions through experience.
+
+\subsection{Compute-Aware Agent Design}
+
+Nano is designed to be compute-aware and operates within well-defined token, tool and time budgets.
+This approach ensures:
+
+\begin{itemize}
+	\item \textbf{Predictable Memory Usage}: Token limits guarantee that conversation histories remain within \ac{GPU} memory constraints during training and inference
+	\item \textbf{Bounded Computational Cost}: Action limits prevent runaway episodes that could consume excessive computational resources
+	\item \textbf{Training Stability}: Finite horizons prevent extremely long episodes that could destabilize training dynamics
+\end{itemize}
 
 \section{Formal Problem Formulation as a Markov Decision Process}
 \label{sec:mdp-formulation}
@@ -213,21 +233,6 @@ The token-based termination criterion reflects Nano's compute-aware design—the
 
 A complete trajectory is $\tau = (s_0, a_0, r_0, s_1, a_1, r_1, \ldots, s_T, r_T)$ where rewards are zero except at termination.
 
-\subsection{Compute-Aware Agent Design}
-
-The finite horizon and token-based termination criteria reflect a key design philosophy: Nano is inherently compute-aware.
-Rather than allowing unbounded exploration that could exhaust computational resources, the agent operates within well-defined memory and computational budgets.
-This approach ensures:
-
-\begin{itemize}
-	\item \textbf{Predictable Memory Usage}: Token limits guarantee that conversation histories remain within \ac{GPU} memory constraints during training and inference
-	\item \textbf{Bounded Computational Cost}: Action limits prevent runaway episodes that could consume excessive computational resources
-	\item \textbf{Practical Deployment}: Resource awareness makes the system suitable for real-world deployment where computational budgets matter
-	\item \textbf{Training Stability}: Finite horizons prevent extremely long episodes that could destabilize training dynamics
-\end{itemize}
-
-This compute-aware design represents a departure from traditional \ac{RL} environments with unbounded action spaces, reflecting the practical constraints of deploying large language models in resource-constrained settings.
-
 \subsection{If Finite MDP, Why Not Q-Learning?}
 
 With finite state and action spaces, Q-learning becomes theoretically applicable.
@@ -309,13 +314,6 @@ Unlike conventional \ac{RL} where trajectory collection and policy updates occur
 
 \subsection{The Unified Training-Inference Paradigm}
 
-In traditional \ac{RL}, models alternate between:
-\begin{enumerate}
-	\item \textbf{Inference phase}: Collecting trajectories with a frozen policy
-	\item \textbf{Training phase}: Computing gradients and updating parameters offline
-\end{enumerate}
-
-Our interactive system eliminates this separation.
 The \ac{GRPO} process operates as a continuous cycle where:
 \begin{enumerate}
 	\item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
@@ -326,20 +324,12 @@ The \ac{GRPO} process operates as a continuous cycle where:
 
 This unified paradigm enables true online learning where the policy improves continuously throughout the training session, rather than in discrete update cycles.
 
-\subsection{Benefits of Training-Inference Integration}
-
-\textbf{Reduced Training Time}: Eliminating the inference-training separation dramatically reduces wall-clock training time, as trajectory collection and policy updates overlap completely.
-
-\textbf{Better Sample Efficiency}: The policy benefits from improvements immediately, enabling more efficient exploration as training progresses.
-
-\textbf{Resource Utilization}: \ac{GPU} resources are maximally utilized since inference and training computations run concurrently on different hardware.
-
-\textbf{Stability}: Continuous small updates prove more stable than large batch updates, reducing training instability.
-
-\section{Reinforcement Learning Training Algorithm}
+\section{Trainer Implementation}
 \label{sec:rl-algorithm}
 
 We fork this \cite{vonwerra2022trl} \todoinline{write}
+
+Parallel to our work, repositories like rLLM~\cite{rllm2025} have gotten very good \todoinline{write}
 
 \subsection{Group Relative Policy Optimization (GRPO)}
 
@@ -409,6 +399,8 @@ Without selective masking, the optimization objective allocates significant capa
 
 \subsubsection{Algorithmic Benefits}
 
+\todoinline{by zeroing out the tool responses, we target the optimization on the tokens that matter.}
+
 \textbf{Training Focus:}
 Tool tokens contribute zero gradient magnitude, ensuring optimization pressure concentrates exclusively on agent reasoning and tool invocation patterns—the core competencies we seek to develop.
 
@@ -439,10 +431,11 @@ Our training follows an iterative process where the agent attempts to solve bugs
 Key hyperparameters for our \ac{GRPO} implementation include:
 
 \begin{itemize}
-	\item \textbf{Batch size:} 32 trajectories per update
-	\item \textbf{Learning rate:} $1 \times 10^{-5}$ with cosine annealing
-	\item \textbf{\ac{KL} coefficient:} $\beta = 0.1$ to balance exploration and stability
-	\item \textbf{Maximum trajectory length:} 8192 tokens to accommodate multi-step agent interactions
+	\item \textbf{Group Size:} 8
+	\item \textbf{Effective Batch size:} gradients accumulated over 4 groups
+	\item \textbf{Learning rate:} $1 \times 10^{-4}$, higher due to LoRA, no decay since that counteracts the "online" aspect of our training
+	\item \textbf{\ac{KL} coefficient:} $\beta = 0.2$ for stability, omitting \acs{KL}-Div often leads to model collapse
+	\item \textbf{Maximum trajectory length:} 12288 token sweet spot that maximizes GPU throughput
 	\item \textbf{Training iterations:} 5,000 episodes covering the \ac{SWE-Gym} dataset
 \end{itemize}
 
@@ -454,17 +447,21 @@ Training and serving 8B to 32B parameter models for interactive \ac{RL} requires
 
 \subsubsection{Training Optimizations}
 
-\textbf{DeepSpeed ZeRO-3 Integration:}
+\textbf{LoRA:}
+\todoinline{Move discussions on what LoRA buys us efficienct wise here, discuss them tersely}
+
+\textbf{FlashAttention 2:} \cite{dao2023flashattention2fasterattentionbetter}
+3 only available on >H100
+
+\textbf{DeepSpeed ZeRO Integration:}
+\todoinline{briefly discuss both stage 2 and 3}
 Complete model parameter, gradient, and optimizer state sharding enables training of 32B models across multiple \acp{GPU} with minimal memory overhead per device.
 
 \textbf{Gradient Checkpointing:}
 Selective activation checkpointing reduces memory usage by 50\% during backward passes, trading compute for memory to enable larger batch sizes and longer sequence lengths.
 
 \textbf{Mixed Precision Training:}
-FP16 training with automatic loss scaling reduces memory usage and increases throughput while maintaining numerical stability.
-
-\textbf{Communication Optimization:}
-Overlapped gradient communication during backward passes minimizes the impact of all-reduce operations on training throughput.
+BF16 training.
 
 \textbf{\ac{KL}
 	Divergence Computational Efficiency:} \ac{GRPO} training often requires computing \ac{KL} divergence between the current policy and a reference model to ensure training stability—preventing the model from deviating excessively from its original training objectives while optimizing for the new task.
@@ -473,26 +470,16 @@ This stability constraint typically necessitates maintaining two complete model 
 We can therefore compute reference policy outputs by temporarily disabling the \ac{LoRA} adapters on the same model instance, eliminating the need for a separate reference model.
 This approach reduces memory consumption by approximately 50\% while preserving the distributional constraints essential for stable policy optimization.
 
-\subsubsection{Memory Management Strategies}
-
-\textbf{Activation Partitioning:}
-Custom memory management splits large activations across devices to minimize peak memory usage during both forward and backward passes.
-
-\textbf{Dynamic Batch Construction:}
-Intelligent batching algorithms pack variable-length agent trajectories to maximize \ac{GPU} utilization while respecting memory constraints.
-
-\textbf{Cache-Aware Scheduling:}
-Coordinated scheduling between training and inference processes minimizes memory contention and enables stable dual-mode operation.
-
 \subsubsection{Cost-Performance Trade-offs}
 
 The combination of these optimizations enables training of state-of-the-art agent behaviors while maintaining practical computational budgets:
 
+\todoinline{Make this a table with empirical metrics like: "backprop time", "rollout time"}
 \begin{itemize}
-	\item \textbf{8B models:}
-	      Trainable on 3x A100 \acsp{GPU} with full agent interaction \item \textbf{32B models:} Trainable on 6x A100 \acsp{GPU} with maintained training throughput \item \textbf{Memory efficiency:} 90\%+ memory utilization through careful optimization \item \textbf{Training speed:} Agent trajectory processing at near real-time rates \end{itemize}
+	\item \textbf{~8B models:}
+	      Trainable on 2-3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA \item \textbf{~14B models:} Trainable on 3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA \item \textbf{~32B models:} Trainable on 6x A100 \acsp{GPU} DeepSpeed ZeRO 3 and LoRA \end{itemize}
 
-These innovations make large-scale interactive \ac{RL} practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
+Stacking these optimizations make \ac{RL} practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
 
 \section{Reward Design}
 \label{sec:reward-design}
@@ -580,33 +567,18 @@ These extensions would require significant infrastructure investment but could l
 \section{High-Performance Training Infrastructure}
 \label{sec:training-infrastructure}
 
-\subsection{vLLM Serving Optimizations}
+\subsection{vLLM}
 
-Our system leverages vLLM's advanced serving capabilities, enhanced with additional optimizations for RL training workloads:
+Our inference layer leverages \ac{vLLM}'s powerful inference engine to handle the demanding requirements of online \ac{RL} workloads.
+\ac{vLLM}'s KV-cache management, continuous batching, and PagedAttention~\cite{kwon2023efficientmemorymanagementlarge} collectively enable fast, efficient serving of asynchronous multi-turn agents.
+Crucially, between model weight updates, prefix caches deterministically hit, providing substantial performance boosts during the intervals when agents operate with stable model parameters.
 
-\subsubsection{Core vLLM Features}
+To support interactive training, we extended \ac{vLLM}'s OpenAI-compatible \ac{API} server with live weight synchronization (hot-swapping) so updates take effect without service interruption (see \ref{sec:nccl-sync}).
 
-\textbf{KV-Cache Management:} Intelligent key-value cache reuse across agent conversations dramatically reduces memory usage and latency.
-For multi-step debugging sessions, context prefixes are cached and reused, providing up to 3x speedup in token generation.
+\subsubsection{Logit divergence problem}
+Motivates GSPO
 
-\textbf{Continuous Batching:}
-Dynamic request batching allows optimal GPU utilization by processing multiple agent requests simultaneously, with automatic load balancing across available compute resources.
-
-\textbf{Memory-Efficient Attention:}
-PagedAttention implementation reduces memory fragmentation and enables serving larger models with the same hardware footprint.
-
-\subsubsection{RL-Specific Enhancements}
-
-\textbf{Trajectory Streaming:}
-Custom modifications enable real-time streaming of completed agent trajectories to the training pipeline without blocking inference for ongoing requests.
-
-\textbf{Model Hot-Swapping:}
-Live weight updates occur without service interruption through careful state management and request routing.
-
-\textbf{Multi-Model Serving:}
-Simultaneous serving of both the current policy and reference policy (required for GRPO) with shared base weights and separate adapters.
-
-\subsection{NCCL-Based Live Weight Synchronization}
+\subsection{NCCL-Based Live Weight Synchronization} \label{sec:nccl-sync}
 
 A critical technical breakthrough enabling our training-inference duality is real-time weight synchronization between the training pipeline and inference servers using NVIDIA Collective Communications Library (NCCL).
 
@@ -617,35 +589,21 @@ The weight synchronization system operates through several components:
 \textbf{NCCL Broadcast Groups:} Training nodes broadcast updated weights to inference servers using optimized collective communication primitives.
 This ensures minimal latency and maximum bandwidth utilization.
 
-\textbf{Asynchronous Updates:}
-Weight broadcasts occur asynchronously with respect to inference requests, preventing service interruption during model updates.
-
-\textbf{Version Control:}
-Sophisticated versioning ensures request consistency—all tokens within a generation use the same model weights, even if updates occur mid-generation.
-
 \textbf{Differential Updates:}
-Only changed parameters (typically LoRA adapters) are broadcast, dramatically reducing network traffic and update latency.
+\todoinline{Write more here about "sequential gathering", reducing peak GPU VRAM reqs by ~$500$x}
+Only changed parameters (the LoRA adapter weights) are broadcast, dramatically reducing network traffic and update latency.
 
 \subsubsection{Performance Characteristics}
 
 The performance characteristics of our NCCL-based weight synchronization system demonstrate significant engineering achievements:
 
 \textbf{Update Latency}: Weight broadcasts complete in 150-300ms for LoRA adapters (8-64 rank), enabling near real-time policy improvements.
-Full model updates for smaller models (8B parameters) complete in 2-4 seconds.
-
-\textbf{Throughput Impact}: Inference throughput degrades by less than 5\% during weight updates, achieved through careful scheduling and asynchronous communication patterns.
-
-\textbf{Memory Overhead}: Dual-model serving (current policy + reference policy) requires only 15\% additional memory through shared base weights and separate adapters.
 
 \textbf{Network Utilization}: Differential updates reduce communication by 95\% compared to full weight synchronization, utilizing only 100-500MB per update versus 50GB+ for complete models.
 
 Several technical challenges were overcome to achieve these performance levels:
 
 \textbf{\ac{CUDA} Memory Management}: Custom memory pools coordinate between training and inference processes, preventing out-of-memory conditions during concurrent operation.
-
-\textbf{Partial Generation Handling}: Sophisticated request tracking ensures that ongoing generations complete with consistent weights, while new requests use updated parameters.
-
-\textbf{Numerical Consistency}: Careful attention to floating-point precision and operation ordering maintains bit-exact reproducibility across distributed updates.
 
 \textbf{Scalability}: The system scales linearly to multiple inference nodes, with broadcast trees minimizing update latency as cluster size increases.
 Production deployments have demonstrated stable operation with up to 8 inference nodes receiving synchronized updates.
@@ -658,25 +616,8 @@ This NCCL-based approach represents a significant engineering achievement, enabl
 
 The complete interactive RL system consists of several interconnected components operating in parallel:
 
-\begin{enumerate}
-	\item \textbf{vLLM Inference Cluster:} Multi-GPU serving infrastructure with KV-cache optimization and real-time weight updates
-	\item \textbf{Agent Worker Pool:} Distributed Nano agent instances operating in parallel across containerized environments
-	\item \textbf{GRPO Training Pipeline:} Continuous gradient computation and parameter updates with advanced memory management
-	\item \textbf{NCCL Communication Layer:} High-bandwidth weight synchronization enabling training-inference duality
-	\item \textbf{Resource Orchestration:} Dynamic load balancing and memory management across training and inference workloads
-\end{enumerate}
-
-\subsection{Real-Time Weight Updates}
-
-Unlike traditional RL setups where inference and training are separate phases, our system enables continuous learning:
-
-\begin{itemize}
-	\item Model weights are updated after each batch of trajectories
-	\item Updates are immediately synchronized to all inference processes
-	\item Agents benefit from improvements within the same training session
-\end{itemize}
-
-This tight integration between serving and training represents a significant departure from conventional approaches, enabling more efficient exploration and faster convergence.
+\textbf{vLLM Inference Cluster:} 1 $80$GB A100 for $8$B/$14$B models, 2 for $~32$B
+\textbf{TRL Training Cluster:} 2 $80$GB A100 for $8$B/$14$B models, 4 for $~32$B, launches agents, posts weight synchronizations
 
 \subsection{Implementation Details}
 
@@ -697,51 +638,19 @@ The diagram highlights the NCCL communication layer that enables real-time weigh
 We assess model performance using several complementary metrics:
 
 \begin{itemize}
-	\item \textbf{Success Rate:} Percentage of bugs for which the agent generates an exactly correct patch
-	\item \textbf{Partial Success Rate:} Including fixes that target the correct location with minor differences
-	\item \textbf{Time to Solution:} Average wall-clock time required to generate a fix
-	\item \textbf{Exploration Efficiency:} Number of files examined and commands executed per bug
-\end{itemize}
+	\item \textbf{Success Rate:}
+	      Percentage of bugs for which the agent generates an exactly correct patch \item \textbf{Partial Success Rate:} Including fixes that target the correct location with minor differences \item \textbf{Time to Solution:} Average wall-clock time required to generate a fix \item \textbf{Exploration Efficiency:} Number of files examined and commands executed per bug \end{itemize}
 
 \subsection{Baseline Comparisons}
 
-To contextualize our results, we compare against several baselines:
+To contextualize our results, we compare:
 
-\begin{enumerate}
-	\item \textbf{Base Model:} The pretrained Qwen2.5-Coder without any bug-fixing training
-	\item \textbf{Supervised Fine-Tuning:} The same model fine-tuned on bug-fix pairs using standard supervised learning
-	\item \textbf{Direct Generation:} Models prompted to generate fixes without agent capabilities
-	\item \textbf{State-of-the-art Systems:} Published results from other automated repair approaches
-\end{enumerate}
+\textbf{Base Model:} The same models before and after training
 
-\subsection{Generalization Testing}
+\textbf{State-of-the-art Models:} See how frontier models in stead
 
-Beyond in-domain performance, we evaluate generalization through:
-
-\begin{itemize}
-	\item \textbf{Cross-dataset evaluation:} Testing on SWE-Bench-Verified after training on SWE-Gym
-	\item \textbf{Transfer to code generation:} Evaluating on HumanEval to assess whether debugging skills improve general programming capabilities
-	\item \textbf{Temporal generalization:} Testing on bugs from time periods not covered in training
-\end{itemize}
-
-\subsection{Ablation Studies}
-
-To understand the contribution of different components, we conduct ablations:
-
-\begin{itemize}
-	\item \textbf{Without RL:}
-	      Using only supervised fine-tuning on the same data \item \textbf{Without agent:} Direct patch generation without repository interaction \item \textbf{Varying trajectory lengths:} Impact of allowing more or fewer exploration steps \item \textbf{Different reward functions:} Comparing patch similarity vs.
-	      binary success rewards
-\end{itemize}
+\subsection{Generalization Testing} Beyond in-domain performance, we evaluate generalization through: \todoinline{to MultiSwe?
+	to Tau?}
 
 \subsection{Statistical Significance}
-
-All reported improvements are tested for statistical significance using:
-
-\begin{itemize}
-	\item Bootstrap confidence intervals for success rate differences
-	\item McNemar's test for paired comparisons on the same test set
-	\item Effect size measurements (Cohen's d) to quantify practical significance
-\end{itemize}
-
-This comprehensive evaluation framework ensures that our conclusions about interactive RL are well-supported and reproducible.
+\todoinline{Should we have something like this?}
