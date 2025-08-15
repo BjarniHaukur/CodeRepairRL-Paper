@@ -8,9 +8,48 @@
 \tableofcontents
 \newpage
 
-\chapter{First Appendix}
-This is only slightly related to the rest of the report
+\chapter{Interactive Sankey Diagrams}
+\label{app:sankey}
 
-\chapter{Second Appendix}
-this is the information
+This appendix contains interactive Sankey diagrams that visualize command flow patterns during training. These HTML-based visualizations show how tool usage patterns evolve throughout the training process.
+
+\section{Available Sankey Visualizations}
+
+The following interactive Sankey diagrams are available in the \texttt{plotting/figures/plots/sankey/} directory:
+
+\subsection{Run Comparison: c8qr1evt vs tfk08zx2}
+\begin{itemize}
+\item \texttt{early\_training\_sankey\_c8qr1evt.html} - Early training command flows for GSPO approach
+\item \texttt{late\_training\_sankey\_c8qr1evt.html} - Late training command flows for GSPO approach
+\item \texttt{early\_training\_sankey\_tfk08zx2.html} - Early training command flows for GRPO approach  
+\item \texttt{late\_training\_sankey\_tfk08zx2.html} - Late training command flows for GRPO approach
+\end{itemize}
+
+\subsection{Additional Training Runs}
+\begin{itemize}
+\item \texttt{early\_training\_sankey\_nz1r7ml3.html} - Early training for baseline run
+\item \texttt{late\_training\_sankey\_nz1r7ml3.html} - Late training for baseline run
+\item Temperature-controlled runs (T5, T25) for various configurations
+\end{itemize}
+
+\section{Usage Instructions}
+
+To view these visualizations:
+\begin{enumerate}
+\item Open the HTML files in a web browser
+\item Interact with the flow diagrams to explore command transition patterns
+\item Compare early vs. late training to observe learning progression
+\item Use hover tooltips to see detailed flow statistics
+\end{enumerate}
+
+These diagrams complement the static plots in Chapter~\ref{ch:results} by providing detailed insights into the sequential decision-making patterns learned by the agents.
+
+\chapter{Additional Experimental Data}
+\label{app:data}
+
+\section{Complete Training Metrics}
+
+This appendix would contain complete training logs and additional metrics that supplement the main results in Chapter~\ref{ch:results}.
+
+\todoinline{Include additional data tables, extended statistical analyses, and supplementary experimental results once available.}
 

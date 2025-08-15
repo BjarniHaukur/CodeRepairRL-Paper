@@ -10,7 +10,20 @@ This chapter presents experimental results addressing our research questions (RQ
 \subsection{Learning Curve Analysis}
 
 Our \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} training demonstrates clear and consistent learning dynamics across multiple experimental runs.
-\todoinline{Insert Figure showing evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the Nano agent.}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/training_loss_ema0.05_tfk08zx2.png}
+	\caption{Training loss evolution over time showing convergence dynamics for run tfk08zx2 with exponential moving average smoothing (α=0.05).}
+	\label{fig:training-loss}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/reward_components_ema0.05_tfk08zx2.png}
+	\caption{Evolution of reward components throughout training, showing the progression of different reward signals over training steps.}
+	\label{fig:reward-components}
+\end{figure}
 
 \subsubsection{Reward Progression}
 
@@ -24,9 +37,23 @@ Validate hypothesis about RL enhancement of coding capabilities.}
 
 \subsubsection{Training Stability}
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1.0\textwidth]{plotting/figures/plots/comparison/training_dynamics_c8qr1evt_vs_tfk08zx2.png}
+	\caption{Comprehensive comparison of training dynamics between GSPO (c8qr1evt) and GRPO (tfk08zx2) approaches. The comparison shows training loss, mean reward, KL divergence, and learning progress across training steps. GRPO demonstrates significantly more stable training with faster convergence and better final performance.}
+	\label{fig:training-comparison}
+\end{figure}
+
 \todoinline{Analyze GRPO training stability compared to traditional PPO implementations. Report gradient variance reduction, convergence smoothness, and standard deviation metrics across training runs.}
 
 \subsection{Computational Efficiency}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/kl_divergence_ema0.05_tfk08zx2.png}
+	\caption{KL divergence between policy and reference model throughout training, showing the degree of policy shift during online learning.}
+	\label{fig:kl-divergence}
+\end{figure}
 
 \todoinline{Report computational efficiency improvements from training-inference duality architecture:
 \begin{itemize}
@@ -81,14 +108,27 @@ We analyze harness adaptation through three key metrics measured throughout trai
 \end{itemize}
 
 \subsection{Results}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/tool_success_rates_ema0.05_tfk08zx2.png}
+	\caption{Tool success rates over training steps, showing the model's improving ability to generate valid tool calls that execute successfully.}
+	\label{fig:tool-success}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/command_trend_direct_ema0.05_tfk08zx2.png}
+	\caption{Evolution of command usage patterns throughout training, demonstrating shifts in tool usage strategies.}
+	\label{fig:command-trend}
+\end{figure}
+
 \todoinline{Insert comprehensive analysis including:
 \begin{itemize}
-\item Plots showing tool success rate vs training steps
-\item Invalid call rate evolution over training
-\item Actions-per-episode distribution analysis
 \item Quantitative metrics from training logs
 \item Statistical significance of improvements
 \item Comparison with baseline models
+\item Actions-per-episode distribution analysis
 \end{itemize}}
 
 \subsection{Key Findings}
@@ -224,6 +264,20 @@ Several factors likely contribute to improved general coding performance:
 
 To understand the contribution of different system components, we conducted systematic ablation studies:
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/problem_performance_distribution_tfk08zx2.png}
+	\caption{Distribution of problem-solving performance across different task categories, showing which types of problems benefit most from RL training.}
+	\label{fig:problem-distribution}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/problem_clustering_tfk08zx2.png}
+	\caption{Clustering analysis of problem types based on model performance patterns, revealing systematic strengths and weaknesses.}
+	\label{fig:problem-clustering}
+\end{figure}
+
 \todoinline{Insert ablation study results table comparing system configurations:
 \begin{itemize}
 \item Full system performance baseline
@@ -264,6 +318,20 @@ We evaluated sensitivity to key hyperparameters to understand training robustnes
 \end{itemize}}
 
 \subsubsection{Trajectory Length Impact}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/individual_trajectories_tfk08zx2.png}
+	\caption{Individual trajectory analysis showing reward evolution patterns for successful and unsuccessful episodes during training.}
+	\label{fig:trajectories}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/reward_distribution_evolution_tfk08zx2.png}
+	\caption{Evolution of reward distribution throughout training, demonstrating the shift from low-reward episodes early in training to higher-reward episodes as the model learns.}
+	\label{fig:reward-evolution}
+\end{figure}
 
 \todoinline{Analyze trajectory length impact including:
 \begin{itemize}
