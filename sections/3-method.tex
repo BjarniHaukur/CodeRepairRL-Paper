@@ -8,16 +8,16 @@
 	\label{fig:method-diagram}
 \end{figure}
 
-This chapter presents our novel approach to training large language models for automated code repair through interactive \ac{RL}.
+This chapter presents our novel approach to training large language models for automated code repair through online \ac{RL}.
 We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the \ac{RL} training loop improves bug-fixing performance.
 
 \section{Overview of our approach}
 \label{sec:method-overview}
 
 Traditional approaches to training \acp{LLM} for code repair rely on \ac{SFT} with static datasets of code-patch pairs.
-In contrast, our method pioneers interactive \ac{RL}, where coding agents actively interact with real software repositories during training.
+In contrast, our method pioneers online \ac{RL}, where coding agents actively interact with real software repositories during training.
 This paradigm shift transforms models from passive learners observing fixed examples into active agents that learn through environmental interaction and experiential feedback.
-% We retain the same outcome-driven similarity principle as SWE-RL~\cite{wei2025swerladvancingllmreasoning} while embedding it within an interactive, multi-step setting that rewards successful end-to-end repair after autonomous context acquisition.
+% We retain the same outcome-driven similarity principle as SWE-RL~\cite{wei2025swerladvancingllmreasoning} while embedding it within a multi-step setting that rewards successful end-to-end repair after autonomous context acquisition.
 
 The core innovation lies in our integration of existing coding agent frameworks directly into the \ac{RL} training pipeline.
 Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can:
@@ -33,7 +33,7 @@ Unlike previous approaches that relied on synchronous batched generation, our im
 % Our Nano coding agent can therefore engage in natural back-and-forth interaction with repositories through basic terminal commands while remaining fully compatible with the RL training loop.
 
 % Figure~\ref{fig:agent-loop-architecture} illustrates the complete training architecture, highlighting the continuous feedback cycle between language model policy, agent implementation, repository environment, and reward computation.
-% This diagram demonstrates how traditional \ac{RL} training is enhanced by embedding interactive agents directly within the optimization loop.
+% This diagram demonstrates how traditional \ac{RL} training is enhanced by embedding coding agents directly within the optimization loop.
 
 \section{Nano Coding Agent}
 \label{sec:nano-agent}
@@ -155,7 +155,7 @@ This approach ensures:
 \section{Formal Problem Formulation as a Markov Decision Process}
 \label{sec:mdp-formulation}
 
-To establish rigorous theoretical foundations, we formalize the interactive code repair task as a Markov Decision Process (\ac{MDP}).
+To establish rigorous theoretical foundations, we formalize the multi-step code repair task as a Markov Decision Process (\ac{MDP}).
 This formulation clarifies the relationship between natural language agent interactions and standard \ac{RL} components, enabling principled application of \ac{RL} algorithms to conversational debugging tasks.
 
 \subsection{MDP Definition}
@@ -276,7 +276,7 @@ This dataset tests whether our agent-trained models can generalize beyond their 
 
 \textbf{Generalization Testing:}
 To assess transfer of learned repair skills beyond the training domain, we evaluate on HumanEval, a standard code generation benchmark.
-This tests whether debugging strategies learned through interactive \ac{RL} improve general programming capabilities.
+This tests whether debugging strategies learned through online \ac{RL} improve general programming capabilities.
 
 \subsection{Pretrained Model Selection: Qwen for Tool Calling Excellence}
 
@@ -334,7 +334,7 @@ Parallel to our work, repositories like rLLM~\cite{rllm2025} have gotten very go
 \subsection{Group Relative Policy Optimization (GRPO)}
 
 We employ Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical} as our primary \ac{RL} algorithm.
-\ac{GRPO} offers several advantages for our interactive setting:
+\ac{GRPO} offers several advantages:
 
 \begin{itemize}
 	\item \textbf{No value model required:}
@@ -443,7 +443,7 @@ These values were selected through preliminary experiments to ensure stable conv
 
 \subsection{Large-Scale Compute Management}
 
-Training and serving 8B to 32B parameter models for interactive \ac{RL} requires sophisticated compute optimization across the entire pipeline.
+Training and serving 8B to 32B parameter models for online \ac{RL} requires sophisticated compute optimization across the entire pipeline.
 
 \subsubsection{Training Optimizations}
 
@@ -573,7 +573,7 @@ Our inference layer leverages \ac{vLLM}'s powerful inference engine to handle th
 \ac{vLLM}'s KV-cache management, continuous batching, and PagedAttention~\cite{kwon2023efficientmemorymanagementlarge} collectively enable fast, efficient serving of asynchronous multi-turn agents.
 Crucially, between model weight updates, prefix caches deterministically hit, providing substantial performance boosts during the intervals when agents operate with stable model parameters.
 
-To support interactive training, we extended \ac{vLLM}'s OpenAI-compatible \ac{API} server with live weight synchronization (hot-swapping) so updates take effect without service interruption (see \ref{sec:nccl-sync}).
+To support online training, we extended \ac{vLLM}'s OpenAI-compatible \ac{API} server with live weight synchronization (hot-swapping) so updates take effect without service interruption (see \ref{sec:nccl-sync}).
 
 \subsubsection{Logit divergence problem}
 Motivates GSPO
@@ -614,7 +614,7 @@ This NCCL-based approach represents a significant engineering achievement, enabl
 
 \subsection{Integrated System Architecture}
 
-The complete interactive RL system consists of several interconnected components operating in parallel:
+The complete online \ac{RL} system consists of several interconnected components operating in parallel:
 
 \textbf{vLLM Inference Cluster:} 1 $80$GB A100 for $8$B/$14$B models, 2 for $~32$B
 \textbf{TRL Training Cluster:} 2 $80$GB A100 for $8$B/$14$B models, 4 for $~32$B, launches agents, posts weight synchronizations

@@ -1,6 +1,6 @@
 \chapter{Theoretical Background and Related Work}
 
-This chapter provides the theoretical foundation for interactive reinforcement learning applied to automated code repair.
+This chapter provides the theoretical foundation for online reinforcement learning applied to automated code repair.
 We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
 
 \section{Automated Code Repair before LLMs}
@@ -50,7 +50,7 @@ def calculate_average(numbers):
 \end{verbatim}
 
 This training regime assumes that all necessary information for generating a fix is contained within the immediate code context.
-However, real-world debugging is inherently interactive and exploratory:
+However, real-world debugging is inherently dynamic and exploratory:
 
 \textbf{Hypothesis formation and testing}: Developers form hypotheses about bug causes, test them through code execution or inspection, and iteratively refine their understanding.
 This exploratory process cannot be captured in static input-output pairs.
@@ -75,12 +75,14 @@ This mismatch manifests concretely in evaluation results.
 On \ac{SWE-Bench}, even the most advanced models achieve less than 25\% success rates, while human developers solving the same tasks achieve over 90\% success rates when given appropriate time and tools.
 The gap highlights not just a quantitative difference in performance, but a qualitative difference in problem-solving approach.
 
-Addressing this mismatch requires moving beyond supervised learning on static datasets toward interactive learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for interactive reinforcement learning explored in this thesis.
+Addressing this mismatch requires moving beyond supervised learning on static datasets toward online learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for online reinforcement learning explored in this thesis.
 
 \section{Reinforcement Learning for Language Models}
 
 Reinforcement learning has emerged as a powerful technique for improving language model performance beyond what supervised learning alone can achieve, particularly for tasks requiring sequential decision-making and optimization of complex objectives.
 Unlike supervised learning, which relies on fixed input-output pairs, \ac{RL} enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
+
+\todoinline{Clarify what online learning is, in particular for LLMs}
 
 \subsection{Policy Gradient Foundations}
 
@@ -410,22 +412,11 @@ Recent research has examined \ac{LoRA}'s representational capacity and limitatio
 \textbf{Rank Selection}: Choosing appropriate rank values requires balancing expressiveness against efficiency.
 Higher ranks provide more flexibility but reduce computational savings.
 
-\subsection{Application to Code Repair}
-
-For interactive code repair training, \ac{LoRA} offers specific advantages:
-
-\textbf{Environmental Diversity}: Different repositories and bug types may benefit from specialized adaptations.
-\ac{LoRA} enables training multiple task-specific adapters efficiently.
-
-\textbf{Continual Learning}: As new bug patterns emerge, \ac{LoRA} adapters can be incrementally trained without catastrophic forgetting of previous skills.
-
-\textbf{Model Composition}: Multiple \ac{LoRA} adapters can potentially be combined to handle complex bugs requiring diverse skill sets, though this remains an active research area.
-
-The combination of \ac{LoRA}'s efficiency with interactive \ac{RL} creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
+The combination of \ac{LoRA}'s efficiency with online \ac{RL} creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
 
 \section{Tool-Calling in Large Language Models}
 
-The ability for language models to interact with external tools and \acp{API} represents a fundamental shift from purely generative models to interactive agents capable of performing complex, multi-step tasks in real environments.
+The ability for language models to interact with external tools and \acp{API} represents a fundamental shift from purely generative models to agentic systems capable of performing complex, multi-step tasks in real environments.
 
 \subsection{Stuctured output Calling}
 
@@ -474,7 +465,7 @@ The integration of tool calling with \ac{RL} training enables models to learn no
 
 \section{Agent-Based Programming Environments}
 
-The integration of language models with interactive programming environments has opened new possibilities for automated software engineering, enabling models to perform complex, multi-step reasoning tasks.
+The integration of language models with dynamic programming environments has opened new possibilities for automated software engineering, enabling models to perform complex, multi-step reasoning tasks.
 
 \subsection{Coding Agent Frameworks}
 
@@ -637,11 +628,11 @@ The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluat
 
 % \textbf{Long-tail distribution}: Many bugs involve rare edge cases or unique project-specific patterns absent from training data, testing true generalization rather than memorization.
 
-% These challenges make \ac{SWE-Bench} an ideal testbed for interactive training, where models can learn through interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
+% These challenges make \ac{SWE-Bench} an ideal testbed for online training, where models can learn through environmental interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
 
 \section{Related Work}
 
-This section synthesizes prior research most directly relevant to our interactive approach, highlighting gaps that this thesis addresses.
+This section synthesizes prior research most directly relevant to our approach, highlighting gaps that this thesis addresses.
 
 This section synthesizes the most directly relevant prior work across three critical dimensions, highlighting the significant gaps our research addresses.
 
@@ -672,8 +663,8 @@ Our caveat is replicating this in a low resource manner?
 
 \section{Summary and Research Positioning}
 
-This chapter has established the theoretical and empirical foundations for interactive \ac{RL} applied to \ac{APR}.
-By examining the evolution from rule-based repair systems to modern \ac{LLM}-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and the interactive nature of debugging.
+This chapter has established the theoretical and empirical foundations for online \ac{RL} applied to \ac{APR}.
+By examining the evolution from rule-based repair systems to modern \ac{LLM}-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and the dynamic nature of debugging.
 
 Our review of reinforcement learning techniques, particularly the elegant simplification offered by \ac{GRPO}, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees.
 The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
@@ -683,9 +674,9 @@ By providing only essential tools and relying on learning, we demonstrate that e
 
 This thesis makes three fundamental contributions to the field:
 
-\textbf{First open-source interactive implementation}: We provide the research community with complete infrastructure for training language models through interactive environmental experience.
+\textbf{One of the First open-source online RL implementation for \acp{LLM}}: We provide the research community with complete infrastructure for training language models through interactive environmental experience.
 This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary.
-Our implementation enables researchers to explore interactive learning across diverse domains beyond code repair.
+Our implementation enables researchers to explore online learning across diverse domains beyond code repair.
 
 \textbf{Minimalist agent approach}: We demonstrate that a simple agent design with basic tools can achieve strong performance when combined with reinforcement learning, showing that sophisticated debugging behaviors can emerge from minimal interfaces.
 

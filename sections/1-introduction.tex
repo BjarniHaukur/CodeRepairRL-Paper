@@ -20,7 +20,7 @@ While computationally efficient, this approach fundamentally misrepresents the n
 Moreover, the information needed to fix a bug is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide.
 \todoinline{which traditional paper to cite here}
 
-The question becomes: how do we train such interactive agents when the very complexity that necessitates their existence also makes traditional training approaches intractable?
+The question becomes: how do we train such agentic systems when the very complexity that necessitates their existence also makes traditional training approaches intractable?
 \ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaZero2018}.
 However, \ac{RL} fundamentally requires that learning systems can meaningfully participate in the task from the beginning—they must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space.
 For complex reasoning tasks like software debugging, this prerequisite participation threshold has historically been insurmountable.
@@ -67,27 +67,27 @@ This results in agents that, when deployed, exhibit suboptimal information-gathe
 However, empirical observation of developer workflows reveals that debugging is inherently a multi-step process involving hypothesis formation, incremental testing, and solution refinement.
 Models trained for single-shot generation lack the temporal reasoning capabilities necessary for effective iterative problem-solving.
 
-These limitations converge to a fundamental research question: How can we develop training methodologies that enable language models to acquire genuine debugging skills through interactive experience, and what architectural choices maximize the effectiveness of such training?
-This question motivates our investigation into \ac{RL} with interactive agents as a paradigm for training more capable code repair systems.
+These limitations converge to a fundamental research question: How can we develop training methodologies that enable language models to acquire genuine debugging skills through environmental experience, and what architectural choices maximize the effectiveness of such training?
+This question motivates our investigation into \ac{RL} with coding agents as a paradigm for training more capable code repair systems.
 
 \section{Purpose}
 
-This thesis investigates a novel training paradigm for automated program repair using \ac{RL} with interactive coding agents.
+This thesis investigates a novel training paradigm for automated program repair using \ac{RL} with coding agents.
 The fundamental premise is that language models can acquire more sophisticated debugging capabilities when trained through direct interaction with software environments, rather than passive observation of static bug-fix examples.
 By embedding autonomous coding agents within the \ac{RL} optimization process, we enable models to learn from the consequences of their exploratory actions and develop effective debugging strategies through experience.
 
-The primary objective is to demonstrate that this interactive training approach yields models with superior bug-fixing capabilities compared to those trained through conventional supervised learning.
+The primary objective is to demonstrate that this experiential training approach yields models with superior bug-fixing capabilities compared to those trained through conventional supervised learning.
 We hypothesize that the ability to explore codebases, execute commands, observe error messages, and iteratively refine solutions during training will result in agents that better capture the problem-solving patterns characteristic of human debugging.
 
-Through rigorous empirical evaluation, this research aims to establish this interactive \ac{RL} approach as a viable and superior alternative to static supervised learning for training code repair systems, demonstrating that interactive training with real environments leads to more capable debugging agents.
+Through rigorous empirical evaluation, this research aims to establish this online \ac{RL} approach as a viable and superior alternative to static supervised learning for training code repair systems, demonstrating that experiential training with real environments leads to more capable debugging agents.
 
 \todoinline{}
 
-% Despite growing evidence that leading \ac{AI} labs employ interactive training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
+% Despite growing evidence that leading \ac{AI} labs employ experiential training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
 
-% By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into interactive \ac{AI} systems.
+% By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into agentic \ac{AI} systems.
 
-% The significance extends beyond code repair: interactive training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control.
+% The significance extends beyond code repair: online training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control.
 % This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
 
 % Current research in this area is primarily conducted by industry labs (OpenAI, Anthropic, Cognition Labs) with limited open-source replication, creating a significant knowledge gap in the academic community.
@@ -104,17 +104,17 @@ Through rigorous empirical evaluation, this research aims to establish this inte
 % \textbf{Nano Agent Implementation}: We develop a minimalist "Nano agent" that utilizes only essential terminal commands and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
 % This clean-slate approach validates that effective code repair capabilities arise from learning rather than engineered complexity.
 
-% \textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient \ac{RL} with interactive agents.
+% \textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient \ac{RL} with coding agents.
 % This includes a custom integration layer between vLLM inference servers and \ac{RL} trainers, real-time weight synchronization via \ac{NCCL} for live policy updates, and optimizations enabling trainiÂng of models up to 32B parameters with limited computational resources.
 % The infrastructure supports both Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical} and can be extended to other policy gradient methods.
 
 % \textbf{Empirical Validation}: Through extensive experiments on the \ac{SWE-Gym} training environment and \ac{SWE-Bench-Verified} evaluation benchmark, we demonstrate that this \ac{RL} approach produces monotonic improvements in bug-fixing performance.
-% This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of interactive training approaches.
+% This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of experiential training approaches.
 
 % \textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community.
 % This includes the Nano agent implementation and the \ac{RL} training pipeline.
 
-The overarching goal of this thesis is to develop and empirically validate an interactive \ac{RL} training paradigm for automated program repair.
+The overarching goal of this thesis is to develop and empirically validate an online \ac{RL} training paradigm for automated program repair.
 To make this goal concrete, we address the following research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
 
 \textbf{RQ1: Does the trained model adapt to the harness (tools and prompts)?
@@ -131,7 +131,7 @@ To make this goal concrete, we address the following research questions aligned 
 \begin{itemize}
 	\item Goal: validate that our training recipe generalizes beyond the Qwen3 family used for development.
 	\item Design: replicate final experiments on Gemma3 and Llama3.1 to assess portability across different model architectures and tool-calling capabilities. \todoinline{Is this a sensible set of models?}
-	\item This approach tests whether our findings are Qwen-specific or represent broader principles for interactive \ac{RL} training.
+	\item This approach tests whether our findings are Qwen-specific or represent broader principles for online \ac{RL} training.
 \end{itemize}
 
 \textbf{RQ3: Does training on \ac{SWE-Gym} overfit? (Train on \ac{SWE-Gym}, evaluate on \ac{SWE-Bench} and Multi-SWE-Bench)}
@@ -209,7 +209,7 @@ We specifically exclude bugs requiring complex runtime environments, external se
 This constraint informed the design of both the Nano agent and the training pipeline, leading us to adopt parallelization and isolation mechanisms compatible with SLURM scheduling.
 
 \textbf{Model Architecture Scope}: Our primary development and analysis focuses on the Qwen3 model family (reasoning turned off), selected for their exceptional tool-calling capabilities and open availability.
-We deliberately avoud reasoning models as they generate excessively verbose outputs that rapidly exhaust token budgets in our interactive training environment.
+We deliberately avoid reasoning models as they generate excessively verbose outputs that rapidly exhaust token budgets in our online training environment.
 To validate generalizability, we replicate key experiments on Gemma3 and Llama3.1.
 
 \textbf{Evaluation Protocol Boundaries}: Our reward function relies on automated patch comparison rather than full test suite execution, trading perfect functional correctness assessment for computational tractability.

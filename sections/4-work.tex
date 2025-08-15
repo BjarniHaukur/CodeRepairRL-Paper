@@ -1,7 +1,7 @@
 \chapter{Implementation and Experimental Work}
 \label{ch:work}
 
-This chapter describes the comprehensive implementation effort required to realize interactive \ac{RL} for automated code repair.
+This chapter describes the comprehensive implementation effort required to realize online \ac{RL} for automated code repair.
 We detail the engineering challenges, system integration work, and experimental validation that transformed theoretical concepts into a working research platform capable of training large-scale coding agents.
 
 \section{System Architecture and Implementation}
@@ -9,7 +9,7 @@ We detail the engineering challenges, system integration work, and experimental 
 
 \subsection{Infrastructure Design Challenges}
 
-Implementing interactive \ac{RL} for code repair presented several unique engineering challenges not addressed by existing frameworks.
+Implementing online \ac{RL} for code repair presented several unique engineering challenges not addressed by existing frameworks.
 Traditional \ac{RL} libraries assume simple observation-action spaces and stateless environments, while our system requires:
 
 \begin{itemize}
@@ -21,7 +21,7 @@ Traditional \ac{RL} libraries assume simple observation-action spaces and statel
 
 \subsection{Core System Components}
 
-Our implementation comprises several interconnected subsystems, each addressing specific aspects of the interactive paradigm:
+Our implementation comprises several interconnected subsystems, each addressing specific aspects of the online RL paradigm:
 
 \subsubsection{Agent Framework Integration}
 
@@ -122,7 +122,8 @@ This required careful request tracking and version management.
 
 \subsection{Engineering Challenges and Solutions}
 
-\subsubsection{\ac{CUDA} Memory Coordination}
+\subsubsection{\ac{CUDA}
+	Memory Coordination}
 
 Coordinating \ac{CUDA} memory across multiple processes presented several unique challenges:
 
@@ -232,7 +233,7 @@ Validating experimental results required multiple validation approaches:
 \section{Open Source Contributions}
 \label{sec:open-source}
 
-A key objective of this work was providing open-source implementations to democratize access to interactive \ac{RL} techniques.
+A key objective of this work was providing open-source implementations to democratize access to online \ac{RL} techniques.
 Our contributions include:
 
 \subsection{CodeRepairRL Framework}
@@ -285,7 +286,7 @@ This comprehensive open-source contribution represents a significant step toward
 \section{Lessons Learned and Engineering Insights}
 \label{sec:lessons-learned}
 
-The implementation process revealed several important insights about the practical challenges of interactive RL:
+The implementation process revealed several important insights about the practical challenges of online RL:
 
 \subsection{Distributed Systems Challenges}
 
@@ -315,4 +316,4 @@ The trade-off between safety and simplicity must be carefully managed.
 \textbf{Sample Efficiency Challenges}: Agent interactions are expensive compared to traditional RL environments, making sample efficiency critical for practical training.
 This constraint significantly influenced our algorithmic and infrastructure choices.
 
-These insights provide valuable guidance for future research in interactive training and highlight the substantial engineering effort required to make theoretical advances practical and reproducible.
+These insights provide valuable guidance for future research in experiential training and highlight the substantial engineering effort required to make theoretical advances practical and reproducible.

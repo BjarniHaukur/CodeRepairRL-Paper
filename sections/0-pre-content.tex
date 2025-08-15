@@ -17,7 +17,7 @@
 These agents augment large language models with tools for repository navigation, code execution, and iterative refinement—capabilities essential for solving complex software engineering problems.
 
 % Motivation
-However, a critical disconnect exists between how these models are trained and deployed: while deployment requires dynamic, multi-step interactions with complex software environments, training typically relies on static datasets of isolated code changes that capture none of this interactive complexity.
+However, a critical disconnect exists between how these models are trained and deployed: while deployment requires dynamic, multi-step interactions with complex software environments, training typically relies on static datasets of isolated code changes that capture none of this dynamic complexity.
 This train-test distribution mismatch fundamentally limits model performance, as they never learn to leverage the very tools and iterative processes that enable successful debugging.
 Frontier labs have likely addressed this gap—systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting agent-based training—but their methods remain proprietary.
 Similarly, while companies like OpenHands have achieved impressive results, they have not released their training procedures, leaving the open-source community without access to these critical techniques.
@@ -35,7 +35,7 @@ The key technical innovation lies in our training-inference duality: a custom in
 Our \textit{Nano-agent} architecture provides essential bash and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
 
 % Evidence / Secondary Contribution
-Experiments on [X training instances, Y compute hours] demonstrate that interactive training yields models exhibiting sophisticated debugging behaviors: systematic hypothesis testing, incremental code modification, and test-guided exploration [specific examples needed].
+Experiments on [X training instances, Y compute hours] demonstrate that online training yields models exhibiting sophisticated debugging behaviors: systematic hypothesis testing, incremental code modification, and test-guided exploration [specific examples needed].
 On \ac{SWE-Bench-Verified}, our approach achieves [X\% resolve rate], representing [Y\% improvement over baselines].
 Secondary findings include positive transfer to general code generation (4\% improvement on HumanEval), emergent systematic debugging strategies, and significant computational efficiency gains through training-inference duality.
 
@@ -43,12 +43,12 @@ Secondary findings include positive transfer to general code generation (4\% imp
 	[Preliminary results on cross-dataset generalization / specific failure modes / computational cost analysis - expand based on actual findings]
 
 % Narrow Impact
-For automated program repair, this work establishes that interactive training is critical for developing effective debugging capabilities.
-Our results suggest [specific implications for future code repair systems, importance of interactive training].
+For automated program repair, this work establishes that experiential training is critical for developing effective debugging capabilities.
+Our results suggest [specific implications for future code repair systems, importance of experiential training].
 
 % Broad Impact
 Beyond code repair, \ac{RL} offers a general framework for training \ac{AI} systems on interactive tasks where static datasets poorly capture deployment complexity.
-By demonstrating that models can learn rich environmental interactions through \ac{RL}—rather than requiring hand-crafted reasoning chains—this work points toward [future possibilities: self-improving coding assistants, autonomous software development, general interactive \ac{AI} training].
+By demonstrating that models can learn rich environmental interactions through \ac{RL}—rather than requiring hand-crafted reasoning chains—this work points toward [future possibilities: self-improving coding assistants, autonomous software development, general experiential \ac{AI} training].
 
 \subsection*{Keywords}
 Template, Thesis, Keywords .
