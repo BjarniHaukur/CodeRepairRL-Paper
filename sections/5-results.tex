@@ -1,8 +1,8 @@
 \chapter{Experimental Results and Analysis}
 \label{ch:results}
 
-This chapter presents comprehensive experimental results addressing our research questions (RQ1/RQ2/RQ3/RQ4) about online \ac{RL} for automated code repair.
-We demonstrate statistically significant improvements over baseline approaches and evaluate the generalization of learned debugging capabilities.
+This chapter presents experimental results addressing our research questions (RQ1/RQ2/RQ3/RQ4) about online \ac{RL} for automated code repair.
+\todoinline{Insert comprehensive experimental results demonstrating improvements over baseline approaches and evaluation of learned debugging capabilities generalization.}
 
 \section{Training Dynamics and Convergence}
 \label{sec:training-dynamics}
@@ -10,37 +10,31 @@ We demonstrate statistically significant improvements over baseline approaches a
 \subsection{Learning Curve Analysis}
 
 Our \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} training demonstrates clear and consistent learning dynamics across multiple experimental runs.
-Figure~\ref{fig:training-curves} shows the evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the Nano agent.
+\todoinline{Insert Figure showing evolution of reward and success rate throughout training for both 8B and 32B parameter Qwen models using the Nano agent.}
 
 \subsubsection{Reward Progression}
 
-Training begins with near-zero success rates as the pre-trained model, despite its coding capabilities, lacks experience with the specific tool-calling patterns and multi-step exploration required for bug fixing.
-However, within the first 500 training episodes, we observe rapid improvement:
-
+\todoinline{Describe training progression from initial near-zero success rates through rapid improvement phases. Include analysis of:
 \begin{itemize}
-	\item \textbf{Initial Phase (0-500 episodes)}: Steep learning curve as the model acquires basic tool usage patterns and repository navigation skills
-	\item \textbf{Intermediate Phase (500-2000 episodes)}: Steady improvement as debugging strategies develop and generalize across problem types
-	\item \textbf{Convergence Phase (2000+ episodes)}: Gradual refinement with occasional breakthrough improvements on specific bug categories
+\item Initial Phase: Tool usage pattern acquisition
+\item Intermediate Phase: Strategy development and generalization
+\item Convergence Phase: Refinement and breakthrough improvements
 \end{itemize}
-
-The learning curves demonstrate monotonic improvement throughout training, validating our hypothesis that online \ac{RL} can successfully enhance coding capabilities through environmental interaction.
+Validate hypothesis about RL enhancement of coding capabilities.}
 
 \subsubsection{Training Stability}
 
-\ac{GRPO} training exhibits remarkable stability compared to traditional \ac{PPO}~\cite{schulman2017proximalpolicyoptimizationalgorithms} implementations.
-The group-relative advantage estimation effectively reduces gradient variance, leading to smooth convergence without the oscillations typically observed in policy gradient methods.
-Standard deviation across training runs remains consistently low (σ < 0.03 success rate) throughout the training process.
+\todoinline{Analyze GRPO training stability compared to traditional PPO implementations. Report gradient variance reduction, convergence smoothness, and standard deviation metrics across training runs.}
 
 \subsection{Computational Efficiency}
 
-Our training-inference duality architecture achieves significant computational efficiency improvements:
-
+\todoinline{Report computational efficiency improvements from training-inference duality architecture:
 \begin{itemize}
-	\item \textbf{Wall-clock Training Time}: 60\% reduction compared to traditional collect-then-train \ac{RL} approaches
-	\item \textbf{\ac{GPU}
-		      Utilization}: >90\% utilization across both training and inference hardware \item \textbf{Sample Efficiency}: 40\% improvement in episodes required to reach target performance levels \end{itemize}
-
-The \ac{NCCL}-based weight synchronization enables near real-time policy updates with minimal overhead (< 200ms latency for \ac{LoRA} adapter updates), contributing significantly to these efficiency gains.
+\item Wall-clock training time reduction vs traditional approaches
+\item GPU utilization metrics across training and inference hardware
+\item Sample efficiency improvements in episodes to target performance
+\end{itemize}
+Analyze NCCL-based weight synchronization overhead and contribution to efficiency gains.}
 
 \section{Main Results: Interactive RL vs.
   Baselines} \label{sec:main-results}
@@ -53,15 +47,13 @@ Table~\ref{tab:main-results} presents our primary experimental results on \ac{SW
 
 \subsubsection{Statistical Significance}
 
-All improvements are statistically significant at p < 0.01 using McNemar's test for paired comparisons:
-
+\todoinline{Report statistical significance analysis using McNemar's test for paired comparisons:
 \begin{itemize}
-	\item \textbf{8B Model}: \ac{RL} training improves success rate by 7.8 percentage points over \ac{SFT} (95\% CI: [5.2, 10.4])
-	\item \textbf{32B Model}: \ac{RL} training improves success rate by 9.6 percentage points over \ac{SFT} (95\% CI: [6.8, 12.4])
-	\item \textbf{Effect Size}: Cohen's d = 0.84 for 8B, 0.91 for 32B (large effect sizes)
+\item 8B Model: RL vs SFT improvement with confidence intervals
+\item 32B Model: RL vs SFT improvement with confidence intervals
+\item Effect sizes (Cohen's d) for both model sizes
 \end{itemize}
-
-These results provide strong evidence that online \ac{RL} produces substantial and statistically significant improvements over pre-trained models
+Provide evidence for substantial and statistically significant RL improvements.}
 
 \subsubsection{Qualitative Improvement Analysis}
 
@@ -78,39 +70,116 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 \section{RQ1: Adaptation to the Nano Harness}
 \label{sec:rq1-harness}
 
-We analyze harness adaptation through tool success rate, invalid tool calls, and action efficiency over training.
+\textbf{Research Question 1}: How effectively does online RL training enable models to adapt to the Nano harness environment, and what specific improvements occur in tool usage patterns?
+
+\subsection{Methodology}
+We analyze harness adaptation through three key metrics measured throughout training:
 \begin{itemize}
 	\item \textbf{Tool success rate}: fraction of tool calls that execute without schema/validation errors
 	\item \textbf{Invalid call rate}: fraction of calls rejected by the harness (schema mismatch, unsafe commands)
 	\item \textbf{Action efficiency}: commands per successful episode; files viewed per solved task
 \end{itemize}
-\todoinline{Insert plots: tool success vs steps, invalid call rate vs steps, actions-per-episode distribution.
-	Add numbers from logs.
-}
+
+\subsection{Results}
+\todoinline{Insert comprehensive analysis including:
+\begin{itemize}
+\item Plots showing tool success rate vs training steps
+\item Invalid call rate evolution over training
+\item Actions-per-episode distribution analysis
+\item Quantitative metrics from training logs
+\item Statistical significance of improvements
+\item Comparison with baseline models
+\end{itemize}}
+
+\subsection{Key Findings}
+\todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for RL training success.}
 
 \section{RQ2: Multiple Base Models}
 \label{sec:rq2-multi-base}
 
-We evaluate whether the training recipe and Nano harness transfer to alternative base models.
-\todoinline{Add table comparing Qwen vs SmolLM3 (or chosen models) on SWE-Bench-Verified, with same budgets and prompts.
-	Include tool success metrics.
-}
+\textbf{Research Question 2}: Does the training recipe and Nano harness generalize across different base model architectures and sizes?
 
-\section{RQ3: \ac{SWE-Gym}
-  Training vs.
-  \ac{SWE-Bench}/\ac{Multi-SWE-Bench}
-  Evaluation} \label{sec:rq3-overfit}
+\subsection{Methodology}
+We evaluate training recipe transferability by applying identical training procedures to multiple base models with consistent experimental conditions:
+\begin{itemize}
+	\item Same training budgets and episode counts
+	\item Identical prompts and evaluation protocols
+	\item Consistent hyperparameter scaling approaches
+	\item Uniform tool success metric collection
+\end{itemize}
 
-We test for overfitting by training on \ac{SWE-Gym} and evaluating on \ac{SWE-Bench} and \ac{Multi-SWE-Bench}.
-\todoinline{Add cross-dataset results, gap analysis vs.
-	\ac{SFT}, and discussion of overfitting indicators.
-}
+\subsection{Model Comparison}
+\todoinline{Insert comprehensive comparison table including:
+\begin{itemize}
+\item Performance on SWE-Bench-Verified across different base models
+\item Tool success metrics for each model
+\item Training convergence characteristics
+\item Computational efficiency comparisons
+\item Statistical significance of cross-model consistency
+\end{itemize}}
+
+\subsection{Analysis}
+\todoinline{Analyze training recipe portability, identify model-specific adaptations required, and discuss implications for scaling to new architectures.}
+
+\section{RQ3: \ac{SWE-Gym} Training vs. \ac{SWE-Bench}/\ac{Multi-SWE-Bench} Evaluation}
+\label{sec:rq3-overfit}
+
+\textbf{Research Question 3}: Does training on \ac{SWE-Gym} lead to overfitting, or do learned debugging strategies generalize to unseen evaluation datasets?
+
+\subsection{Experimental Design}
+We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating on held-out datasets:
+\begin{itemize}
+	\item Training dataset: \ac{SWE-Gym} repository instances
+	\item Evaluation datasets: \ac{SWE-Bench} and \ac{Multi-SWE-Bench}
+	\item Comparison baselines: Models trained with \ac{SFT} on same data splits
+	\item Overfitting indicators: Performance gap analysis between training and evaluation
+\end{itemize}
+
+\subsection{Cross-Dataset Performance}
+\todoinline{Insert comprehensive cross-dataset analysis including:
+\begin{itemize}
+\item Performance comparison table across datasets
+\item Gap analysis between SWE-Gym training and evaluation performance
+\item Comparison with SFT baselines on same data splits
+\item Statistical analysis of overfitting indicators
+\item Domain transfer success metrics
+\end{itemize}}
+
+\subsection{Generalization Analysis}
+\todoinline{Analyze evidence for/against overfitting, discuss learned strategy transferability, and evaluate cross-dataset generalization effectiveness.}
 
 \section{RQ4: Cross-Harness and Cross-Task Generalization}
 \label{sec:rq4-cross}
 
-We examine out-of-domain generalization to other harnesses (Aider, OpenHands-style) and terminal-centric tasks (TauBench, TerminalBench).
-\todoinline{Add evaluation protocol, any necessary prompt shims, and results tables once runs complete.}
+\textbf{Research Question 4}: How well do models trained on the Nano harness transfer to different interaction paradigms and task domains?
+
+\subsection{Evaluation Domains}
+We assess out-of-domain generalization across multiple dimensions:
+\begin{itemize}
+	\item \textbf{Cross-Harness}: Aider and OpenHands-style interaction paradigms
+	\item \textbf{Cross-Task}: Terminal-centric tasks (TauBench, TerminalBench)
+	\item \textbf{Adaptation Requirements}: Minimal prompt modifications vs. fine-tuning needs
+\end{itemize}
+
+\subsection{Evaluation Protocol}
+\todoinline{Document evaluation protocol including:
+\begin{itemize}
+\item Cross-harness evaluation setup and metrics
+\item Terminal-centric task evaluation procedures
+\item Prompt adaptation strategies and requirements
+\item Baseline comparisons for each domain
+\item Statistical significance testing approaches
+\end{itemize}}
+
+\subsection{Transfer Performance}
+\todoinline{Insert results tables and analysis covering:
+\begin{itemize}
+\item Performance on alternative harnesses
+\item Terminal task success rates
+\item Comparison with domain-specific baselines
+\item Analysis of required adaptations
+\item Implications for general agent capabilities
+\end{itemize}}
 
 \section{Transfer to General Code Generation}
 \label{sec:generalization}
@@ -119,34 +188,24 @@ We examine out-of-domain generalization to other harnesses (Aider, OpenHands-sty
 
 To assess whether debugging-specific training affects general coding capabilities, we evaluate our models on HumanEval, a standard code generation benchmark.
 
-\begin{table}[h]
-	\centering
-	\caption{HumanEval performance comparison (Pass@1 results)}
-	\label{tab:humaneval}
-	\begin{tabular}{lcc}
-		\toprule
-		\textbf{Model}        & \textbf{Pass@1} & \textbf{Change vs. Base} \\
-		\midrule
-		Qwen-8B (Base)        & 42.7\%          & --                       \\
-		Qwen-8B (Python SFT)  & 44.1\%          & +1.4\%                   \\
-		Qwen-8B (Python \ac{RL})   & 46.8\%          & +4.1\%                   \\
-		\midrule
-		Qwen-32B (Base)       & 58.3\%          & --                       \\
-		Qwen-32B (Python SFT) & 59.7\%          & +1.4\%                   \\
-		Qwen-32B (Python \ac{RL})  & 62.1\%          & +3.8\%                   \\
-		\bottomrule
-	\end{tabular}
-\end{table}
+\todoinline{Insert HumanEval performance comparison table with Pass@1 results showing:
+\begin{itemize}
+\item Base model performance for different sizes
+\item SFT model improvements vs. base
+\item RL model improvements vs. base and SFT
+\item Statistical significance of improvements
+\item Cross-model consistency analysis
+\end{itemize}}
 
 \subsubsection{Positive Transfer to Code Generation}
 
-\ac{RL} training for debugging produces modest but consistent improvements in general code generation tasks:
-
+\todoinline{Analyze positive transfer to code generation including:
 \begin{itemize}
-	\item \textbf{Consistent Improvement}: Both model sizes show similar magnitude improvements (3.8-4.1 percentage points)
-	\item \textbf{Statistical Significance}: Improvements are significant at p < 0.05 using bootstrap testing
-	\item \textbf{No Regression}: No evidence of negative transfer or capability degradation in general coding tasks
-\end{itemize}
+\item Quantitative improvement analysis across model sizes
+\item Statistical significance testing results
+\item Evidence for/against negative transfer or capability degradation
+\item Comparison with domain-specific training approaches
+\end{itemize}}
 
 \subsubsection{Explanation for General Improvement}
 
@@ -165,39 +224,30 @@ Several factors likely contribute to improved general coding performance:
 
 To understand the contribution of different system components, we conducted systematic ablation studies:
 
-\begin{table}[h]
-	\centering
-	\caption{Ablation study results on SWE-Bench-Verified subset (200 tasks, Qwen-8B)}
-	\label{tab:ablations}
-	\begin{tabular}{lcc}
-		\toprule
-		\textbf{Configuration}         & \textbf{Success Rate} & \textbf{Δ vs. Full System} \\
-		\midrule
-		Full System (Nano-RL)          & 26.8\%                & --                         \\
-		\midrule
-		Without \ac{RL} (\ac{SFT} only)          & 18.2\%                & -8.6\%                     \\
-		Without Agent Scaffold         & 15.4\%                & -11.4\%                    \\
-		Without Multi-step Interaction & 14.1\%                & -12.7\%                    \\
-		Traditional \ac{PPO} (vs. \ac{GRPO})     & 21.3\%                & -5.5\%                     \\
-		Without Real-time Updates      & 22.7\%                & -4.1\%                     \\
-		\bottomrule
-	\end{tabular}
-\end{table}
+\todoinline{Insert ablation study results table comparing system configurations:
+\begin{itemize}
+\item Full system performance baseline
+\item Impact of removing RL training (SFT only)
+\item Effect of agent scaffold removal
+\item Multi-step interaction contribution
+\item GRPO vs. traditional PPO comparison
+\item Real-time updates impact analysis
+\item Statistical significance of each component
+\end{itemize}}
 
 \subsubsection{Critical Component Identification}
 
 The ablation results highlight several critical system components:
 
-\textbf{Multi-step Interaction (12.7\% impact)}: The ability to perform multiple actions per bug fix is the most important factor, validating our core hypothesis about experiential learning.
-
-\textbf{Agent Scaffold Integration (11.4\% impact)}: Embedding tools directly into training provides substantial benefits over direct generation approaches.
-
-\textbf{Reinforcement Learning (8.6\% impact)}: \ac{RL} training provides significant benefits over supervised fine-tuning alone, even with identical training data.
-
-\textbf{\ac{GRPO} vs.
-	\ac{PPO} (5.5\% impact)}: \ac{GRPO}'s group-relative advantages provide meaningful improvements over traditional actor-critic methods.
-
-\textbf{Real-time Updates (4.1\% impact)}: Training-inference duality contributes to final performance through improved sample efficiency.
+\todoinline{Analyze critical component contributions including:
+\begin{itemize}
+\item Multi-step interaction impact and validation of experiential learning hypothesis
+\item Agent scaffold integration benefits over direct generation
+\item RL training advantages over supervised fine-tuning
+\item GRPO improvements over traditional PPO methods
+\item Real-time updates contribution to sample efficiency
+\item Ranking of component importance and implications
+\end{itemize}}
 
 \subsection{Hyperparameter Sensitivity}
 
@@ -205,18 +255,33 @@ We evaluated sensitivity to key hyperparameters to understand training robustnes
 
 \subsubsection{Learning Rate Analysis}
 
-Learning rates from 1e-6 to 1e-4 were tested, with optimal performance achieved at 5e-6 for 8B models and 3e-6 for 32B models.
-The training is relatively robust to learning rate choices within this range (performance varies by < 3\% across the effective range).
+\todoinline{Report learning rate sensitivity analysis including:
+\begin{itemize}
+\item Tested learning rate ranges
+\item Optimal values for different model sizes
+\item Performance robustness across effective ranges
+\item Model size-specific optimization requirements
+\end{itemize}}
 
 \subsubsection{Trajectory Length Impact}
 
-Maximum trajectory lengths from 4K to 16K tokens were evaluated.
-Performance plateaus at 8K tokens, suggesting this provides sufficient context for most debugging tasks while maintaining computational efficiency.
+\todoinline{Analyze trajectory length impact including:
+\begin{itemize}
+\item Tested trajectory length ranges
+\item Performance plateaus and optimal values
+\item Context sufficiency for debugging tasks
+\item Computational efficiency tradeoffs
+\end{itemize}}
 
 \subsubsection{Batch Size Effects}
 
-Batch sizes from 16 to 64 trajectories per update were tested.
-Performance improves with larger batches up to 32 trajectories, then plateaus, indicating optimal reward signal averaging for \ac{GRPO}.
+\todoinline{Report batch size effects including:
+\begin{itemize}
+\item Tested batch size ranges
+\item Performance scaling and plateau points
+\item Optimal reward signal averaging for GRPO
+\item Training stability considerations
+\end{itemize}}
 
 \section{Error Analysis and Failure Modes}
 \label{sec:error-analysis}
@@ -225,27 +290,20 @@ Performance improves with larger batches up to 32 trajectories, then plateaus, i
 
 To understand current limitations and guide future improvements, we analyzed failed debugging attempts across multiple categories:
 
-\begin{table}[h]
-	\centering
-	\caption{Failure mode analysis on failed \ac{SWE-Bench-Verified} tasks (Qwen-8B Nano-\ac{RL})}
-	\label{tab:failure-modes}
-	\begin{tabular}{lcc}
-		\toprule
-		\textbf{Failure Category}       & \textbf{Frequency} & \textbf{Description}                            \\
-		\midrule
-		Incorrect Problem Understanding & 32.4\%             & Misinterpret issue description or requirements  \\
-		Wrong File Identification       & 24.8\%             & Locate incorrect files for modification         \\
-		Correct Location, Wrong Fix     & 18.7\%             & Identify bug location but apply incorrect patch \\
-		Incomplete Understanding        & 12.3\%             & Partial fix that doesn't fully resolve issue    \\
-		Tool Usage Errors               & 7.2\%              & Technical failures in tool invocation           \\
-		Context Length Limitations      & 4.6\%              & Exceed token limits in complex interactions     \\
-		\bottomrule
-	\end{tabular}
-\end{table}
+\todoinline{Insert failure mode analysis table categorizing failed tasks by:
+\begin{itemize}
+\item Problem understanding errors and frequency
+\item File identification mistakes
+\item Correct location but wrong fix applications
+\item Incomplete understanding issues
+\item Technical tool usage errors
+\item Context length limitation impacts
+\item Statistical analysis of failure patterns
+\end{itemize}}
 
 \subsubsection{Problem Understanding Challenges}
 
-The most common failure mode (32.4\%) involves misunderstanding the fundamental problem requirements.
+\todoinline{Analyze most common failure modes and their implications for improvement strategies.}
 This suggests areas for improvement:
 
 \begin{itemize}
@@ -256,7 +314,7 @@ This suggests areas for improvement:
 
 \subsubsection{File Localization Accuracy}
 
-Wrong file identification (24.8\% of failures) indicates room for improvement in repository understanding:
+\todoinline{Discuss file identification challenges and potential improvements in repository understanding.}
 
 \begin{itemize}
 	\item \textbf{Improved Search Strategies}: Learning more effective patterns for locating relevant code through grep and find operations
@@ -298,43 +356,37 @@ Successful agents develop efficient tool usage patterns:
 
 Our infrastructure achievements enable practical large-scale agent training:
 
-\begin{table}[h]
-	\centering
-	\caption{Training performance metrics for different model configurations}
-	\label{tab:training-performance}
-	\begin{tabular}{lccccc}
-		\toprule
-\textbf{Model Size} & \textbf{\acp{GPU}} & \textbf{Episodes/Hour} & \textbf{Memory Usage} & \textbf{Update Latency} & \textbf{Throughput} \\
-		\midrule
-8B (\ac{LoRA} r=32)      & 4×A100        & 245                    & 68GB                  & 180ms                   & 0.95 episodes/s     \\
-32B (\ac{LoRA} r=64)     & 8×A100        & 127                    & 312GB                 & 340ms                   & 0.51 episodes/s     \\
-		\bottomrule
-	\end{tabular}
-\end{table}
+\todoinline{Insert training performance metrics table including:
+\begin{itemize}
+\item Episodes per hour for different model configurations
+\item Memory usage across model sizes
+\item Update latency measurements
+\item Training throughput analysis
+\item GPU utilization efficiency
+\item Scalability characteristics
+\end{itemize}}
 
 \subsubsection{Scalability Achievements}
 
-Our system demonstrates strong scalability characteristics:
-
+\todoinline{Analyze scalability characteristics including:
 \begin{itemize}
-	\item \textbf{Linear \ac{GPU} Scaling}: Training throughput scales approximately linearly with additional \acp{GPU} up to tested limits
-	\item \textbf{Memory Efficiency}: Achieved >90\% \ac{GPU} memory utilization through careful optimization
-	\item \textbf{Network Efficiency}: \ac{NCCL}-based updates consume <5\% of available network bandwidth
-	\item \textbf{Fault Tolerance}: System maintains operation through individual component failures with graceful degradation
-\end{itemize}
+\item GPU scaling linearity up to tested limits
+\item Memory utilization efficiency achievements
+\item Network bandwidth consumption for NCCL updates
+\item Fault tolerance and graceful degradation capabilities
+\item Performance bottlenecks and limitations
+\end{itemize}}
 
 \subsection{Cost-Effectiveness Analysis}
 
-The computational costs of online training compare favorably to alternative approaches:
-
+\todoinline{Analyze computational cost-effectiveness including:
 \begin{itemize}
-	\item \textbf{Training Cost}: Approximately \$2,400 for full 8B model training (including compute and infrastructure)
-	\item \textbf{Inference Cost}: 60\% lower per-episode cost compared to commercial \ac{API}-based training
-	\item \textbf{Development Cost}: Open-source implementation reduces barrier to entry for academic research
-	\item \textbf{Maintenance Cost}: Robust infrastructure requires minimal manual intervention during training
-\end{itemize}
-
-These results demonstrate that sophisticated agent training is achievable within academic research budgets, democratizing access to advanced coding agent capabilities.
+\item Total training costs for different model sizes
+\item Per-episode cost comparisons with commercial APIs
+\item Development cost implications for academic research
+\item Infrastructure maintenance requirements
+\item Budget accessibility and democratization implications
+\end{itemize}}
 
 \todoinline{Table of A100 GPU hours per run?}
 
@@ -345,22 +397,21 @@ Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers}
 
-\textbf{RQ1 (Harness Adaptation)}: RL training improves adaptation to the Nano harness, increasing tool success and reducing invalid calls, with improved action efficiency.
-\todoinline{Cite Sec.~\ref{sec:rq1-harness} and insert concrete deltas.}
+\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize RL training improvements in Nano harness adaptation, including concrete metrics for tool success rates, invalid call reductions, and action efficiency improvements. Reference Section~\ref{sec:rq1-harness}.}
 
-\textbf{RQ2 (Multiple Base Models)}: The training recipe and harness are portable across base models, yielding consistent gains over SFT. \todoinline{Add table reference to Sec.~\ref{sec:rq2-multi-base}.}
+\textbf{RQ2 (Multiple Base Models)}: \todoinline{Summarize training recipe portability across base models and consistent gains over SFT. Include specific performance deltas and statistical significance. Reference Section~\ref{sec:rq2-multi-base}.}
 
-\textbf{RQ3 (Cross-Dataset Generalization)}: Training on SWE-Gym yields improvements on \ac{SWE-Bench} and \ac{Multi-SWE-Bench} without clear overfitting. \todoinline{Add quantitative results and CIs from Sec.~\ref{sec:rq3-overfit}.}
+\textbf{RQ3 (Cross-Dataset Generalization)}: \todoinline{Summarize SWE-Gym training performance on SWE-Bench and Multi-SWE-Bench, including quantitative results and confidence intervals. Discuss overfitting evidence. Reference Section~\ref{sec:rq3-overfit}.}
 
-\textbf{RQ4 (Cross-Harness/Task Generalization)}: The trained model exhibits promising zero-shot transfer to Aider/OpenHands-style harnesses and TauBench/TerminalBench. \todoinline{Summarize findings from Sec.~\ref{sec:rq4-cross}.}
+\textbf{RQ4 (Cross-Harness/Task Generalization)}: \todoinline{Summarize zero-shot transfer results to alternative harnesses and terminal-centric tasks. Include specific performance metrics and generalization analysis. Reference Section~\ref{sec:rq4-cross}.}
 
 \subsection{Broader Implications}
 
 These results have several important implications for the field:
 
 \begin{itemize}
-	\item \textbf{Design Philosophy}: The bitter lesson applies to training software engineering agents: simple tools with extensive learning outperform sophisticated engineering \todoinline{}
-	\item \textbf{Future Potential}: Monotonic improvement throughout training suggests substantial room for further advancement through longer training and larger models
+	\item \textbf{Design Philosophy}: \todoinline{Discuss how the bitter lesson applies to training software engineering agents, comparing simple tools with extensive learning versus sophisticated engineering approaches.}
+	\item \textbf{Future Potential}: \todoinline{Analyze evidence for continued improvement potential through longer training periods and larger models, based on observed training dynamics.}
 \end{itemize}
 
 These findings establish online reinforcement learning as a promising direction for advancing automated software engineering capabilities.

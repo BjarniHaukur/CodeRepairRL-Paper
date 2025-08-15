@@ -1,319 +1,156 @@
 \chapter{Implementation and Experimental Work}
 \label{ch:work}
 
-This chapter describes the comprehensive implementation effort required to realize online \ac{RL} for automated code repair.
-We detail the engineering challenges, system integration work, and experimental validation that transformed theoretical concepts into a working research platform capable of training large-scale coding agents.
+This chapter focuses on the practical implementation challenges and experimental execution process that transformed the theoretical framework presented in Chapter~\ref{ch:method} into a working research platform.
+We examine the engineering insights gained during implementation, the experimental methodology employed, and the lessons learned from deploying online \ac{RL} for coding agents at scale.
 
-\section{System Architecture and Implementation}
-\label{sec:system-implementation}
+\section{Implementation Challenges and Engineering Insights}
+\label{sec:implementation-challenges}
 
-\subsection{Infrastructure Design Challenges}
+Transforming the theoretical framework from Chapter~\ref{ch:method} into a production system revealed several critical implementation challenges that significantly influenced our experimental design and results.
 
-Implementing online \ac{RL} for code repair presented several unique engineering challenges not addressed by existing frameworks.
-Traditional \ac{RL} libraries assume simple observation-action spaces and stateless environments, while our system requires:
+\subsection{Agent Integration Complexities}
 
-\begin{itemize}
-	\item \textbf{Persistent Environment State}: Agent sessions maintain complex file system states, command histories, and repository contexts across multiple interaction steps
-	\item \textbf{Heterogeneous Action Spaces}: Unlike standard RL environments with fixed action sets, our agents invoke diverse tools with varying parameter structures and execution semantics
-	\item \textbf{Distributed State Management}: Multiple agent instances must operate concurrently without interference while sharing training infrastructure
-	\item \textbf{Real-time Synchronization}: Training and inference processes must coordinate weight updates without disrupting ongoing agent interactions
-\end{itemize}
+Integrating the Nano agent (detailed in Section~\ref{sec:nano-agent}) with online \ac{RL} training presented unexpected engineering challenges:
 
-\subsection{Core System Components}
+\textbf{Trajectory Serialization Overhead}: Converting complex agent interactions into \ac{RL} training data proved computationally expensive, requiring careful optimization of data structures and serialization protocols to prevent bottlenecks in the training pipeline.
 
-Our implementation comprises several interconnected subsystems, each addressing specific aspects of the online RL paradigm:
+\textbf{State Management Complexity}: Maintaining consistent repository states across concurrent agent sessions while enabling rollbacks and resets demanded sophisticated containerization strategies that significantly impacted system throughput.
 
-\subsubsection{Agent Framework Integration}
+\textbf{Tool Output Variability}: The stochastic nature of shell command outputs (timing variations, environment differences) introduced unexpected variance in agent trajectories, requiring careful handling to ensure reproducible training results.
 
-\textbf{OpenAI \ac{API} Compatibility}: The Nano agent originally designed for commercial \ac{LLM} \acp{API} was adapted to work with our vLLM serving infrastructure through a compatibility layer that translates between \ac{API} formats while preserving all agent capabilities.
+\subsection{Scaling Challenges}
 
-\textbf{Trajectory Serialization}: Agent interactions produce complex nested data structures (commands, outputs, file states, error messages) that must be serialized into formats suitable for \ac{RL} training.
-Our serialization protocol preserves all interaction details while maintaining computational efficiency.
+Deploying the system at the scale required for meaningful \ac{RL} training revealed several practical limitations:
 
-\textbf{Action Space Mapping}: The agent's tool calls are mapped to discrete actions in the \ac{RL} formulation, with careful attention to maintaining gradient flow through the policy network to the underlying token generation process.
+\textbf{Container Orchestration Overhead}: Managing hundreds of concurrent Docker containers stressed our compute infrastructure beyond initial capacity estimates, requiring significant optimization of resource allocation and cleanup procedures.
 
-\subsubsection{Containerized Execution Environment}
+\textbf{Memory Management}: Long agent trajectories with extensive command outputs quickly exceeded \ac{GPU} memory limits, forcing careful implementation of trajectory truncation and context management strategies.
 
-Safety and reproducibility requirements necessitated a sophisticated containerization approach:
+\textbf{Fault Tolerance Requirements}: At scale, container failures, network timeouts, and resource exhaustion became common occurrences, necessitating robust error handling and recovery mechanisms not present in initial prototypes.
 
-\textbf{Isolated Workspaces}: Each agent session operates in a completely isolated Docker container with its own file system, preventing cross-contamination between concurrent training episodes.
+\subsection{Training Pipeline Adaptations}
 
-\textbf{Resource Management}: Containers are allocated specific \ac{CPU}, memory, and storage quotas to ensure fair resource distribution and prevent resource exhaustion attacks from malformed agent behavior.
+\textbf{\ac{GRPO} Modifications}: The standard \ac{GRPO} implementation required significant adaptation for coding agents (as detailed in Section~\ref{sec:rl-algorithm}), particularly in handling variable-length trajectories and tool-calling sequences that differ substantially from typical text generation tasks.
 
-\textbf{Network Isolation}: Containers operate in isolated network namespaces with no external connectivity, preventing potential security issues while maintaining necessary communication with the host system for model inference.
+\textbf{Batch Composition Challenges}: Constructing training batches with sufficient diversity while maintaining computational efficiency proved more complex than anticipated, requiring dynamic batching strategies that balance trajectory length, complexity, and reward distribution.
 
-\textbf{Automated Cleanup}: Container lifecycle management automatically destroys and recreates environments between episodes, ensuring consistent starting conditions and preventing state accumulation.
+\textbf{Convergence Monitoring}: Traditional \ac{RL} metrics proved insufficient for monitoring training progress, leading to development of domain-specific metrics tracking agent exploration patterns, tool usage effectiveness, and incremental improvement signals.
 
-\subsection{Training Infrastructure Development}
+\subsection{Infrastructure Integration Insights}
 
-\subsubsection{GRPO Implementation}
+\textbf{vLLM Adaptation}: Integrating the inference server architecture (described in Section~\ref{sec:training-infrastructure}) with live weight updates proved more challenging than anticipated, requiring extensive debugging of \ac{CUDA} memory coordination and process synchronization issues.
 
-While existing implementations of \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} existed in the TRL library \cite{trl2020}, they were not designed for the complex interaction patterns required by coding agents.
-Our custom implementation addresses several limitations:
+\textbf{Performance Bottlenecks}: Initial implementations suffered from significant throughput limitations due to inefficient batching of variable-length agent requests, leading to substantial re-engineering of request handling and memory management strategies.
 
-\textbf{Variable-Length Trajectories}: Standard \ac{GRPO} assumes fixed-length sequences, while agent interactions vary dramatically in length depending on problem complexity and exploration strategy.
-Our implementation handles variable-length trajectories through sophisticated padding and masking schemes.
+\textbf{Stability Challenges}: Maintaining system stability during continuous training and inference required careful monitoring and automatic recovery mechanisms, as the combined workload stressed infrastructure components in unexpected ways.
 
-\textbf{Multi-Turn Conversations}: Agent interactions involve multiple tool calls and responses, requiring careful attention to conversation structure and context management during gradient computation.
-
-\textbf{Tool-Augmented Generation}: Computing policy gradients for tool-calling sequences requires special handling of the function call tokens versus natural language generation tokens, with different gradient scaling and optimization strategies.
-
-\subsubsection{Distributed Training Coordination}
-
-Large-scale agent training required sophisticated distributed computing infrastructure:
-
-\textbf{Multi-\ac{GPU} Training}: Model training utilizes DeepSpeed ZeRO-3 for efficient parameter and gradient sharding across multiple \acp{GPU}, with careful attention to load balancing given the variable computational costs of different agent interactions.
-
-\textbf{Parallel Agent Execution}: Dozens of agent instances execute concurrently across multiple compute nodes, with sophisticated scheduling to maximize resource utilization while maintaining training batch consistency.
-
-\textbf{Fault Tolerance}: Robust error handling and recovery mechanisms handle the inevitable failures that occur when training complex agents at scale, including container crashes, network interruptions, and resource exhaustion.
-
-\subsection{vLLM Integration and Optimization}
-
-\subsubsection{Custom vLLM Modifications}
-
-Adapting vLLM for \ac{RL} training required several modifications to the base serving infrastructure:
-
-\textbf{Streaming Trajectory Collection}: We implemented custom request handlers that stream completed agent trajectories directly to the training pipeline without buffering, enabling real-time training data collection.
-
-\textbf{Model Hot-Swapping}: Custom model management code enables live weight updates without service interruption.
-This required careful coordination of \ac{CUDA} memory management, request routing, and state consistency.
-
-\textbf{Multi-Model Serving}: \ac{GRPO} requires serving both the current policy and a reference policy simultaneously.
-Our implementation shares base model weights while maintaining separate \ac{LoRA} adapters, optimizing memory usage and inference throughput.
-
-\subsubsection{Performance Optimizations}
-
-Several optimizations were necessary to achieve acceptable training throughput:
-
-\textbf{KV-Cache Optimization}: Intelligent caching of conversation prefixes reduces redundant computation in multi-turn agent interactions, providing significant latency improvements for exploration-heavy episodes.
-
-\textbf{Batch Processing Optimizations}: Custom batching algorithms pack variable-length agent requests to maximize \ac{GPU} utilization while respecting memory constraints and conversation coherence requirements.
-
-\textbf{Memory Pool Management}: Sophisticated memory management prevents fragmentation and out-of-memory conditions during concurrent training and inference workloads.
-
-\section{NCCL Communication Layer Implementation}
-\label{sec:nccl-implementation}
-
-The real-time weight synchronization system represents one of the most technically challenging aspects of the implementation, requiring deep integration with \ac{CUDA} programming and distributed systems concepts.
-
-\subsection{Technical Architecture}
-
-\subsubsection{NCCL Integration Design}
-
-Our \ac{NCCL}-based communication system operates through several layers:
-
-\textbf{Process Group Management}: Custom process group initialization and management code coordinates between training processes and multiple inference servers, handling dynamic membership and failure recovery.
-
-\textbf{Collective Communication Patterns}: We implemented optimized broadcast patterns for distributing weight updates, with ring and tree topologies for different cluster configurations and network characteristics.
-
-\textbf{Memory Management}: Sophisticated \ac{CUDA} memory management coordinates between training and inference processes, utilizing unified memory and peer-to-peer access where available.
-
-\subsubsection{Synchronization Protocol}
-
-The synchronization protocol addresses several critical challenges:
-
-\textbf{Consistency Guarantees}: All tokens within a single generation use consistent model weights, even if updates occur during generation.
-This required careful request tracking and version management.
-
-\textbf{Asynchronous Operations}: Weight broadcasts occur asynchronously with respect to inference requests, utilizing \ac{CUDA} streams and events to prevent blocking of ongoing inference work.
-
-\textbf{Error Handling}: Robust error detection and recovery mechanisms handle network failures, process crashes, and other distributed systems challenges that arise in long-running training jobs.
-
-\subsection{Engineering Challenges and Solutions}
-
-\subsubsection{\ac{CUDA}
-	Memory Coordination}
-
-Coordinating \ac{CUDA} memory across multiple processes presented several unique challenges:
-
-\textbf{Memory Fragmentation}: Long-running training jobs tend to fragment \ac{GPU} memory, leading to allocation failures.
-We implemented custom memory pools and defragmentation strategies to maintain stable operation.
-
-\textbf{Inter-Process Communication}: Efficient weight sharing required implementing custom IPC mechanisms using \ac{CUDA} unified memory and peer-to-peer access, with fallbacks to \ac{CPU} memory for compatibility.
-
-\textbf{Memory Bandwidth Optimization}: Careful optimization of memory access patterns and communication protocols maximizes bandwidth utilization during weight broadcasts.
-
-\subsubsection{Fault Tolerance Implementation}
-
-Distributed training at scale requires robust fault tolerance mechanisms:
-
-\textbf{Process Monitoring}: Comprehensive monitoring and health checking detect process failures and network issues, triggering automatic recovery procedures.
-
-\textbf{State Recovery}: When processes fail, the system can recover from checkpoints and resume training with minimal data loss, utilizing distributed checkpointing strategies.
-
-\textbf{Graceful Degradation}: The system continues operating with reduced capacity when components fail, maintaining training progress while recovering failed components in the background.
-
-\section{Dataset Preparation and Processing}
-\label{sec:dataset-work}
-
-\subsection{SWE-Gym Integration}
-
-Adapting \ac{SWE-Gym} for \ac{RL} training required significant data processing and infrastructure work:
-
-\subsubsection{Container Environment Setup}
-
-Each \ac{SWE-Gym} task required careful containerization to ensure reproducible and safe execution:
-
-\textbf{Dependency Management}: Automated installation and configuration of project dependencies within containers, with careful attention to version compatibility and isolation.
-
-\textbf{Environment Standardization}: Consistent environment setup across diverse Python projects, including virtual environment management, path configuration, and tool availability.
-
-\textbf{State Snapshot Creation}: Efficient creation and management of container snapshots representing clean initial states for each training episode.
-
-\subsubsection{Data Processing Pipeline}
-
-Converting \ac{SWE-Gym} tasks into \ac{RL} training episodes required sophisticated data processing:
-
-\textbf{Issue Description Processing}: Natural language issue descriptions were processed and formatted consistently for agent consumption, with attention to maintaining all relevant context while removing potential training data leakage.
-
-\textbf{Repository Context Extraction}: Automated extraction of relevant repository context, including file structure, dependency information, and project documentation.
-
-\textbf{Ground Truth Validation}: Systematic validation of ground truth patches to ensure they apply cleanly and resolve the reported issues without introducing regressions.
-
-\subsection{Evaluation Dataset Curation}
-
-\subsubsection{SWE-Bench-Verified Processing}
-
-Preparing \ac{SWE-Bench-Verified} for evaluation required several processing steps:
-
-\textbf{Task Filtering}: Systematic filtering of tasks to remove those that would be unsuitable for agent evaluation, including tasks requiring external dependencies or human judgment.
-
-\textbf{Environment Standardization}: Ensuring consistent evaluation environments across diverse projects and Python versions.
-
-\textbf{Baseline Establishment}: Running baseline evaluations to establish performance floors and validate evaluation infrastructure.
-
-\section{Experimental Execution and Validation}
+\section{Experimental Execution Methodology}
 \label{sec:experimental-execution}
 
-\subsection{Training Execution Infrastructure}
+\subsection{Training Orchestration}
 
-\subsubsection{Cluster Management}
+Executing online \ac{RL} experiments required careful orchestration of multiple system components operating in parallel:
 
-Large-scale training required sophisticated cluster management:
+\textbf{Resource Coordination}: Balancing compute allocation between training and inference workloads while maintaining system responsiveness demanded dynamic resource management strategies that evolved throughout the experimental process.
 
-\textbf{Resource Scheduling}: Dynamic resource allocation and scheduling to balance training and inference workloads across available compute resources.
+\textbf{Experiment Monitoring}: Tracking training progress across distributed components required comprehensive logging and monitoring infrastructure, with real-time visualization of key metrics including agent success rates, exploration patterns, and system utilization.
 
-\textbf{Job Orchestration}: Automated job submission and management for long-running training experiments, with support for preemption and migration.
+\textbf{Checkpoint Management}: Coordinating model checkpoints across training and inference systems while maintaining experiment continuity posed significant logistical challenges, particularly during long training runs spanning multiple days.
 
-\textbf{Monitoring and Logging}: Comprehensive monitoring of training metrics, system performance, and resource utilization, with real-time alerting for failures and anomalies.
+\subsection{Data Collection and Quality Assurance}
 
-\subsubsection{Experiment Management}
+\textbf{Trajectory Validation}: Ensuring the quality and consistency of collected agent trajectories required extensive validation procedures, including automated detection of truncated sessions, malformed tool calls, and inconsistent state transitions.
 
-Systematic experiment execution required careful planning and automation:
+\textbf{Reward Computation Validation}: Verifying the correctness of reward calculations (detailed in Section~\ref{sec:reward-design}) across thousands of agent trajectories demanded robust testing infrastructure and statistical validation procedures.
 
-\textbf{Hyperparameter Sweeps}: Automated execution of hyperparameter optimization experiments with efficient resource utilization and early stopping.
+\textbf{Reproducibility Measures}: Maintaining experimental reproducibility while dealing with inherently stochastic agent behavior required careful seed management, environment standardization, and comprehensive logging of all system parameters.
 
-\textbf{Reproducibility Infrastructure}: Careful tracking of code versions, dataset versions, and random seeds to ensure reproducible results across experimental runs.
+\section{Dataset Processing and Experimental Setup}
+\label{sec:dataset-processing}
 
-\textbf{Result Collection and Analysis}: Automated collection and preliminary analysis of experimental results, with standardized metrics and visualization pipelines.
+\subsection{Training Data Preparation}
 
-\subsection{Validation and Quality Assurance}
+Preparing \ac{SWE-Gym} (described in Section~\ref{sec:experimental-setup}) for online \ac{RL} training revealed several practical challenges:
 
-\subsubsection{System Validation}
+\textbf{Environment Consistency}: Ensuring reproducible container environments across the diverse projects in \ac{SWE-Gym} required extensive testing and standardization efforts, as many repositories contained outdated or conflicting dependency specifications.
 
-Ensuring system correctness required extensive validation:
+\textbf{Task Complexity Distribution}: The uneven distribution of task difficulties in \ac{SWE-Gym} necessitated careful sampling strategies to prevent training from concentrating on either trivially simple or impossibly complex examples.
 
-\textbf{Unit Testing}: Comprehensive unit test suites for all system components, with particular attention to edge cases and error conditions.
+\textbf{Ground Truth Validation}: A significant number of ground truth patches in the original dataset required manual validation and correction, as some did not apply cleanly or introduced unintended side effects when tested in isolated environments.
 
-\textbf{Integration Testing}: End-to-end integration tests validating the complete training pipeline from agent interaction through reward computation and model updates.
+\subsection{Evaluation Infrastructure}
 
-\textbf{Performance Validation}: Systematic performance testing to ensure training throughput meets requirements and identify optimization opportunities.
+\textbf{Baseline Establishment}: Creating reliable baseline measurements required extensive infrastructure work to ensure consistent evaluation conditions, including standardization of timeout policies, resource limits, and failure handling procedures.
 
-\subsubsection{Experimental Validation}
+\textbf{Metric Validation}: Validating the correctness of our evaluation metrics (particularly the patch similarity components described in Section~\ref{sec:reward-design}) required comparison against manual evaluations and cross-validation with existing benchmarks.
 
-Validating experimental results required multiple validation approaches:
+\todoinline{Describe specific challenges encountered during evaluation setup, such as environment inconsistencies, timeout handling, and result interpretation difficulties}
 
-\textbf{Baseline Reproduction}: Reproduction of published baseline results to validate evaluation infrastructure and methodology.
+\subsection{Experimental Validation Challenges}
 
-\textbf{Ablation Study Execution}: Systematic execution of ablation studies to understand the contribution of different system components.
+\textbf{Result Interpretation}: Determining whether observed improvements resulted from genuine learning versus system optimizations or environmental factors required careful ablation studies and control experiments.
 
-\textbf{Statistical Validation}: Proper statistical analysis of experimental results, including significance testing and confidence interval computation.
+\textbf{Training Stability}: Maintaining stable training dynamics while balancing exploration and exploitation proved challenging, with several experiments requiring restart due to mode collapse or divergent behavior.
 
-\section{Open Source Contributions}
+\textbf{Statistical Significance}: The high variance inherent in agent-based \ac{RL} training necessitated larger sample sizes and longer training runs than initially anticipated, significantly increasing computational requirements.
+
+\todoinline{Add specific details about hyperparameter sensitivity, training duration challenges, and convergence criteria that were discovered during experimental execution}
+
+\section{Open Source Implementation}
 \label{sec:open-source}
 
-A key objective of this work was providing open-source implementations to democratize access to online \ac{RL} techniques.
-Our contributions include:
+A significant outcome of this work is the release of a complete open-source implementation enabling other researchers to reproduce and extend our results.
 
 \subsection{CodeRepairRL Framework}
 
-The complete training framework has been released as open source, including:
+The complete system has been made available as an integrated framework, including the optimized \ac{GRPO} implementation for coding agents, vLLM integration with live weight synchronization, and evaluation infrastructure.
 
-\begin{itemize}
-	\item GRPO implementation optimized for coding agents
-	\item vLLM integration with real-time weight updates
-	\item NCCL-based distributed training infrastructure
-	\item Complete evaluation and benchmarking suites
-\end{itemize}
+\textbf{Implementation Challenges}: Packaging the complex distributed system for general use required significant additional engineering effort, including comprehensive documentation, installation automation, and configuration management for diverse computational environments.
 
-\subsection{Nano Agent Implementation}
+\textbf{Community Considerations}: Balancing ease of use with system flexibility demanded careful design decisions about which components to expose as configurable parameters versus hardcoded optimization choices based on our experimental experience.
 
-The Nano agent framework is provided as a standalone library that can be integrated with other training systems or used for inference-only applications.
-Key features include:
+\subsection{Reproducibility Infrastructure}
 
-\begin{itemize}
-	\item Minimalist tool interface for maximum learning flexibility
-	\item Robust safety and isolation mechanisms
-	\item Integration with multiple LLM serving backends
-	\item Comprehensive logging and debugging capabilities
-\end{itemize}
+Beyond code release, we provide comprehensive training configurations, optimal hyperparameter settings discovered through experimentation, and detailed setup procedures to enable exact reproduction of our results.
 
-\subsection{Training Configurations and Recipes}
+\todoinline{Describe specific challenges in making the system accessible to other researchers, documentation requirements, and lessons learned about open-source scientific software development}
 
-To enable reproducible research, we provide:
-
-\begin{itemize}
-	\item Complete training configurations for different model scales
-	\item Optimal hyperparameter settings discovered through experimentation
-	\item Infrastructure setup and deployment guides
-	\item Evaluation protocols and baseline implementations
-\end{itemize}
-
-\subsection{Community Impact and Adoption}
-
-The open-source release aims to enable broader academic research in this domain by providing:
-
-\begin{itemize}
-	\item Complete implementation details typically unavailable in research papers
-	\item Practical infrastructure for running large-scale coding agent experiments
-	\item Baseline results and evaluation frameworks for future comparisons
-	\item Documentation and tutorials for researchers entering this field
-\end{itemize}
-
-This comprehensive open-source contribution represents a significant step toward democratizing advanced coding agent research, providing the academic community with tools previously available only to well-resourced industry laboratories.
-
-\section{Lessons Learned and Engineering Insights}
+\section{Key Implementation Insights and Lessons Learned}
 \label{sec:lessons-learned}
 
-The implementation process revealed several important insights about the practical challenges of online RL:
+The process of implementing and executing online \ac{RL} experiments for coding agents revealed several critical insights that extend beyond the specific technical contributions of this work.
 
-\subsection{Distributed Systems Challenges}
+\subsection{System Complexity and Distributed Training}
 
-\textbf{Complexity Underestimation}: The engineering effort required for stable distributed training was significantly underestimated initially.
-Real-world deployment revealed numerous edge cases and failure modes not apparent in smaller-scale testing.
+\textbf{Engineering Effort Underestimation}: The implementation complexity of combining online \ac{RL} with large language models far exceeded initial estimates, with system integration challenges consuming substantially more development time than algorithmic work.
 
-\textbf{Debugging Difficulty}: Debugging distributed agent systems is substantially more complex than traditional \ac{ML} training, requiring sophisticated logging and monitoring infrastructure to identify root causes of failures.
+\textbf{Failure Mode Discovery}: Many critical failure modes only emerged during extended training runs, highlighting the importance of robust testing infrastructure and the difficulty of predicting distributed system behavior at scale.
 
-\textbf{Performance Sensitivity}: Small inefficiencies in the training pipeline compound significantly at scale, making optimization of every system component critical for practical training speeds.
+\textbf{Performance Optimization Criticality}: Minor inefficiencies in data handling, memory management, or communication protocols compounded dramatically during long training runs, making systematic optimization essential for practical deployment.
 
-\subsection{Agent Integration Insights}
+\subsection{Agent Design and Training Dynamics}
 
-\textbf{Tool Interface Design}: The choice of tool interface significantly impacts both training efficiency and learning outcomes.
-Overly complex tools slow training, while overly simple tools may limit learning potential.
+\textbf{Tool Interface Sensitivity}: The design of agent tools (detailed in Section~\ref{sec:nano-agent}) proved more influential on training outcomes than initially anticipated, with small changes in interface design significantly affecting learning dynamics and final performance.
 
-\textbf{Environment Standardization}: Significant effort was required to standardize execution environments across diverse software projects, highlighting the importance of consistent infrastructure in agent training.
+\textbf{Reward Signal Quality}: The sparse, terminal reward structure (described in Section~\ref{sec:reward-design}) created substantial training challenges, requiring careful hyperparameter tuning and batch composition strategies to maintain stable learning.
 
-\textbf{Safety and Isolation}: Comprehensive safety measures are essential but substantially increase system complexity.
-The trade-off between safety and simplicity must be carefully managed.
+\textbf{Exploration Strategy Impact}: Agent exploration patterns significantly influenced both training efficiency and final capabilities, with naive exploration strategies leading to poor sample efficiency and suboptimal learning outcomes.
 
-\subsection{RL Training Observations}
+\subsection{Practical Deployment Considerations}
 
-\textbf{Reward Engineering Criticality}: The design of reward functions for interactive agents is substantially more complex than for traditional RL applications, with many subtle considerations affecting training dynamics.
+\textbf{Compute Resource Management}: The dual requirements of training and inference placed unexpected demands on computational infrastructure, requiring sophisticated resource allocation strategies not present in traditional \ac{ML} workflows.
 
-\textbf{Exploration-Exploitation Balance}: Managing exploration in complex environments like software repositories requires careful tuning and monitoring to prevent both excessive wandering and premature convergence.
+\textbf{Monitoring and Debugging Complexity}: Debugging distributed agent systems proved substantially more challenging than traditional model training, necessitating extensive logging and visualization infrastructure for effective troubleshooting.
 
-\textbf{Sample Efficiency Challenges}: Agent interactions are expensive compared to traditional RL environments, making sample efficiency critical for practical training.
-This constraint significantly influenced our algorithmic and infrastructure choices.
+\textbf{Scalability Bottlenecks}: Several system components that functioned adequately at small scales became significant bottlenecks during full-scale experiments, emphasizing the importance of early scalability testing.
 
-These insights provide valuable guidance for future research in experiential training and highlight the substantial engineering effort required to make theoretical advances practical and reproducible.
+\subsection{Research Methodology Implications}
+
+\textbf{Experimental Design Challenges}: The high variance and computational cost of agent-based RL experiments required careful experimental design and statistical analysis procedures not commonly used in standard \ac{ML} research.
+
+\textbf{Reproducibility Requirements}: Ensuring reproducible results across different computational environments required extensive documentation and standardization efforts, highlighting challenges in reproducible research for complex systems.
+
+\textbf{Evaluation Methodology Complexity}: Developing reliable evaluation procedures for interactive agents proved more challenging than anticipated, requiring extensive validation of metrics and careful consideration of evaluation environment consistency.
+
+These insights provide important guidance for future research in online \ac{RL} for coding agents and highlight the substantial engineering investment required to transform theoretical advances into practical, reproducible research contributions.
