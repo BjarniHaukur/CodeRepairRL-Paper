@@ -31,7 +31,7 @@ This capability foundation transforms previously intractable problems into domai
 In effect, \acp{LLM} provide the first rung on the ladder that makes applying \ac{RL} to software engineering feasible.
 
 However, unlike traditional game playing \ac{RL} agents, which directly produce actions from observations (e.g., selecting chess moves or joystick inputs), \acp{LLM} fundamentally operate as token generators.
-They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental responses back into text.
+They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental< responses back into text.
 
 This critical distinction necessitates a fundamentally different approach to \ac{RL}.
 In this paradigm, a scaffold or harness interprets tool calls from the \ac{LLM}, executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
