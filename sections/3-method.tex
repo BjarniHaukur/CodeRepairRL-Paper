@@ -420,15 +420,15 @@ This masked loss formulation represents an important design choice for tool-augm
 Our training follows an iterative process where the agent attempts to solve bugs from the \ac{SWE-Gym} dataset:
 
 \begin{enumerate}
-	\item \textbf{Trajectory Generation:} For each bug in a training batch, the agent generates a complete trajectory—from initial exploration through final patch submission
-	\item \textbf{Reward Computation:} Each trajectory receives a reward based on the similarity between the generated patch and the ground-truth solution (detailed in Section~\ref{sec:reward-design})
-	\item \textbf{Advantage Estimation:} \ac{GRPO} computes advantages by comparing each trajectory's reward to the mean reward within its group
-	\item \textbf{Policy Update:} The model parameters are updated to increase the likelihood of high-advantage actions while maintaining proximity to the reference policy through \ac{KL} regularization
-\end{enumerate}
+	\item \textbf{Trajectory Generation:}
+	      For each bug in a training batch, the agent generates a complete trajectory—from initial exploration through final patch submission \item \textbf{Reward Computation:} Each trajectory receives a reward based on the similarity between the generated patch and the ground-truth solution (detailed in Section~\ref{sec:reward-design}) \item \textbf{Advantage Estimation:} \ac{GRPO} computes advantages by comparing each trajectory's reward to the mean reward within its group \item \textbf{Policy Update:} The model parameters are updated to increase the likelihood of high-advantage actions while maintaining proximity to the reference policy through \ac{KL} regularization \end{enumerate}
 
 \subsection{Hyperparameters}
 
 Key hyperparameters for our \ac{GRPO} implementation include:
+
+\todoinline{Cite GSPO, Dr.GRPO, DeepSWE, DAPO?
+	for how hparams are selected}
 
 \begin{itemize}
 	\item \textbf{Group Size:} 8

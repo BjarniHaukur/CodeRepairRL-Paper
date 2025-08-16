@@ -535,6 +535,10 @@ Rigorous evaluation of automated code repair systems requires diverse, realistic
 
 The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluating coding agents on realistic software engineering tasks.
 
+\subsection{TauBench}
+
+\subsection{}
+
 % \subsubsection{Evolution of SWE-Bench}
 
 % \textbf{Original \ac{SWE-Bench} (2023)}~\cite{jimenez2024swebenchlanguagemodelsresolve}: The foundational dataset introduced 2,294 task instances drawn from 12 popular Python repositories. Each instance consists of:
@@ -650,16 +654,26 @@ The work demonstrated improved sample efficiency but did not address the fundame
 \textbf{SWE-RL}~\cite{wei2025swerladvancingllmreasoning} introduced a static, single-turn formulation—where a model given full file contexts produces a patch after a reasoning step.
 \todoinline{elaborate}
 
-\textbf{DeepSWE}~\cite{deepsswe2025} is highly similar to our work and validates our approach.
-Our caveat is replicating this in a low resource manner?
+\textbf{DeepSWE}~\cite{deepswe2025} is highly similar to our work and validates our approach.
+I.e. they do GRPO on multi-turn, terminal using coding agents with an async inference engine setup.
+They use 64 H100s for training, 8 H100s for inference and trained for 6 days on R2EGym, in total ~$10368$ H100 hours.
+In contrast, we train for ~2 days on 6 A100s ~$288$ A100 hours, and by normalizing by throughput between these two we can safely assume that $1\text{H100 hour} \approx 2.2\text{A100 hours}$ so: we use $~80$x less compute.
+They used test based rewards.
+Our novelty is being way more compute efficient and using test-free rewards, meaning we can trivially extend our method to any programming language.
 \todoinline{important to make this much better}
 
-\textbf{Critical limitations of existing work}:
-\begin{itemize}
-	\item Focus on generation rather than repair: Creating new code differs fundamentally from debugging existing systems
-	\item Isolated task formulation: Single-function tasks ignore the complexity of real software systems
-	\item Lack of environmental interaction: No exploration, tool usage, or iterative refinement
-\end{itemize}
+\section{Limitations of existing work}:
+\textbf{Focus on generation rather than repair}: Existing approaches predominantly emphasize code generation, yet creating new code differs fundamentally from the process of debugging and repairing existing systems.
+This distinction is crucial, as effective automated program repair requires models to reason about and modify complex, pre-existing codebases rather than synthesizing code from scratch.
+
+\textbf{Isolated task formulation}: Many prior works formulate tasks at the level of single functions, thereby neglecting the intricate interdependencies and architectural complexity inherent in real-world software systems.
+This simplification limits the ability of models to generalize to practical debugging scenarios, where understanding interactions across multiple files and modules is essential.
+
+\textbf{Lack of environmental interaction}: Previous methods typically do not incorporate exploration, tool usage, or iterative refinement into their training regimes.
+As a result, models are deprived of opportunities to learn through active engagement with their environment, which is a key aspect of effective debugging and repair in realistic settings.
+
+\textbf{Dependence on test-based rewards}: While relying on test-based rewards can, in principle, provide robust supervision, this strategy becomes increasingly impractical as the number of supported programming languages expands.
+Constructing and maintaining comprehensive test suites for each language introduces significant operational challenges, thereby limiting the scalability and applicability of these approaches.
 
 \section{Summary and Research Positioning}
 
