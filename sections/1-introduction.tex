@@ -18,8 +18,8 @@ This distinction—static one-shot patch generation versus interactive context a
 
 Traditional systems for automated code repair have relied predominantly on supervised learning from static datasets of bug-fix pairs.
 In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process.
-While computationally efficient, this approach fundamentally misrepresents the nature of software debugging, which involves iterative hypothesis refinement, strategic exploration of codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation.
-Moreover, the information needed to fix a bug is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide.
+While computationally efficient, this approach fundamentally misrepresents the nature of repository-level software debugging, which involves iterative hypothesis refinement, strategic exploration of entire codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation.
+Moreover, the information needed to fix a bug in real-world repositories is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide to navigate and understand the broader codebase context.
 \todoinline{which traditional paper to cite here}
 
 The question becomes: how do we train such agentic systems when the very complexity that necessitates their existence also makes traditional training approaches intractable?
@@ -84,8 +84,6 @@ The primary objective is to demonstrate that this experiential training approach
 We hypothesize that the ability to explore codebases, execute commands, observe error messages, and iteratively refine solutions during training will result in agents that better capture the problem-solving patterns characteristic of human debugging.
 
 Through rigorous empirical evaluation, this research aims to establish this online \ac{RL} approach as a viable and superior alternative to static supervised learning for training code repair systems, demonstrating that experiential training with real environments leads to more capable debugging agents.
-
-\todoinline{}
 
 % Despite growing evidence that leading \ac{AI} labs employ experiential training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
 
@@ -171,8 +169,7 @@ We adopt efficiency practices such as mixed-precision training, reuse of checkpo
 
 \section{Methodology}
 \label{sec:intro-methodology}
-\todoinline{Coin the repository level term earlier?}
-This research employs a rigorous experimental methodology designed to systematically evaluate \ac{RL} for repository level bug fixing.
+This research employs a rigorous experimental methodology designed to systematically evaluate \ac{RL} for repository-level bug fixing.
 % Our approach combines theoretical insights from \ac{RL} with practical engineering solutions to create a comprehensive experimental framework.
 
 We employ \ac{GRPO}, a variant of \ac{PPO}~\cite{schulman2017proximalpolicyoptimizationalgorithms} that forgoes value function estimation in favor of group-relative reward baselines.
