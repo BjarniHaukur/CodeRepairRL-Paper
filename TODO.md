@@ -2,7 +2,7 @@ Thesis revision checklist (Intro, Background, Method)
 
 Style and consistency
 - [ ] Reduce subsubsections; prefer sections/subsections; keep paragraphs over long bullet lists
-- [~] Use cref
+- [x] Use cref
 
 Introduction
 - [ ] Align central narrative in `sections/1-introduction.tex`
@@ -18,6 +18,9 @@ Background
   - What about the basic ones? 
 - [ ] Cite and briefly describe relevant systems (e.g., SWE-Agent, OpenHands/OpenDevin, Aider; use citable sources)
 - [ ] Discuss and cite Terminal- and TauBench, cite SOTA numbers perhaps, cite
+- [ ] Dr. GRPO write and cite
+- [ ] Dapo write and cite
+- [ ] Remember more of these
 
 Method
 - [ ] Split current Chapter 3 into three chapters and update `main.tex` includes

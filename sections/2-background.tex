@@ -1,4 +1,5 @@
 \chapter{Theoretical Background and Related Work}
+\label{ch:background}
 
 This chapter provides the theoretical foundation for online reinforcement learning applied to automated code repair.
 We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
@@ -14,6 +15,7 @@ The transition to learning-based approaches began with Prophet~\cite{prophet2016
 The emergence of neural sequence-to-sequence models marked a fundamental shift, with works like SequenceR~\cite{sequencer2019} and CoCoNuT~\cite{coconut2020} treating program repair as a neural machine translation task.
 
 \section{Automated Program Repair with LLMs}
+\label{sec:apr-with-llms}
 
 Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
 
@@ -24,6 +26,18 @@ However, even state-of-the-art models achieve only approximately 20\% success ra
 Key evaluation datasets have evolved alongside these approaches.
 CodeXGLUE~\cite{codexglue2021} provides a comprehensive multi-task benchmark including bug fixing across multiple languages.
 Most recently, \ac{SWE-Bench}~\cite{sweBench2024} introduced repository-level tasks requiring understanding of entire codebases, representing a significant leap in evaluation complexity.
+
+We distinguish three modes of \ac{LLM}-assisted repair by the degree of system integration and autonomy: (i) prompt-only, non-repository interactions, (ii) repository-mediated “agentless” tools without autonomous tool use, and (iii) autonomous, tool-using “agentic” systems. This taxonomy clarifies what capabilities are evaluated and how results transfer across settings.
+
+\subsection{Prompt-only (non-repository) repair}
+\label{subsec:prompt-only}
+We define a prompt-only setting in which developers paste self-contained code snippets and natural-language instructions into a language model, and receive edited code as static output. The interaction is detached from repository state, build systems, and test feedback, and does not involve tool use. This mode has negligible setup cost and is common in practice, but it is not a faithful \ac{APR} setting because it obscures dependency structure and prevents executable validation. We treat it as a low-friction baseline to contextualize the benefits of repository-grounded, tool-using systems (e.g., action efficiency, invalid-call reduction, and correctness under tests). Comparisons to repository-grounded evaluations are indicative rather than isomorphic due to differences in available context and feedback.
+\todoinline{Specify prompt templates, context policy, and multi-turn allowance; insert baseline results once finalized and cross-reference the evaluation protocol.}
+
+\subsection{Agentless, repository-mediated approaches}
+\label{subsec:agentless}
+Agentless systems scaffold a structured conversation around a live repository without autonomous tool execution. Tools such as Aider exemplify this pattern: they manage file selection, propose patches, and inject contextual diffs, while a human (or scripted harness) remains responsible for running tests, shells, and version control. This framing preserves repository grounding and repeatability while avoiding autonomous planning and tool use. In our taxonomy, agentless systems are interfaces rather than agents; they clarify how much of \ac{APR} performance derives from careful context curation and patch formatting, distinct from autonomy. When included as a baseline, we report their configuration (prompt templates, file inclusion policies, and patch application rules) to enable fair comparison and replication.
+\todoinline{State whether an agentless baseline is reported; if so, add configuration details and cross-reference the evaluation protocol.}
 
 % \textbf{Aider}~\cite{aider2024} represents the heavyweight scaffolding approach, incorporating sophisticated features:
 % \begin{itemize}
@@ -85,12 +99,17 @@ The gap highlights not just a quantitative difference in performance, but a qual
 
 Addressing this mismatch requires moving beyond supervised learning on static datasets toward online learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for online reinforcement learning explored in this thesis.
 
-\section{Automated Program Repair with Agentic LLMs}
+\subsection{Agentic, tool-using approaches}
+\label{subsec:agentic}
+Agentic systems plan and execute tool calls autonomously (e.g., running tests, editing files, invoking shells and version control), using repository feedback loops to guide repair. Our focus is a single minimalist agent (the Nano agent) that exposes only essential tools and is trained with reinforcement learning to improve adaptation: reducing invalid tool calls, increasing action efficiency, and improving correctness under tests. We study whether a single training recipe learned on \ac{SWE-Gym} transfers to evaluations on \ac{SWE-Bench} and \ac{Multi-SWE-Bench} without overfitting, and whether the recipe transfers across base models without bespoke engineering. We also examine zero-shot transfer to other agentic coding interfaces and terminal-oriented tasks, framing these as out-of-distribution checks on the learned interaction policy rather than as separate scaffolds.
+
+Practically, these systems materialize via structured tool calling: the model emits well-formed function calls that external executors run, and their outputs are appended to the transcript. This closes the loop between hypothesis and verification and makes online \ac{RL} feasible; see Section~\ref{sec:rl-language-models} for the formalization we adopt. Throughout, we prioritize reproducibility via fixed tool \acs{API}s, deterministic evaluation harnesses, and explicit reporting of prompts and environment assumptions.
+\todoinline{Insert quantitative results, figures, and tables for Nano performance; cross-reference training setup, datasets, and threats to validity once finalized.}
 
 The integration of language models with dynamic programming environments has opened new possibilities for automated software engineering, enabling models to perform complex, multi-step reasoning tasks.
 The predominant approach for creating agentic LLMs is through tool calling—enabling models to interact with external systems, execute commands, and observe results.
 
-\subsection{Tool Calling as the Foundation of LLM Agency}
+% (Former subheading removed; keep content inline to avoid extra subsections.)
 
 The ability for language models to interact with external tools represents a fundamental shift from purely generative models to agentic systems capable of performing complex, multi-step tasks in real environments.
 Modern \acp{LLM} implement tool calling through structured output generation, where models produce specially formatted function calls that can be parsed and executed by external systems:
@@ -116,7 +135,7 @@ Third, it requires compositional reasoning where models must learn to combine mu
 For code repair specifically, tool calling enables models to perform the exploratory debugging process that characterizes human problem-solving: forming hypotheses, testing them through code execution, observing failures, and iteratively refining solutions.
 The integration of tool calling with \ac{RL} training enables models to learn not just what tools to use, but when and how to use them effectively—a capability that supervised learning on static datasets cannot provide.
 
-\subsection{Coding Agent Frameworks}
+% (Former subheading removed; keep content inline or move to related work if needed.)
 
 % Modern coding agents combine language models with tool access, allowing them to navigate codebases, execute commands, and iteratively refine solutions.
 
@@ -181,7 +200,7 @@ Reinforcement learning has emerged as a powerful technique for improving languag
 Unlike supervised learning, which relies on fixed input-output pairs, \ac{RL} enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
 
 \subsection{History-Based MDP Formulation}
-\label{sec:mdp-history}
+\label{subsec:mdp-history}
 
 We model interactive code repair as a history-based MDP where time indexes executed tool calls rather than individual tokens.
 The environment state (repository, filesystem) is never exposed directly; it influences the process only through tool outputs that are appended to the conversation transcript.
@@ -251,6 +270,7 @@ This abstraction elegantly captures the partial observability inherent in tool-a
 \todoinline{Clarify what online learning is, in particular for LLMs}
 
 \subsection{Policy Gradient Foundations}
+\label{subsec:policy-gradient}
 
 Building on the history-based MDP formulation, the policy gradient theorem provides the foundation for optimization:
 
@@ -269,6 +289,7 @@ However, this basic REINFORCE estimator suffers from high variance, making train
 This limitation becomes particularly problematic for language models, where sequence lengths can be substantial and reward signals are often sparse.
 
 \subsection{Proximal Policy Optimization (PPO)}
+\label{subsec:ppo}
 
 Proximal Policy Optimization~\cite{schulman2017proximalpolicyoptimizationalgorithms} has emerged as the dominant algorithm for fine-tuning large language models due to its ability to stabilize training while maintaining sample efficiency.
 \ac{PPO} addresses the fundamental challenge of policy optimization: making meaningful progress without taking overly large steps that destabilize learning.
@@ -308,7 +329,7 @@ L(\theta, \phi) = L^{CLIP}(\theta) - c_1 L^{VF}(\phi) + c_2 S[\pi_\theta](s_t)
 However, \ac{PPO} also introduces significant computational overhead through the separate value network training and the need for multiple gradient updates per batch of experience.
 
 \subsection{Group Relative Policy Optimization (GRPO)}
-\label{sec:grpo}
+\label{subsec:grpo}
 
 \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} is fundamentally \ac{PPO} with a crucial simplification: instead of training a separate value network to estimate advantages, \ac{GRPO} computes advantages directly from relative performance within sampled action groups.
 This elegant modification preserves \ac{PPO}'s theoretical guarantees while dramatically reducing computational overhead.
@@ -450,6 +471,7 @@ A practical surrogate for the KL term at the sampled output is \begin{equation}
 \end{equation}
 
 \subsection{Group Sequence Policy Optimization (GSPO)}
+\label{subsec:gspo}
 
 While \ac{GRPO} offers computational efficiency over traditional \ac{PPO}, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool-use scenarios~\cite{zheng2025groupsequencepolicyoptimization}.
 \ac{GSPO} addresses these fundamental limitations through a theoretically grounded reformulation of the importance sampling mechanism.
@@ -504,11 +526,13 @@ Empirical results from the Qwen3 models show that \ac{GSPO} not only stabilizes 
 For our work, adopting \ac{GSPO} represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
 
 \section{Low-Rank Adaptation (LoRA)}
+\label{sec:lora}
 
 Parameter-efficient fine-tuning has become essential for adapting large language models to specific tasks without the computational overhead of full fine-tuning.
 Low-Rank Adaptation (\ac{LoRA}) represents one of the most successful approaches in this domain.
 
 \subsection{Mathematical Foundation}
+\label{subsec:lora-math}
 
 \ac{LoRA} is based on the hypothesis that weight updates during fine-tuning have low intrinsic rank.
 For a pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, \ac{LoRA} represents the update $\Delta W$ as:
@@ -528,6 +552,7 @@ During training, $W_0$ remains frozen while only $A$ and $B$ are updated.
 This dramatically reduces the number of trainable parameters from $dk$ to $r(d+k)$.
 
 \subsection{Implementation Details}
+\label{subsec:lora-implementation}
 
 \subsubsection{Initialization Strategy}
 
@@ -549,6 +574,7 @@ W = W_0 + \frac{\alpha}{r}BA
 This scaling allows for consistent learning rates across different rank values and provides a simple way to control adaptation strength.
 
 \subsection{Computational Advantages}
+\label{subsec:lora-advantages}
 
 \ac{LoRA} offers substantial practical benefits for \ac{RL} training:
 
@@ -561,6 +587,7 @@ This scaling allows for consistent learning rates across different rank values a
 \textbf{Modularity}: Multiple \ac{LoRA} adapters can be trained for different tasks and dynamically loaded, enabling flexible model deployment.
 
 \subsection{Integration with Reinforcement Learning}
+\label{subsec:lora-rl}
 
 \ac{LoRA}'s benefits become particularly pronounced in \ac{RL} settings where multiple model instances must be maintained:
 
@@ -568,6 +595,7 @@ This scaling allows for consistent learning rates across different rank values a
 With \ac{LoRA}, the reference policy can share the frozen base weights while only the adapter differs.
 
 \subsection{Theoretical Considerations}
+\label{subsec:lora-theory}
 
 Recent research has examined \ac{LoRA}'s representational capacity and limitations:
 
@@ -581,20 +609,22 @@ Higher ranks provide more flexibility but reduce computational savings.
 The combination of \ac{LoRA}'s efficiency with online \ac{RL} creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
 
 
-\section{Sampling Strategies}:
+\section{Sampling Strategies}
+\label{sec:sampling-strategies}
 \todoinline{Is it worthwhile to drag LLM sampling parameters into the mix and tie them to "exploration vs exploitation"?}
 
 \section{Evaluation Benchmarks}
+\label{sec:evaluation-benchmarks}
 
 Rigorous evaluation of automated code repair systems requires diverse, realistic benchmarks that capture the complexity of real-world debugging scenarios.
 
 \subsection{SWE-Bench Family}
+\label{subsec:swe-bench}
 
 The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluating coding agents on realistic software engineering tasks.
 
 \subsection{TauBench}
-
-\subsection{}
+\label{subsec:taubench}
 
 % \subsubsection{Evolution of SWE-Bench}
 
@@ -692,6 +722,7 @@ The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluat
 % These challenges make \ac{SWE-Bench} an ideal testbed for online training, where models can learn through environmental interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
 
 \section{Related Work}
+\label{sec:related-work}
 
 This section synthesizes prior research most directly relevant to our approach, highlighting gaps that this thesis addresses.
 
@@ -719,7 +750,8 @@ They used test based rewards.
 Our novelty is being way more compute efficient and using test-free rewards, meaning we can trivially extend our method to any programming language.
 \todoinline{important to make this much better}
 
-\section{Limitations of existing work}:
+\section{Limitations of existing work}
+\label{sec:limitations-existing}
 \textbf{Focus on generation rather than repair}: Existing approaches predominantly emphasize code generation, yet creating new code differs fundamentally from the process of debugging and repairing existing systems.
 This distinction is crucial, as effective automated program repair requires models to reason about and modify complex, pre-existing codebases rather than synthesizing code from scratch.
 
@@ -733,6 +765,7 @@ As a result, models are deprived of opportunities to learn through active engage
 Constructing and maintaining comprehensive test suites for each language introduces significant operational challenges, thereby limiting the scalability and applicability of these approaches.
 
 \section{Summary and Research Positioning}
+\label{sec:summary-positioning}
 
 This chapter has established the theoretical and empirical foundations for online \ac{RL} applied to \ac{APR}.
 By examining the evolution from rule-based repair systems to modern \ac{LLM}-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and the dynamic nature of debugging.

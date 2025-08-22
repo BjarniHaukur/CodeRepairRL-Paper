@@ -1,4 +1,5 @@
 \chapter{Introduction}
+\label{ch:introduction}
 
 Automated program repair has rapidly transformed from a nascent research area to one of the most promising applications of agentic \ac{AI} systems.
 Recent advances in autonomous software engineering have achieved remarkable performance milestones, with systems like Claude~4 now exceeding 70\% success rates on \ac{SWE-Bench-Verified} \cite{claude4_2025}.
@@ -13,6 +14,7 @@ Our work is complementary: we also use \ac{GRPO} and a patch-similarity reward, 
 This distinction—static one-shot patch generation versus interactive context acquisition and repair—motivates our focus on agent-integrated training rather than purely prompt-time scaffolding.
 
 \section{Background}
+\label{sec:intro-background}
 
 Traditional systems for automated code repair have relied predominantly on supervised learning from static datasets of bug-fix pairs.
 In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process.
@@ -52,6 +54,7 @@ Our work addresses this need by studying \ac{RL} with interactive coding agents 
 \todoinline{Add citations to public system cards or technical reports where appropriate.}
 
 \section{Problem}
+\label{sec:intro-problem}
 
 The central challenge addressed in this thesis concerns the fundamental disconnect between the training methodologies employed for code repair models and the interactive, exploratory nature of real-world debugging.
 Contemporary approaches to automated program repair exhibit a critical limitation: models trained on static datasets of bug-fix pairs are subsequently expected to perform dynamic, multi-step reasoning in complex software environments.
@@ -71,6 +74,7 @@ These limitations converge to a fundamental research question: How can we develo
 This question motivates our investigation into \ac{RL} with coding agents as a paradigm for training more capable code repair systems.
 
 \section{Purpose}
+\label{sec:intro-purpose}
 
 This thesis investigates a novel training paradigm for automated program repair using \ac{RL} with coding agents.
 The fundamental premise is that language models can acquire more sophisticated debugging capabilities when trained through direct interaction with software environments, rather than passive observation of static bug-fix examples.
@@ -93,6 +97,7 @@ Through rigorous empirical evaluation, this research aims to establish this onli
 % Current research in this area is primarily conducted by industry labs (OpenAI, Anthropic, Cognition Labs) with limited open-source replication, creating a significant knowledge gap in the academic community.
 
 \section{Goal}
+\label{sec:intro-goal}
 
 % This thesis makes several significant contributions to the field of automated program repair and \ac{RL} for code generation:
 
@@ -149,6 +154,7 @@ To make this goal concrete, we address the following research questions aligned 
 \end{itemize}
 
 \section{Benefits, Ethics and Sustainability}
+\label{sec:intro-benefits}
 
 This work contributes to open research in a field dominated by closed frontier labs by releasing methods, code, and evaluation protocols in an open format.
 All implementation details needed to reproduce results are documented, including configuration files, prompts, and harness interfaces.
@@ -164,6 +170,7 @@ We closely monitor the amount of compute per experiment and report tokens proces
 We adopt efficiency practices such as mixed-precision training, reuse of checkpoints and shared inference servers via training-inference duality, and targeted ablations to avoid redundant runs.
 
 \section{Methodology}
+\label{sec:intro-methodology}
 \todoinline{Coin the repository level term earlier?}
 This research employs a rigorous experimental methodology designed to systematically evaluate \ac{RL} for repository level bug fixing.
 % Our approach combines theoretical insights from \ac{RL} with practical engineering solutions to create a comprehensive experimental framework.
@@ -188,12 +195,14 @@ Statistical analysis includes significance testing for performance differences, 
 This multi-faceted approach enables both quantitative validation of our hypotheses and deeper insights into the mechanisms driving performance improvements.
 
 \section{Stakeholders}
+\label{sec:intro-stakeholders}
 
 Primary stakeholders include \ac{ML} and software engineering researchers interested in \ac{APR}, open-source maintainers whose repositories inform benchmarks and evaluation, and practitioners seeking reliable automated debugging tools.
 Secondary stakeholders include infrastructure providers supporting large-scale training and serving, and the broader \ac{AI} community working on agentic systems.
 We design our methods and releases to maximize utility for these groups while balancing privacy, security, and sustainability concerns.
 
 \section{Delimitations}
+\label{sec:intro-delimitations}
 
 This investigation operates within carefully defined boundaries that balance scientific rigor with practical constraints.
 Understanding these delimitations is essential for interpreting our findings and their applicability to broader contexts.
@@ -222,6 +231,7 @@ While this simplicity enables clean experimental validation of the \ac{RL} appro
 \textbf{Methodological Boundaries}: We briefly explored distillation via \ac{SFT}, but did not pursue it further due to limited empirical benefit and because reliance on proprietary teacher models would run counter to the thesis objective of advancing open RL training for agentic coding behaviour.
 
 \section{Outline}
+\label{sec:intro-outline}
 
 The remainder of this thesis is structured to provide a comprehensive treatment of \ac{RL} for automated program repair, progressing from theoretical foundations through empirical validation.
 

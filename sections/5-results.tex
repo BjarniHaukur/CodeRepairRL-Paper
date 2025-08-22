@@ -8,6 +8,7 @@ This chapter presents experimental results addressing our research questions (RQ
 \label{sec:training-dynamics}
 
 \subsection{Learning Curve Analysis}
+\label{subsec:learning-curve}
 
 Our \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} training demonstrates clear and consistent learning dynamics across multiple experimental runs.
 
@@ -47,6 +48,7 @@ Validate hypothesis about RL enhancement of coding capabilities.}
 \todoinline{Analyze GRPO training stability compared to traditional PPO implementations. Report gradient variance reduction, convergence smoothness, and standard deviation metrics across training runs.}
 
 \subsection{Computational Efficiency}
+\label{subsec:computational-efficiency}
 
 \begin{figure}[htbp]
 	\centering
@@ -67,6 +69,7 @@ Analyze NCCL-based weight synchronization overhead and contribution to efficienc
   Baselines} \label{sec:main-results}
 
 \subsection{SWE-Bench-Verified Performance}
+\label{subsec:swe-bench-performance}
 
 Table~\ref{tab:main-results} presents our primary experimental results on \ac{SWE-Bench-Verified}, comparing online \ac{RL} training against multiple baseline approaches.
 
@@ -100,6 +103,7 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 \textbf{Research Question 1}: How effectively does online RL training enable models to adapt to the Nano harness environment, and what specific improvements occur in tool usage patterns?
 
 \subsection{Methodology}
+\label{subsec:rq1-methodology}
 We analyze harness adaptation through three key metrics measured throughout training:
 \begin{itemize}
 	\item \textbf{Tool success rate}: fraction of tool calls that execute without schema/validation errors
@@ -108,6 +112,7 @@ We analyze harness adaptation through three key metrics measured throughout trai
 \end{itemize}
 
 \subsection{Results}
+\label{subsec:rq1-results}
 
 \begin{figure}[htbp]
 	\centering
@@ -132,6 +137,7 @@ We analyze harness adaptation through three key metrics measured throughout trai
 \end{itemize}}
 
 \subsection{Key Findings}
+\label{subsec:rq1-findings}
 \todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for RL training success.}
 
 \section{RQ2: Multiple Base Models}
@@ -140,6 +146,7 @@ We analyze harness adaptation through three key metrics measured throughout trai
 \textbf{Research Question 2}: Does the training recipe and Nano harness generalize across different base model architectures and sizes?
 
 \subsection{Methodology}
+\label{subsec:rq2-methodology}
 We evaluate training recipe transferability by applying identical training procedures to multiple base models with consistent experimental conditions:
 \begin{itemize}
 	\item Same training budgets and episode counts
@@ -149,6 +156,7 @@ We evaluate training recipe transferability by applying identical training proce
 \end{itemize}
 
 \subsection{Model Comparison}
+\label{subsec:rq2-comparison}
 \todoinline{Insert comprehensive comparison table including:
 \begin{itemize}
 \item Performance on SWE-Bench-Verified across different base models
@@ -159,6 +167,7 @@ We evaluate training recipe transferability by applying identical training proce
 \end{itemize}}
 
 \subsection{Analysis}
+\label{subsec:rq2-analysis}
 \todoinline{Analyze training recipe portability, identify model-specific adaptations required, and discuss implications for scaling to new architectures.}
 
 \section{RQ3: \ac{SWE-Gym} Training vs. \ac{SWE-Bench}/\ac{Multi-SWE-Bench} Evaluation}
@@ -167,6 +176,7 @@ We evaluate training recipe transferability by applying identical training proce
 \textbf{Research Question 3}: Does training on \ac{SWE-Gym} lead to overfitting, or do learned debugging strategies generalize to unseen evaluation datasets?
 
 \subsection{Experimental Design}
+\label{subsec:rq3-design}
 We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating on held-out datasets:
 \begin{itemize}
 	\item Training dataset: \ac{SWE-Gym} repository instances
@@ -176,6 +186,7 @@ We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating 
 \end{itemize}
 
 \subsection{Cross-Dataset Performance}
+\label{subsec:rq3-performance}
 \todoinline{Insert comprehensive cross-dataset analysis including:
 \begin{itemize}
 \item Performance comparison table across datasets
@@ -186,6 +197,7 @@ We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating 
 \end{itemize}}
 
 \subsection{Generalization Analysis}
+\label{subsec:rq3-analysis}
 \todoinline{Analyze evidence for/against overfitting, discuss learned strategy transferability, and evaluate cross-dataset generalization effectiveness.}
 
 \section{RQ4: Cross-Harness and Cross-Task Generalization}
@@ -194,6 +206,7 @@ We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating 
 \textbf{Research Question 4}: How well do models trained on the Nano harness transfer to different interaction paradigms and task domains?
 
 \subsection{Evaluation Domains}
+\label{subsec:rq4-domains}
 We assess out-of-domain generalization across multiple dimensions:
 \begin{itemize}
 	\item \textbf{Cross-Harness}: Aider and OpenHands-style interaction paradigms
@@ -202,6 +215,7 @@ We assess out-of-domain generalization across multiple dimensions:
 \end{itemize}
 
 \subsection{Evaluation Protocol}
+\label{subsec:rq4-protocol}
 \todoinline{Document evaluation protocol including:
 \begin{itemize}
 \item Cross-harness evaluation setup and metrics
@@ -212,6 +226,7 @@ We assess out-of-domain generalization across multiple dimensions:
 \end{itemize}}
 
 \subsection{Transfer Performance}
+\label{subsec:rq4-transfer}
 \todoinline{Insert results tables and analysis covering:
 \begin{itemize}
 \item Performance on alternative harnesses
@@ -225,6 +240,7 @@ We assess out-of-domain generalization across multiple dimensions:
 \label{sec:generalization}
 
 \subsection{HumanEval Results}
+\label{subsec:humaneval}
 
 To assess whether debugging-specific training affects general coding capabilities, we evaluate our models on HumanEval, a standard code generation benchmark.
 
@@ -261,6 +277,7 @@ Several factors likely contribute to improved general coding performance:
 \label{sec:ablations}
 
 \subsection{Component-wise Analysis}
+\label{subsec:component-analysis}
 
 To understand the contribution of different system components, we conducted systematic ablation studies:
 
@@ -304,6 +321,7 @@ The ablation results highlight several critical system components:
 \end{itemize}}
 
 \subsection{Hyperparameter Sensitivity}
+\label{subsec:hyperparameter}
 
 We evaluated sensitivity to key hyperparameters to understand training robustness:
 
@@ -355,6 +373,7 @@ We evaluated sensitivity to key hyperparameters to understand training robustnes
 \label{sec:error-analysis}
 
 \subsection{Systematic Failure Analysis}
+\label{subsec:failure-analysis}
 
 To understand current limitations and guide future improvements, we analyzed failed debugging attempts across multiple categories:
 
@@ -391,6 +410,7 @@ This suggests areas for improvement:
 \end{itemize}
 
 \subsection{Success Pattern Analysis}
+\label{subsec:success-patterns}
 
 Conversely, analyzing successful debugging attempts reveals effective strategies:
 
@@ -421,6 +441,7 @@ Successful agents develop efficient tool usage patterns:
 \label{sec:performance-analysis}
 
 \subsection{Training Efficiency Metrics}
+\label{subsec:training-efficiency}
 
 Our infrastructure achievements enable practical large-scale agent training:
 
@@ -446,6 +467,7 @@ Our infrastructure achievements enable practical large-scale agent training:
 \end{itemize}}
 
 \subsection{Cost-Effectiveness Analysis}
+\label{subsec:cost-effectiveness}
 
 \todoinline{Analyze computational cost-effectiveness including:
 \begin{itemize}
@@ -464,6 +486,7 @@ Our infrastructure achievements enable practical large-scale agent training:
 Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers}
+\label{subsec:research-answers}
 
 \textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize RL training improvements in Nano harness adaptation, including concrete metrics for tool success rates, invalid call reductions, and action efficiency improvements. Reference Section~\ref{sec:rq1-harness}.}
 
@@ -474,6 +497,7 @@ Our comprehensive experimental evaluation yields several important conclusions:
 \textbf{RQ4 (Cross-Harness/Task Generalization)}: \todoinline{Summarize zero-shot transfer results to alternative harnesses and terminal-centric tasks. Include specific performance metrics and generalization analysis. Reference Section~\ref{sec:rq4-cross}.}
 
 \subsection{Broader Implications}
+\label{subsec:broader-implications}
 
 These results have several important implications for the field:
 

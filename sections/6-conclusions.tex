@@ -10,6 +10,7 @@ We present comprehensive infrastructure for online \ac{RL} training of code repa
 Our work makes several methodological and infrastructure contributions to the emerging field of experiential learning for coding agents:
 
 \subsection{Methodological Innovation}
+\label{subsec:methodological-innovation}
 
 \textbf{Training-Inference Duality}: Our implementation collapses the conventional boundary between training and inference phases through continuous serving and real-time weight updates.
 This unified approach makes large-scale agent training practically feasible within academic research budgets by eliminating the need for separate training and deployment phases.
@@ -17,6 +18,7 @@ This unified approach makes large-scale agent training practically feasible with
 \textbf{\ac{GRPO} Optimization for Agents}: We adapt Group Relative Policy Optimization~\cite{shao2024deepseekmathpushinglimitsmathematical} for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training.
 
 \subsection{Methodological Validation}
+\label{subsec:methodological-validation}
 
 \textbf{Nano Agent Architecture}: Our minimalist Nano agent implementation demonstrates that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}. The agent operates with only basic terminal commands and file operations, proving the viability of experiential learning approaches.
 
@@ -25,6 +27,7 @@ This unified approach makes large-scale agent training practically feasible with
 \textbf{Cross-Model Portability}: \todoinline{Complete experimental validation pending: demonstrate that the training recipe and harness work across different base models, supporting the generality of the approach.}
 
 \subsection{Technical Infrastructure}
+\label{subsec:technical-infrastructure}
 
 \textbf{\ac{NCCL}-Based Weight Synchronization}: We develop infrastructure for real-time weight synchronization between training and inference processes using NVIDIA Collective Communications Library, enabling practical online \ac{RL} training with \ac{LoRA} adapters.
 
@@ -38,6 +41,7 @@ This unified approach makes large-scale agent training practically feasible with
 Our methodology development and preliminary investigations provide insights into the research questions, with comprehensive experimental validation ongoing:
 
 \subsection{RQ1: Adaptation to the Harness}
+\label{subsec:rq1-answer}
 
 \textbf{Theoretical Foundation}: Interactive \ac{RL} should improve adaptation to the Nano harness through reinforcement of effective tool-usage patterns and reduction of invalid actions.
 
@@ -46,6 +50,7 @@ Our methodology development and preliminary investigations provide insights into
 \textbf{Mechanism}: Policy updates should reinforce effective tool-usage sequences and prompt adherence, yielding co-adaptation between model and harness.
 
 \subsection{RQ2: Multiple Base Models}
+\label{subsec:rq2-answer}
 
 \textbf{Theoretical Foundation}: The training recipe and harness design should be portable across different base models, targeting general agentic capabilities rather than model-specific behaviors.
 
@@ -54,6 +59,7 @@ Our methodology development and preliminary investigations provide insights into
 \textbf{Significance}: Cross-model portability would demonstrate that the approach develops fundamental debugging capabilities rather than exploiting model-specific quirks.
 
 \subsection{RQ3: Cross-Dataset Generalization}
+\label{subsec:rq3-answer}
 
 \textbf{Theoretical Foundation}: Models trained through experiential learning on \ac{SWE-Gym} should demonstrate generalization to related debugging tasks without severe overfitting.
 
@@ -62,6 +68,7 @@ Our methodology development and preliminary investigations provide insights into
 \textbf{Significance}: Cross-dataset generalization would support the thesis that experiential training yields broadly applicable debugging skills rather than narrow task-specific behaviors.
 
 \subsection{RQ4: Cross-Harness/Task Generalization}
+\label{subsec:rq4-answer}
 
 \textbf{Theoretical Foundation}: Models trained through experiential learning should exhibit transfer to alternative interfaces and task contexts, demonstrating that learned skills generalize beyond specific harness implementations.
 
@@ -72,19 +79,21 @@ Our methodology development and preliminary investigations provide insights into
 \section{Broader Implications}
 \label{sec:broader-implications}
 
-\subsection{Paradigm Shift in \ac{AI}
-	Training}
+\subsection{Paradigm Shift in \ac{AI} Training}
+\label{subsec:paradigm-shift}
 
 Our methodological framework suggests potential for a fundamental shift from static dataset-based training to experiential environment-based learning for complex reasoning tasks.
 The viability of online \ac{RL} infrastructure indicates that many \ac{AI} capabilities may be better acquired through direct interaction rather than passive observation, particularly for domains requiring multi-step reasoning and strategic planning.
 
 \subsection{Software Engineering Automation}
+\label{subsec:sw-engineering-auto}
 
 The potential for monotonic improvement through \ac{RL} training indicates substantial room for advancement in automated debugging capabilities.
 \todoinline{Pending experimental validation: quantify actual performance improvements and trajectory analysis.}
 The methodological foundation supports future development toward practical deployment of autonomous debugging systems.
 
 \subsection{Open Science and Democratization}
+\label{subsec:open-science}
 
 By providing complete open-source implementations, we enable broader academic investigation of online RL techniques for coding agents.
 This open approach facilitates reproducible research and community-driven development of advanced agent training methods, reducing barriers to entry in this emerging field.
@@ -93,34 +102,40 @@ This open approach facilitates reproducible research and community-driven develo
 \section{Limitations and Constraints} \label{sec:limitations}
 
 \subsection{Experimental Validation Status}
+\label{subsec:experimental-validation}
 
 The primary limitation of this work is that comprehensive experimental validation remains ongoing.
 While we have developed robust theoretical foundations and implementation infrastructure, the quantitative claims about performance improvements, statistical significance, and cross-domain generalization require completion of systematic experimental evaluation.
 
 \subsection{Evaluation Scope Constraints}
+\label{subsec:eval-scope}
 
 The planned evaluation focuses on Python debugging tasks within containerized environments.
 Comprehensive evaluation across diverse programming paradigms (functional, systems programming, web development) and languages remains for future work.
 Additionally, the current scope emphasizes single-commit bug fixes rather than complex architectural changes or multi-file refactoring tasks.
 
 \subsection{Computational Resource Requirements}
+\label{subsec:compute-requirements}
 
 Despite optimizations, online training remains computationally intensive compared to traditional supervised learning.
 The distributed training infrastructure presents implementation complexity that may challenge smaller research groups, though our open-source release aims to mitigate these barriers through comprehensive documentation and modular design.
 
 \subsection{Reward Function Simplifications}
+\label{subsec:reward-simplifications}
 
 Our reward formulation relies on patch similarity rather than functional correctness verification through test execution.
 While computationally tractable, this approach may occasionally reward syntactically correct but functionally incorrect patches, or penalize alternative valid solutions.
 The limitation reflects practical constraints rather than fundamental methodological issues.
 
 \subsection{Model Architecture Dependencies}
+\label{subsec:model-dependencies}
 
 Initial development focuses on the Qwen model family due to its strong tool-calling capabilities and computational accessibility.
 Validation across models with different architectural characteristics, training objectives, or tool-calling paradigms remains an important area for future investigation.
 The approach's potential model-agnostic benefits require systematic validation across broader architectural diversity.
 
 \subsection{Environment Complexity Boundaries}
+\label{subsec:env-complexity}
 
 Our containerized environments simulate realistic development scenarios but exclude certain complexities of production systems: external dependencies, network interactions, hardware-specific behaviors, and real-time performance constraints.
 The gap between training environments and production deployment contexts may limit practical applicability.
@@ -129,6 +144,7 @@ The gap between training environments and production deployment contexts may lim
 \label{sec:future-work}
 
 \subsection{Completing Experimental Validation}
+\label{subsec:completing-validation}
 
 The immediate priority involves completing the comprehensive experimental evaluation outlined in our research questions:
 
@@ -143,6 +159,7 @@ Rigorous statistical analysis of results with appropriate confidence intervals a
 Comparison against supervised fine-tuning baselines to establish the relative merits of experiential learning approaches.
 
 \subsection{Enhanced Reward Engineering}
+\label{subsec:enhanced-reward}
 
 \subsubsection{Test-Based Validation}
 
@@ -155,6 +172,7 @@ This approach would provide more accurate correctness signals, enable discovery 
 Future reward functions could incorporate multiple objectives beyond correctness: code quality metrics for readability and maintainability, efficiency considerations for patch minimality and performance impact, robustness measures for edge case handling, and documentation quality for explanations and comments.
 
 \subsection{Scaling and Generalization}
+\label{subsec:scaling-generalization}
 
 \subsubsection{Broader Domain Expansion}
 
@@ -166,6 +184,7 @@ This includes specialized training for security vulnerability fixing and perform
 Investigation of experiential training across different model architectures could reveal optimal designs for agentic programming tasks, including architecture variants like mixture-of-experts models, systematic study of performance scaling effects, multimodal integration with visual debugging information, and external memory systems for long-term context.
 
 \subsection{Advanced Agent Architectures}
+\label{subsec:advanced-agents}
 
 \subsubsection{Hierarchical and Modular Agents}
 
@@ -175,14 +194,15 @@ Future agent designs could incorporate hierarchical planning with high-level str
 
 Agents that rapidly adapt to new environments represent an important frontier, including few-shot adaptation to new programming environments, continual learning without catastrophic forgetting, systematic transfer learning approaches, and self-improvement through reflection on debugging experiences.
 
-\subsection{Human-\ac{AI}
-	Collaboration}
+\subsection{Human-\ac{AI} Collaboration}
+\label{subsec:human-ai-collab}
 
 Rather than fully autonomous agents, future systems could focus on human-\ac{AI} partnerships through explanatory debugging that shares reasoning, incremental assistance adapting to developer preferences, learning from natural human feedback, and preference learning for individual coding styles.
 
 Educational applications could revolutionize programming instruction through tutoring systems that teach debugging skills, adaptive curricula based on individual weaknesses, automated skill assessment and improvement, and code review training through interactive analysis.
 
 \subsection{Infrastructure and Tooling Advances}
+\label{subsec:infra-tooling}
 
 Continued optimization could enable broader access through federated learning across institutions, efficient communication protocols for model updates, robust fault tolerance for distributed systems, and dynamic resource optimization for mixed workloads.
 
