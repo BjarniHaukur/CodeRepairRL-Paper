@@ -26,7 +26,7 @@
     "editor.defaultFormatter": "James-Yu.latex-workshop",
     "editor.formatOnSave": true,
     "editor.wordWrap": "bounded",
-    "editor.wordWrapColumn": 180,
+    "editor.wordWrapColumn": 120,
     "editor.rulers": [180]
   },
   "latex-workshop.formatting.latex": "latexindent",

@@ -31,7 +31,7 @@ This capability foundation transforms previously intractable problems into domai
 In effect, \acp{LLM} provide the first rung on the ladder that makes applying \ac{RL} to software engineering feasible.
 
 However, unlike traditional game playing \ac{RL} agents, which directly produce actions from observations (e.g., selecting chess moves or joystick inputs), \acp{LLM} fundamentally operate as token generators.
-They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental< responses back into text.
+They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental responses back into text.
 
 This critical distinction necessitates a fundamentally different approach to \ac{RL}.
 In this paradigm, a scaffold or harness interprets tool calls from the \ac{LLM}, executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
@@ -105,7 +105,7 @@ Through rigorous empirical evaluation, this research aims to establish this onli
 % This clean-slate approach validates that effective code repair capabilities arise from learning rather than engineered complexity.
 
 % \textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient \ac{RL} with coding agents.
-% This includes a custom integration layer between vLLM inference servers and \ac{RL} trainers, real-time weight synchronization via \ac{NCCL} for live policy updates, and optimizations enabling trainiÂng of models up to 32B parameters with limited computational resources.
+% This includes a custom integration layer between vLLM inference servers and \ac{RL} trainers, real-time weight synchronization via \ac{NCCL} for live policy updates, and optimizations enabling training of models up to 32B parameters with limited computational resources.
 % The infrastructure supports both Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical} and can be extended to other policy gradient methods.
 
 % \textbf{Empirical Validation}: Through extensive experiments on the \ac{SWE-Gym} training environment and \ac{SWE-Bench-Verified} evaluation benchmark, we demonstrate that this \ac{RL} approach produces monotonic improvements in bug-fixing performance.

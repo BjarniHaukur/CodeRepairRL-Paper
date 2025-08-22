@@ -4,7 +4,7 @@
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1.0\textwidth]{plotting/figures/diagram.png}
-	\caption{Simulatenously too busy and too simplified, I'll make another version}
+	\caption{Simultaneously too busy and too simplified, I'll make another version}
 	\label{fig:method-diagram}
 \end{figure}
 
@@ -337,8 +337,10 @@ We employ Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekm
 \ac{GRPO} offers several advantages:
 
 \begin{itemize}
-	\item \textbf{No value model required:}
-	      Unlike traditional actor-critic methods, \ac{GRPO} estimates advantages using relative performance within a batch, eliminating the need for a separate value network \item \textbf{Reduced variance:} By normalizing rewards across groups of trajectories, \ac{GRPO} provides more stable training signals \item \textbf{Simplified pipeline:} The absence of value estimation reduces computational overhead and implementation complexity \end{itemize}
+	\item \textbf{No value model required:} Unlike traditional actor-critic methods, \ac{GRPO} estimates advantages using relative performance within a batch, eliminating the need for a separate value network
+	\item \textbf{Reduced variance:} By normalizing rewards across groups of trajectories, \ac{GRPO} provides more stable training signals
+	\item \textbf{Simplified pipeline:} The absence of value estimation reduces computational overhead and implementation complexity
+\end{itemize}
 
 \subsection{Masked Loss Computation for Tool-Augmented RL} \label{sec:masked-loss-computation}
 
@@ -448,7 +450,7 @@ Training and serving 8B to 32B parameter models for online \ac{RL} requires soph
 \subsubsection{Training Optimizations}
 
 \textbf{LoRA:}
-\todoinline{Move discussions on what LoRA buys us efficienct wise here, discuss them tersely}
+\todoinline{Move discussions on what LoRA buys us efficiency-wise here, discuss them tersely}
 
 \textbf{FlashAttention 2:} \cite{dao2023flashattention2fasterattentionbetter}
 3 only available on >H100
@@ -647,7 +649,7 @@ To contextualize our results, we compare:
 
 \textbf{Base Model:} The same models before and after training
 
-\textbf{State-of-the-art Models:} See how frontier models in stead
+\textbf{State-of-the-art Models:} See how frontier models instead
 
 \subsection{Generalization Testing} Beyond in-domain performance, we evaluate generalization through: \todoinline{to MultiSwe?
 	to Tau?}

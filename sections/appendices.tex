@@ -16,9 +16,78 @@ This appendix contains interactive Sankey diagrams that visualize command flow p
 \chapter{Additional Experimental Data}
 \label{app:data}
 
+\section{Nano Agent Benchmark Results}
+\label{app:nano-benchmark}
+
+This section presents baseline performance results for the Nano agent across various language models on a subset of SWE-bench Lite.
+The benchmark evaluates models' ability to explore codebases and generate fixes using the Nano agent's minimal terminal-based interface.
+
+\subsection{Methodology}
+
+The benchmark follows this protocol:
+\begin{itemize}
+	\item \textbf{Input}: GitHub repositories containing bugs with known ground truth solutions
+	\item \textbf{Task}: Models use Nano's tools to explore codebases and generate fixes
+	\item \textbf{Output}: Unified git diffs containing all proposed code changes
+	\item \textbf{Evaluation}: Solutions are measured against ground truth using:
+	      \begin{itemize}
+		      \item Code Similarity: Patch matching with actual bug fix (primary ranking metric)
+		      \item Test Similarity: Test change alignment with ground truth test updates
+	      \end{itemize}
+\end{itemize}
+
+\subsection{Results}
+
+\ref{tab:nano-benchmark} presents performance results ranked by code similarity.
+Note that these results are subject to noise due to the small test set with limited repetitions.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Nano Agent Benchmark Performance on subset of SWE-bench Lite}
+	\label{tab:nano-benchmark}
+	\footnotesize
+	\begin{tabular}{@{}cllcccc@{}}
+\toprule
+\textbf{Rank} & \textbf{Version} & \textbf{Model} & \textbf{Code Sim} & \textbf{Test Sim} & \textbf{Tokens} & \textbf{Tools} \\
+\midrule
+1 & v3.2.0 & claude-sonnet-4-20250514 & \texttt{0.394} & \texttt{0.188} & \texttt{14,746 / 16,384} & \texttt{41.5 / 100} \\
+2 & v3.2.0 & gpt-4.1 & \texttt{0.387} & \texttt{0.092} & \texttt{9,777 / 16,384} & \texttt{35.7 / 100} \\
+3 & v4.0.2 & deepseek-chat-v3.1 & \texttt{0.383} & \texttt{0.078} & \texttt{11,762 / 16,384} & \texttt{41.9 / 100} \\
+4 & v4.0.1 & kimi-k2 & \texttt{0.382} & \texttt{0.009} & \texttt{5,508 / 16,384} & \texttt{19.7 / 100} \\
+5 & v4.0.1 & qwen3-coder & \texttt{0.374} & \texttt{0.042} & \texttt{6,979 / 16,384} & \texttt{26.5 / 100} \\
+6 & v3.2.0 & gemini-2.5-pro-preview & \texttt{0.370} & \texttt{0.034} & \texttt{6,008 / 16,384} & \texttt{13.6 / 100} \\
+7 & v3.3.0 & gemini-2.5-flash & \texttt{0.363} & \texttt{0.022} & \texttt{4,337 / 16,384} & \texttt{13.2 / 100} \\
+8 & v3.2.0 & gemini-2.5-flash-preview-05-20 & \texttt{0.362} & \texttt{0.000} & \texttt{4,547 / 16,384} & \texttt{10.1 / 100} \\
+9 & v3.2.0 & gpt-4.1-mini & \texttt{0.350} & \texttt{0.017} & \texttt{7,403 / 16,384} & \texttt{29.7 / 100} \\
+10 & v3.2.0 & deepseek-chat & \texttt{0.336} & \texttt{0.011} & \texttt{3,297 / 16,384} & \texttt{7.5 / 100} \\
+11 & v4.0.1 & glm-4.5 & \texttt{0.323} & \texttt{0.107} & \texttt{12,477 / 16,384} & \texttt{28.7 / 100} \\
+12 & v3.2.0 & qwen-2.5-72b-instruct & \texttt{0.272} & \texttt{0.000} & \texttt{5,873 / 16,384} & \texttt{35.1 / 100} \\
+13 & v3.2.0 & qwen3-32b & \texttt{0.255} & \texttt{0.000} & \texttt{5,281 / 16,384} & \texttt{28.3 / 100} \\
+14 & v3.2.0 & llama-4-maverick & \texttt{0.255} & \texttt{0.000} & \texttt{4,647 / 16,384} & \texttt{10.4 / 100} \\
+15 & v3.2.0 & qwen3-8b & \texttt{0.190} & \texttt{0.000} & \texttt{8,704 / 16,384} & \texttt{56.5 / 100} \\
+16 & v3.2.0 & gpt-4.1-nano & \texttt{0.188} & \texttt{0.000} & \texttt{8,536 / 16,384} & \texttt{33.1 / 100} \\
+17 & v3.2.0 & qwen3-14b & \texttt{0.176} & \texttt{0.000} & \texttt{10,800 / 16,384} & \texttt{82.6 / 100} \\
+18 & v3.2.0 & devstral-small & \texttt{0.092} & \texttt{0.000} & \texttt{14,603 / 16,384} & \texttt{13.0 / 100} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Key Observations}
+
+Several patterns emerge from these baseline results:
+
+\textbf{Frontier Model Performance}: Claude Sonnet 4 and GPT-4.1 achieve the highest code similarity scores of tested models (0.394 and 0.387 respectively), demonstrating superior ability to understand repository structure and generate appropriate fixes through the Nano interface.
+
+\textbf{Token Efficiency}: Models vary significantly in token usage, with some (like DeepSeek Chat) using only 3,297 tokens while others (like Claude Sonnet 4) approach the 16,384 token limit.
+This suggests different exploration strategies and verbosity levels.
+
+\textbf{Tool Usage Patterns}: Tool usage rates range from 7.5\% (DeepSeek Chat) to 82.6\% (Qwen3-14B), indicating substantial variation in how models leverage the available terminal commands and file operations.
+
+\textbf{Test Similarity Gap}: Most models achieve low test similarity scores, suggesting that generating appropriate test changes alongside code fixes remains challenging even for frontier models.
+
 \section{Complete Training Metrics}
 
-This appendix would contain complete training logs and additional metrics that supplement the main results in Chapter~\ref{ch:results}.
+This section would contain complete training logs and additional metrics that supplement the main results in Chapter~\ref{ch:results}.
 
 \todoinline{Include additional data tables, extended statistical analyses, and supplementary experimental results once available.}
 

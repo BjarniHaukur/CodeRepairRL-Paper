@@ -4,7 +4,14 @@ modifyLineBreaks:
     textWrapSentences: 1
   textWrapOptions:
     columns: -1
-# Make math and tables untouchable
+
+# Do not indent globally; keep existing left margin
+defaultIndent: ''
+
+# Do not indent the preamble or after headings
+indentPreamble: 0
+indentAfterHeadings: 0
+# Make math, lists, floats, and tables untouchable
 verbatimEnvironments:
   # AMS math
   equation: 1
@@ -42,6 +49,26 @@ verbatimEnvironments:
   lstlisting: 1
   minted: 1
   verbatim: 1
+  # lists
+  itemize: 1
+  enumerate: 1
+  description: 1
+  # floats
+  figure: 1
+  figure*: 1
+  table: 1
+  table*: 1
+  # algorithms (various packages)
+  algorithm: 1
+  algorithm*: 1
+  algorithm2e: 1
+  algorithmic: 1
+  algorithmic*: 1
+  # sub-floats
+  subfigure: 1
+  subtable: 1
+  # bibliography
+  thebibliography: 1
 
 # Make sure no column alignment logic ever fires
 lookForAlignDelims:
@@ -50,3 +77,32 @@ lookForAlignDelims:
   longtable: 0
   array: 0
   matrix: 0
+
+ 
+
+# Do not add extra indentation levels inside these environments
+noAdditionalIndent:
+  document: 1
+  itemize: 1
+  enumerate: 1
+  description: 1
+  figure: 1
+  figure*: 1
+  table: 1
+  table*: 1
+  thebibliography: 1
+
+# Protect common commands from being reflowed/wrapped
+verbatimCommands:
+  caption: 1
+  includegraphics: 1
+  url: 1
+  path: 1
+  href: 1
+  footnote: 1
+  texttt: 1
+
+# Commands that take delimited arguments and should be left untouched
+verbatimCommandsWithDelims:
+  verb: 1
+  lstinline: 1
