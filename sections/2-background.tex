@@ -3,7 +3,7 @@
 This chapter provides the theoretical foundation for online reinforcement learning applied to automated code repair.
 We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
 
-\section{Automated Code Repair before LLMs}
+\section{Automated Program Repair before LLMs}
 \label{sec:apr-pre-llm}
 \todoinline{GENProg, Defect4j, etc.}
 The evolution of \ac{APR} can be traced through three distinct paradigms.
@@ -13,7 +13,7 @@ These systems demonstrated the feasibility of automated repair but suffered from
 The transition to learning-based approaches began with Prophet~\cite{prophet2016} and DeepFix~\cite{deepfix2017}, which introduced \ac{ML} to rank patch candidates and fix compilation errors respectively.
 The emergence of neural sequence-to-sequence models marked a fundamental shift, with works like SequenceR~\cite{sequencer2019} and CoCoNuT~\cite{coconut2020} treating program repair as a neural machine translation task.
 
-\section{Automated Code Repair with LLMs}
+\section{Automated Program Repair with LLMs}
 
 Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
 
@@ -24,6 +24,14 @@ However, even state-of-the-art models achieve only approximately 20\% success ra
 Key evaluation datasets have evolved alongside these approaches.
 CodeXGLUE~\cite{codexglue2021} provides a comprehensive multi-task benchmark including bug fixing across multiple languages.
 Most recently, \ac{SWE-Bench}~\cite{sweBench2024} introduced repository-level tasks requiring understanding of entire codebases, representing a significant leap in evaluation complexity.
+
+% \textbf{Aider}~\cite{aider2024} represents the heavyweight scaffolding approach, incorporating sophisticated features:
+% \begin{itemize}
+% 	\item \textit{Repository mapping}: Automatic generation of codebase summaries and dependency graphs
+% 	\item \textit{Multi-file coordination}: Tracking and maintaining consistency across file edits
+% 	\item \textit{Conversation memory}: Maintaining context across multiple interaction turns
+% 	\item \textit{Git integration}: Automatic commit generation and version management
+% \end{itemize}
 
 Current \ac{LLM}-based approaches exhibit several fundamental limitations that constrain their effectiveness:
 
@@ -77,26 +85,184 @@ The gap highlights not just a quantitative difference in performance, but a qual
 
 Addressing this mismatch requires moving beyond supervised learning on static datasets toward online learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for online reinforcement learning explored in this thesis.
 
+\section{Automated Program Repair with Agentic LLMs}
+
+The integration of language models with dynamic programming environments has opened new possibilities for automated software engineering, enabling models to perform complex, multi-step reasoning tasks.
+The predominant approach for creating agentic LLMs is through tool calling—enabling models to interact with external systems, execute commands, and observe results.
+
+\subsection{Tool Calling as the Foundation of LLM Agency}
+
+The ability for language models to interact with external tools represents a fundamental shift from purely generative models to agentic systems capable of performing complex, multi-step tasks in real environments.
+Modern \acp{LLM} implement tool calling through structured output generation, where models produce specially formatted function calls that can be parsed and executed by external systems:
+
+\begin{verbatim}
+{
+  "function_name": "apply_patch",
+  "arguments": {
+    "file_path": "src/utils.py",
+    "old_content": "def buggy_function():",
+    "new_content": "def fixed_function():"
+  }
+}
+\end{verbatim}
+
+This structured approach, typically implemented using \acs{JSON}, transforms language models from passive text generators into systems capable of interacting with their environment by invoking tools and observing their results.
+
+Tool calling fundamentally changes the \ac{RL} training dynamics in several ways.
+First, it introduces discrete action spaces where tool invocations have clear semantic meanings, simplifying reward attribution compared to continuous text generation.
+Second, tool execution provides immediate, structured feedback that creates richer training signals than language-based responses alone.
+Third, it requires compositional reasoning where models must learn to combine multiple tool calls into coherent strategies, developing planning capabilities beyond single-step generation.
+
+For code repair specifically, tool calling enables models to perform the exploratory debugging process that characterizes human problem-solving: forming hypotheses, testing them through code execution, observing failures, and iteratively refining solutions.
+The integration of tool calling with \ac{RL} training enables models to learn not just what tools to use, but when and how to use them effectively—a capability that supervised learning on static datasets cannot provide.
+
+\subsection{Coding Agent Frameworks}
+
+% Modern coding agents combine language models with tool access, allowing them to navigate codebases, execute commands, and iteratively refine solutions.
+
+% Several sophisticated coding agent frameworks have emerged, each representing different philosophies in agent design and human-\ac{AI} collaboration:
+
+% \textbf{GitHub Copilot Workspace}~\cite{copilotWorkspace2024} extends the original Copilot paradigm beyond code completion to full task planning and execution.
+% It employs a multi-agent architecture where specialized agents handle different aspects of software development—understanding requirements, generating implementations, and managing version control.
+% On proprietary evaluations, it achieves approximately 30\% task completion rates for well-specified programming tasks.
+
+% \textbf{Cursor}~\cite{cursor2024} pioneered the \ac{IDE}-integrated agent approach, providing context-aware code generation within the development environment.
+% Its key innovation lies in automatic context retrieval, using embedding-based search to identify relevant code sections across large codebases.
+% This approach achieves strong performance on code completion tasks but has not been formally evaluated on repair benchmarks.
+
+% \textbf{SWE-Agent}
+% and mini-swe-agent
+
+% \textbf{OpenHands (formerly OpenDevin)}~\cite{openhands2024} and \textbf{SWE-Agent}~\cite{sweAgent2024} represent the state-of-the-art in autonomous software engineering agents. These systems provide:
+% \begin{itemize}
+% 	\item Full shell access within sandboxed environments
+% 	\item Web browsing capabilities for documentation lookup
+% 	\item Persistent workspace management across sessions
+% 	\item Sophisticated error recovery and retry mechanisms
+% \end{itemize}
+%
+% \textbf{Claude Code}
+
+\todoinline{Make this more about: "Hey these agents exist and are obviously impactful." Then explain that those like Aider are not training compliant (modifies rollout histories)}
+
+\textbf{Fitting model to scaffold vs Fitting scaffold to model}
+\todoinline{sloppy}
+\todoinline{Claude Code should illustrate the power of not only making your models good, but making them excel in the environment in which they are deployed (probably trained internally with something highly similar to the Claude Code we use.)}
+\todoinline{This is a recurring theme in the industry, Claude -> Claude Code, o3 -> codex, Gemini -> Gemini \ac{CLI}, Qwen3 coder -> Qwen Coder, etc.}
+
+Most existing systems operate exclusively at inference time—they provide scaffolding and tools to pre-trained language models but do not integrate these capabilities into the training process.
+This creates a fundamental limitation:
+
+\textbf{Static tool usage patterns}: Models must adapt to tools they were never trained to use, leading to suboptimal usage patterns and frequent errors in tool invocation.
+
+\textbf{Lack of co-adaptation}: The model cannot learn to leverage specific tool capabilities or develop strategies tailored to the available action space.
+
+\textbf{No reinforcement of successful patterns}: When an agent successfully completes a task using a particular tool sequence, this success does not improve future performance—each task starts from scratch.
+
+\textbf{Misaligned representations}: Pre-trained models develop representations optimized for text generation, not for planning tool-based interactions in structured environments.
+
+Integrating agent scaffolding directly into the reinforcement learning training loop.
+This enables:
+
+\begin{itemize}
+	\item \textbf{Learned tool usage}: Models develop strategies for when and how to use available tools through trial and error
+	\item \textbf{Co-evolution}: Model parameters and action policies evolve together, creating tight integration
+	\item \textbf{Experience-based improvement}: Successful debugging patterns are reinforced, building expertise over time
+	\item \textbf{Emergent strategies}: Models can discover novel tool combinations and workflows not anticipated by designers
+\end{itemize}
+
+This training-time integration represents the core innovation of our approach, potentially bridging the gap between current agent capabilities and human-level performance on complex software engineering tasks.
+
+
 \section{Reinforcement Learning for Language Models}
+\label{sec:rl-language-models}
 
 Reinforcement learning has emerged as a powerful technique for improving language model performance beyond what supervised learning alone can achieve, particularly for tasks requiring sequential decision-making and optimization of complex objectives.
 Unlike supervised learning, which relies on fixed input-output pairs, \ac{RL} enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
+
+\subsection{History-Based MDP Formulation}
+\label{sec:mdp-history}
+
+We model interactive code repair as a history-based MDP where time indexes executed tool calls rather than individual tokens.
+The environment state (repository, filesystem) is never exposed directly; it influences the process only through tool outputs that are appended to the conversation transcript.
+
+\paragraph{MDP tuple}
+Let $\mathcal{M} = (\mathcal{H}, \mathcal{Y}, \mathcal{P}, r, \gamma)$ be the MDP.
+Here $\mathcal{H}$ is the set of text histories, and $\mathcal{Y}$ is the set of assistant-authored chunks that contain at least one well-formed tool call.
+The transition kernel $\mathcal{P}$ maps a current history and an assistant chunk to a distribution over next histories after executing the tool call and appending its output.
+We use $\gamma=1$ for finite episodes with terminal returns.
+
+\paragraph{State, action, observation}
+At step $t$ the state is the transcript prefix
+$h_t \in \mathcal{H}$,
+which contains the initial instruction and all prior assistant messages and tool outputs.
+The policy $\pi_\theta(\cdot \mid h_t)$ produces an assistant chunk
+$y_t \in \mathcal{Y}$.
+A deterministic parser $\psi:\mathcal{Y}\to\mathcal{C}$ extracts the first tool call
+$c_t = \psi(y_t)$,
+where $\mathcal{C}$ is the space of executable tool calls.
+The environment executes $c_t$ and returns textual output
+$o_t \in \text{Text}$.
+The next state is the history with both the assistant chunk and the tool output appended:
+$h_{t+1} = \text{append}(h_t, y_t, o_t)$.
+
+\paragraph{Trajectory and termination}
+A trajectory of length $T$ is the finite sequence
+$\tau = \{(h_t, y_t, c_t, o_t)\}_{t=0}^{T-1}$ with terminal transcript $h_T$.
+Episodes terminate on success or when resource budgets are exhausted.
+
+\paragraph{Return}
+Intermediate rewards are zero.
+A scalar terminal return is computed from the terminal transcript,
+$R(\tau) \equiv R(h_T) \in \mathbb{R}$,
+and the objective is to maximize the expected return over trajectories induced by the policy:
+\begin{equation}
+J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[ R(\tau) ]
+\end{equation}
+
+\begin{table}[ht]
+\centering
+\caption{Notation for history-based MDP formulation}
+\label{tab:mdp-notation}
+\begin{tabular}{ll}
+\toprule
+Symbol & Meaning \\
+\midrule
+$\mathcal{H}$ & Space of text histories (conversation transcripts) \\
+$\mathcal{Y}$ & Space of assistant chunks with at least one tool call \\
+$\mathcal{C}$ & Space of executable tool commands \\
+$h_t$ & Transcript prefix before step $t$ \\
+$y_t$ & Assistant chunk produced at step $t$ \\
+$\psi$ & Parser extracting the first tool call from $y_t$ \\
+$c_t$ & The first extracted tool call, $c_t=\psi(y_t)$ \\
+$o_t$ & Textual output returned by executing $c_t$ \\
+$R(\tau)$ & Terminal return computed from final transcript $h_T$ \\
+$\pi_\theta$ & Policy mapping $h_t$ to distribution over $y_t$ \\
+$G$ & Group size for batched advantage estimation in GRPO \\
+$A_t$ & Advantage at time $t$, measuring relative action quality \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The repository and all workspace details remain part of the hidden environment state.
+They appear only through tool outputs $o_t$ that are appended to the history, so no separate symbol for the repository is required in this formulation.
+This abstraction elegantly captures the partial observability inherent in tool-augmented language models while maintaining mathematical rigor.
 
 \todoinline{Clarify what online learning is, in particular for LLMs}
 
 \subsection{Policy Gradient Foundations}
 
-\todoinline{Would it be nice to fully model this process as an MDP?}
+Building on the history-based MDP formulation, the policy gradient theorem provides the foundation for optimization:
 
-The foundation of \ac{RL} for language models lies in treating text generation as a Markov Decision Process (\ac{MDP}).
-In this formulation, the language model serves as a policy $\pi_\theta(a_t|s_t)$ that selects actions (tokens) $a_t$ given states (context sequences) $s_t$, parameterized by model weights $\theta$.
-
-The objective is to maximize the expected cumulative reward: \begin{equation}
+\begin{equation}
 J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]
-\end{equation} where $\tau = (s_0, a_0, s_1, a_1, \ldots, s_T, a_T)$ represents a trajectory (complete sequence generation) and $R(\tau)$ is the total reward for that trajectory.
+\end{equation}
 
-The policy gradient theorem provides the foundation for optimization: \begin{equation}
-\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t|s_t) R(\tau)]
+where the expectation is over trajectories $\tau = \{(h_t, y_t, c_t, o_t)\}_{t=0}^{T-1}$ sampled from the policy $\pi_\theta$.
+Since rewards are terminal, the objective simplifies to maximizing the expected return $R(h_T)$ of the final transcript.
+
+The policy gradient theorem gives: \begin{equation}
+\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(y_t|h_t) R(\tau)]
 \end{equation}
 
 However, this basic REINFORCE estimator suffers from high variance, making training unstable and sample-inefficient.
@@ -142,33 +308,34 @@ L(\theta, \phi) = L^{CLIP}(\theta) - c_1 L^{VF}(\phi) + c_2 S[\pi_\theta](s_t)
 However, \ac{PPO} also introduces significant computational overhead through the separate value network training and the need for multiple gradient updates per batch of experience.
 
 \subsection{Group Relative Policy Optimization (GRPO)}
+\label{sec:grpo}
 
 \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} is fundamentally \ac{PPO} with a crucial simplification: instead of training a separate value network to estimate advantages, \ac{GRPO} computes advantages directly from relative performance within sampled action groups.
 This elegant modification preserves \ac{PPO}'s theoretical guarantees while dramatically reducing computational overhead.
 
 \subsubsection{The Core Simplification}
 
-The key insight behind \ac{GRPO} is that for each state $s$, rather than estimating $V(s)$ with a separate network, we can sample multiple actions $a_1, \ldots, a_G$ from the current policy $\pi_{\theta_t}$ and use their reward distribution to compute relative advantages.
+The key insight behind \ac{GRPO} is that for each history $h$, rather than estimating $V(h)$ with a separate network, we can sample multiple assistant responses $y_1, \ldots, y_G$ from the current policy $\pi_{\theta_{\text{old}}}$ and use their reward distribution to compute relative advantages.
 
-For a given state $s$, \ac{GRPO} samples $G$ actions from the policy and computes the group-relative advantage as: \begin{equation}
-A^{\pi_{\theta_t}}(s, a_j) = \frac{r(s, a_j) - \mu}{\sigma}
-\end{equation} where $\mu$ and $\sigma$ are the mean and standard deviation of the rewards $r(s, a_1), \ldots, r(s, a_G)$.
+For a given history $h$, \ac{GRPO} samples $G$ responses from the policy and computes the group-relative advantage as: \begin{equation}
+A_j = \frac{r_j - \mu}{\sigma}
+\end{equation} where $\mu$ and $\sigma$ are the mean and standard deviation of the rewards $r_1, \ldots, r_G$ obtained by executing each response.
 This is simply the standard score (z-score) of the rewards, providing a normalized measure of relative performance.
 
 Mathematically, this can be expressed as: \begin{align}
-\mu &= \frac{1}{G}\sum_{i=1}^G r(s, a_i) \\
-\sigma &= \sqrt{\frac{1}{G}\sum_{i=1}^G (r(s, a_i) - \mu)^2} \\
-A^{\pi_{\theta_t}}(s, a_j) &= \frac{r(s, a_j) - \mu}{\sigma}
+\mu &= \frac{1}{G}\sum_{i=1}^G r_i \\
+\sigma &= \sqrt{\frac{1}{G}\sum_{i=1}^G (r_i - \mu)^2} \\
+A_j &= \frac{r_j - \mu}{\sigma}
 \end{align}
 
 \subsubsection{PPO Objective with Group-Relative Advantages}
 
 \ac{GRPO} then maximizes the standard \ac{PPO} objective, but using these group-relative advantages instead of value-network-based estimates.
 The objective becomes: \begin{equation}
-\max_\theta \frac{1}{G}\sum_{i=1}^G \mathbb{E}_{(s,a_1,\ldots,a_G) \sim \pi_{\theta_t}}\left[
+\max_\theta \frac{1}{G}\sum_{i=1}^G \mathbb{E}_{h \sim \mathcal{H}, \{y_1,\ldots,y_G\} \sim \pi_{\theta_{\text{old}}}(\cdot|h)}\left[
 \begin{cases}
-\min\left(\frac{\pi_\theta(a_i|s)}{\pi_{\theta_t}(a_i|s)}, 1+\epsilon\right) A^{\pi_{\theta_t}}(s, a_i) & \text{if } A^{\pi_{\theta_t}}(s, a_i) > 0 \\
-\max\left(\frac{\pi_\theta(a_i|s)}{\pi_{\theta_t}(a_i|s)}, 1-\epsilon\right) A^{\pi_{\theta_t}}(s, a_i) & \text{if } A^{\pi_{\theta_t}}(s, a_i) < 0
+\min\left(\frac{\pi_\theta(y_i|h)}{\pi_{\theta_{\text{old}}}(y_i|h)}, 1+\epsilon\right) A_i & \text{if } A_i > 0 \\
+\max\left(\frac{\pi_\theta(y_i|h)}{\pi_{\theta_{\text{old}}}(y_i|h)}, 1-\epsilon\right) A_i & \text{if } A_i < 0
 \end{cases}
 \right]
 \end{equation}
@@ -271,17 +438,16 @@ Premature convergence prevents the model from discovering these diverse strategi
 
 Several mitigation strategies have been proposed in the literature:
 
-\textbf{\ac{KL} Divergence Constraints}: A standard stabilization augments the clipped objective with a penalty that constrains divergence from a \emph{frozen} reference policy $\pi_{\mathrm{ref}}$.
+\textbf{\ac{KL} Divergence Constraints}: A standard stabilization augments the clipped objective with a penalty that constrains divergence from a \emph{frozen} reference policy $\pi_{\text{ref}}$.
 In the \ac{GRPO} setting, the optimization can be written as \begin{equation}
-    J_{\mathrm{GRPO}}(\theta) = \mathbb{E}_{q \sim P(Q),\; \{o_i\}_{i=1}^{G} \sim \pi_{\theta_{\mathrm{old}}}(\cdot|q)}\left[ \frac{1}{G} \sum_{i=1}^{G} \min\!\left( \frac{\pi_{\theta}(o_i|q)}{\pi_{\theta_{\mathrm{old}}}(o_i|q)} A_i,\; \text{clip}\!\left(\frac{\pi_{\theta}(o_i|q)}{\pi_{\theta_{\mathrm{old}}}(o_i|q)}, 1-\epsilon, 1+\epsilon\right) A_i \right) \right]
-    - \beta\, \mathrm{KL}(\pi_{\theta}\,\|\,\pi_{\mathrm{ref}}),
+    J_{\text{GRPO}}(\theta) = \mathbb{E}_{h \sim \mathcal{H},\; \{y_i\}_{i=1}^{G} \sim \pi_{\theta_{\text{old}}}(\cdot|h)}\left[ \frac{1}{G} \sum_{i=1}^{G} \min\!\left( \frac{\pi_{\theta}(y_i|h)}{\pi_{\theta_{\text{old}}}(y_i|h)} A_i,\; \text{clip}\!\left(\frac{\pi_{\theta}(y_i|h)}{\pi_{\theta_{\text{old}}}(y_i|h)}, 1-\epsilon, 1+\epsilon\right) A_i \right) \right]
+    - \beta\, \text{KL}(\pi_{\theta}\,\|\,\pi_{\text{ref}}),
 \end{equation} where $\epsilon$ and $\beta$ are hyperparameters and $A_i$ is the group-relative advantage computed from group rewards.
 A practical surrogate for the KL term at the sampled output is \begin{equation}
-    \mathrm{KL}(\pi_{\theta}\,\|\,\pi_{\mathrm{ref}}) \approx \frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)} - \log\!\left( \frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)} \right) - 1,
-\end{equation} and, for token-level implementation from logits, with pre-softmax logits $z_{\theta}(s_t)$ and $z_{\mathrm{ref}}(s_t)$, \begin{equation}
-    \mathrm{KL}(\pi_{\theta}\,\|\,\pi_{\mathrm{ref}}) = \mathbb{E}_t\left[\mathrm{KL}\left(\sigma(z_{\theta}(s_t))\,\|\,\sigma(z_{\mathrm{ref}}(s_t))\right)\right].
-\end{equation} \todoinline{Standardize notation with the \ac{GRPO} section (e.g., $q$, $\{o_i\}_{i=1}^{G}$, $\pi_{\theta_{\mathrm{old}}}$, $\epsilon$, $\beta$, $\pi_{\mathrm{ref}}$) across the document.
-}
+    \text{KL}(\pi_{\theta}\,\|\,\pi_{\text{ref}}) \approx \frac{\pi_{\text{ref}}(y_i|h)}{\pi_{\theta}(y_i|h)} - \log\!\left( \frac{\pi_{\text{ref}}(y_i|h)}{\pi_{\theta}(y_i|h)} \right) - 1,
+\end{equation} and, for token-level implementation from logits, with pre-softmax logits $z_{\theta}(h_t)$ and $z_{\text{ref}}(h_t)$, \begin{equation}
+    \text{KL}(\pi_{\theta}\,\|\,\pi_{\text{ref}}) = \mathbb{E}_t\left[\text{KL}\left(\sigma(z_{\theta}(h_t))\,\|\,\sigma(z_{\text{ref}}(h_t))\right)\right].
+\end{equation}
 
 \subsection{Group Sequence Policy Optimization (GSPO)}
 
@@ -305,7 +471,7 @@ For our specific use case—training models to use tools iteratively across mult
 
 \ac{GSPO}'s key innovation lies in defining importance ratios at the sequence level rather than token level.
 For a response $y$ to query $x$, the sequence-level importance ratio is: \begin{equation}
-w(y|x; \theta) = \frac{\pi_\theta(y|x)}{\pi_{\theta_{old}}(y|x)} = \prod_{t=1}^{|y|} \frac{\pi_\theta(y_t|x, y_{<t})}{\pi_{\theta_{old}}(y_t|x, y_{<t})}
+w(y|x; \theta) = \frac{\pi_\theta(y|x)}{\pi_{\theta_{\text{old}}}(y|x)} = \prod_{t=1}^{|y|} \frac{\pi_\theta(y_t|x, y_{<t})}{\pi_{\theta_{\text{old}}}(y_t|x, y_{<t})}
 \end{equation}
 
 This aligns with the fundamental principle of importance sampling and provides more stable gradient estimates, particularly crucial when responses involve multiple tool invocations with complex dependencies.
@@ -313,7 +479,7 @@ This aligns with the fundamental principle of importance sampling and provides m
 \subsubsection{The GSPO Objective}
 
 \ac{GSPO} optimizes the following objective: \begin{equation}
-J_{GSPO}(\theta) = \mathbb{E}_{x \sim D, \{y_i\}_{i=1}^G \sim \pi_{\theta_{old}}(\cdot|x)} \left[ \frac{1}{G} \sum_{i=1}^G \min\left( w(y_i|x; \theta) A_i, \text{clip}(w(y_i|x; \theta), 1-\epsilon, 1+\epsilon) A_i \right) \right]
+J_{\text{GSPO}}(\theta) = \mathbb{E}_{x \sim D, \{y_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(\cdot|x)} \left[ \frac{1}{G} \sum_{i=1}^G \min\left( w(y_i|x; \theta) A_i, \text{clip}(w(y_i|x; \theta), 1-\epsilon, 1+\epsilon) A_i \right) \right]
 \end{equation}
 
 where advantages $A_i$ are computed as normalized rewards across the group: \begin{equation}
@@ -414,118 +580,9 @@ Higher ranks provide more flexibility but reduce computational savings.
 
 The combination of \ac{LoRA}'s efficiency with online \ac{RL} creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
 
-\section{Tool-Calling in Large Language Models}
-
-The ability for language models to interact with external tools and \acp{API} represents a fundamental shift from purely generative models to agentic systems capable of performing complex, multi-step tasks in real environments.
-
-\subsection{Structured Output Calling}
-
-Modern \acp{LLM} implement tool calling through structured output generation, where models learn to produce specially formatted function calls that can be parsed and executed by external systems.
-This capability emerged from training models on datasets containing examples of tool usage patterns, enabling them to understand when and how to invoke external functions.
-
-The dominant paradigm uses \acs{JSON}-formatted function calls embedded within model outputs:
-
-\begin{verbatim}
-{
-  "function_name": "apply_patch",
-  "arguments": {
-    "file_path": "src/utils.py",
-    "old_content": "def buggy_function():",
-    "new_content": "def fixed_function():"
-  }
-}
-\end{verbatim}
-
-This approach offers several advantages: (1) structured parsing that reduces ambiguity, (2) type safety through schema validation, and (3) compatibility with existing \ac{API} frameworks.
-
-\subsubsection{Training for Tool Use}
-
-Tool-calling capabilities are typically acquired through multi-stage training:
-
-\textbf{Function Schema Learning}: Models learn to understand function signatures, parameter types, and expected behaviors through exposure to \ac{API} documentation and usage examples.
-
-\textbf{Execution Context Modeling}: Training includes examples of function calls with their subsequent outputs, enabling models to predict the effects of tool usage and plan multi-step interactions.
-
-\textbf{Error Handling}: Models learn to interpret tool execution results, handle failures gracefully, and adapt their strategies based on feedback.
-
-\subsection{Implications for Agent Training}
-
-Tool calling fundamentally changes the \ac{RL} training dynamics by introducing:
-
-\textbf{Discrete Action Spaces}: Unlike continuous text generation, tool calls represent discrete actions with clear semantic meanings, simplifying reward attribution and policy learning.
-
-\textbf{Environmental Feedback}: Tool execution provides immediate, structured feedback that complements language-based responses, enabling richer training signals.
-
-\textbf{Compositional Reasoning}: Models must learn to combine multiple tool calls into coherent strategies, developing higher-level planning capabilities beyond single-step generation.
-
-The integration of tool calling with \ac{RL} training enables models to learn not just what tools to use, but when and how to use them effectively within complex problem-solving workflows.
 
 \section{Sampling Strategies}:
 \todoinline{Is it worthwhile to drag LLM sampling parameters into the mix and tie them to "exploration vs exploitation"?}
-
-\section{Agent-Based Programming Environments}
-
-The integration of language models with dynamic programming environments has opened new possibilities for automated software engineering, enabling models to perform complex, multi-step reasoning tasks.
-
-\subsection{Coding Agent Frameworks}
-
-\todoinline{Make this more about: "Hey these agents exist and are obviously impactful." Then explain that those like Aider are not training compliant (modifies rollout histories)}
-
-% Modern coding agents combine language models with tool access, allowing them to navigate codebases, execute commands, and iteratively refine solutions.
-
-% Several sophisticated coding agent frameworks have emerged, each representing different philosophies in agent design and human-\ac{AI} collaboration:
-
-% \textbf{GitHub Copilot Workspace}~\cite{copilotWorkspace2024} extends the original Copilot paradigm beyond code completion to full task planning and execution.
-% It employs a multi-agent architecture where specialized agents handle different aspects of software development—understanding requirements, generating implementations, and managing version control.
-% On proprietary evaluations, it achieves approximately 30\% task completion rates for well-specified programming tasks.
-
-% \textbf{Cursor}~\cite{cursor2024} pioneered the \ac{IDE}-integrated agent approach, providing context-aware code generation within the development environment.
-% Its key innovation lies in automatic context retrieval, using embedding-based search to identify relevant code sections across large codebases.
-% This approach achieves strong performance on code completion tasks but has not been formally evaluated on repair benchmarks.
-
-% \textbf{Aider}~\cite{aider2024} represents the heavyweight scaffolding approach, incorporating sophisticated features:
-% \begin{itemize}
-% 	\item \textit{Repository mapping}: Automatic generation of codebase summaries and dependency graphs
-% 	\item \textit{Multi-file coordination}: Tracking and maintaining consistency across file edits
-% 	\item \textit{Conversation memory}: Maintaining context across multiple interaction turns
-% 	\item \textit{Git integration}: Automatic commit generation and version management
-% \end{itemize}
-
-% \textbf{OpenHands (formerly OpenDevin)}~\cite{openhands2024} and \textbf{SWE-Agent}~\cite{sweAgent2024} represent the state-of-the-art in autonomous software engineering agents. These systems provide:
-% \begin{itemize}
-% 	\item Full shell access within sandboxed environments
-% 	\item Web browsing capabilities for documentation lookup
-% 	\item Persistent workspace management across sessions
-% 	\item Sophisticated error recovery and retry mechanisms
-% \end{itemize}
-
-\textbf{Fitting model to scaffold vs Fitting scaffold to model}
-\todoinline{sloppy}
-\todoinline{Claude Code should illustrate the power of not only making your models good, but making them excel in the environment in which they are deployed (probably trained internally with something highly similar to the Claude Code we use.)}
-\todoinline{This is a recurring theme in the industry, Claude -> Claude Code, o3 -> codex, Gemini -> Gemini \ac{CLI}, Qwen3 coder -> Qwen Coder, etc.}
-
-Most existing systems operate exclusively at inference time—they provide scaffolding and tools to pre-trained language models but do not integrate these capabilities into the training process.
-This creates a fundamental limitation:
-
-\textbf{Static tool usage patterns}: Models must adapt to tools they were never trained to use, leading to suboptimal usage patterns and frequent errors in tool invocation.
-
-\textbf{Lack of co-adaptation}: The model cannot learn to leverage specific tool capabilities or develop strategies tailored to the available action space.
-
-\textbf{No reinforcement of successful patterns}: When an agent successfully completes a task using a particular tool sequence, this success does not improve future performance—each task starts from scratch.
-
-\textbf{Misaligned representations}: Pre-trained models develop representations optimized for text generation, not for planning tool-based interactions in structured environments.
-
-Integrating agent scaffolding directly into the reinforcement learning training loop.
-This enables:
-
-\begin{itemize}
-	\item \textbf{Learned tool usage}: Models develop strategies for when and how to use available tools through trial and error
-	\item \textbf{Co-evolution}: Model parameters and action policies evolve together, creating tight integration
-	\item \textbf{Experience-based improvement}: Successful debugging patterns are reinforced, building expertise over time
-	\item \textbf{Emergent strategies}: Models can discover novel tool combinations and workflows not anticipated by designers
-\end{itemize}
-
-This training-time integration represents the core innovation of our approach, potentially bridging the gap between current agent capabilities and human-level performance on complex software engineering tasks.
 
 \section{Evaluation Benchmarks}
 

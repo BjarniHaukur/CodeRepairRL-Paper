@@ -124,16 +124,25 @@ After the model applies changes using this simple interface, the actual diff is 
 
 \subsection{Integration with RL Training}
 
-The Nano agent integrates seamlessly with our \ac{RL} training pipeline through a structured action-observation loop:
+The Nano agent instantiates the history-based MDP formulation from Section~\ref{sec:mdp-history} as follows:
 
+\begin{itemize}
+	\item \textbf{History} $h_t$: The conversation transcript containing the issue description and all prior tool interactions
+	\item \textbf{Assistant chunk} $y_t$: Model output containing \texttt{shell} commands or \texttt{apply\_patch} operations
+	\item \textbf{Tool call} $c_t$: The parsed command extracted by $\psi(y_t)$ 
+	\item \textbf{Tool output} $o_t$: Command results, file contents, or error messages
+	\item \textbf{Return} $R(\tau)$: Terminal reward based on patch similarity to ground truth
+\end{itemize}
+
+The agent operates through the following cycle:
 \begin{enumerate}
-	\item The agent receives an issue description and repository state
-	\item It generates a sequence of tool calls to explore and understand the codebase
-	\item Each action produces observations (command outputs, file contents, etc.)
-	\item The agent iteratively refines its understanding and proposes fixes
-	\item The final patch is evaluated against the ground truth for reward computation
+	\item Receives initial history $h_0$ containing the issue description
+	\item Generates assistant chunk $y_t$ with tool calls to explore the codebase
+	\item Executes first tool call $c_t = \psi(y_t)$ to produce output $o_t$
+	\item Updates history $h_{t+1} = \text{append}(h_t, y_t, o_t)$
+	\item Continues until patch submission or resource limits
+	\item Receives terminal return $R(h_T)$ based on patch quality
 \end{enumerate}
-\todoinline{Maybe a small diagram / state machine for this}
 
 This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes.
 The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
@@ -148,107 +157,9 @@ This approach ensures:
 
 \begin{itemize}
 	\item \textbf{Predictable Memory Usage}: Token limits guarantee that conversation histories remain within \ac{GPU} memory constraints during training and inference
-	\item \textbf{Bounded Computational Cost}: Action limits prevent runaway episodes that could consume excessive computational resources
-	\item \textbf{Training Stability}: Finite horizons prevent extremely long episodes that could destabilize training dynamics
+	\item \textbf{Predictable Rollout Time}: Tool call limits prevent runaway episodes
+	\item \textbf{Timeout}: Upper limit on total time allotted 
 \end{itemize}
-
-\section{Formal Problem Formulation as a Markov Decision Process}
-\label{sec:mdp-formulation}
-
-To establish rigorous theoretical foundations, we formalize the multi-step code repair task as a Markov Decision Process (\ac{MDP}).
-This formulation clarifies the relationship between natural language agent interactions and standard \ac{RL} components, enabling principled application of \ac{RL} algorithms to conversational debugging tasks.
-
-\subsection{MDP Definition}
-
-We define our code repair environment as the tuple $\langle \mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma \rangle$ where:
-
-\textbf{State Space} $\mathcal{S}$: Each state $s_t \in \mathcal{S}$ represents the current conversational context and implicit repository state:
-\begin{align}
-	s_t = (h_t, \mathcal{R}_t, I)
-\end{align}
-where:
-\begin{itemize}
-	\item $h_t = \{(a_1, o_1), (a_2, o_2), \ldots, (a_t, o_t)\}$ is the conversation history of action-observation pairs
-	\item $\mathcal{R}_t$ represents the implicit repository state (filesystem, working directory, applied modifications)
-	\item $I$ is the initial issue description provided to the agent
-\end{itemize}
-
-The state space is effectively $\mathcal{S} = \mathcal{H} \times \mathcal{R} \times \mathcal{I}$ where $\mathcal{H}$ is the space of possible conversation histories, $\mathcal{R}$ is the space of repository configurations, and $\mathcal{I}$ is the space of issue descriptions.
-
-\textbf{Action Space} $\mathcal{A}$: Actions consist of both structured tool invocations and natural language reasoning:
-\begin{align}
-	\mathcal{A} = \mathcal{A}_{\text{tool}} \cup \mathcal{A}_{\text{text}}
-\end{align}
-where:
-\begin{itemize}
-	\item $\mathcal{A}_{\text{tool}} = \{\text{bash}(c), \text{read\_file}(p), \text{apply\_patch}(\text{old}, \text{new})\}$ represents structured tool calls
-	\item $\mathcal{A}_{\text{text}}$ represents natural language reasoning and explanation
-\end{itemize}
-
-Each action $a_t$ is realized as a sequence of tokens generated autoregressively by the language model policy.
-
-\textbf{Transition Function} $\mathcal{P}$: The transition dynamics are largely predictable for tool interactions:
-\begin{align}
-	\mathcal{P}(s_{t+1} | s_t, a_t) = \begin{cases}
-		                                  1 & \text{if } s_{t+1} = f(s_t, a_t) \text{ for consistent tool responses} \\
-		                                  0 & \text{otherwise}
-	                                  \end{cases}
-\end{align}
-
-The function $f$ updates the conversation history $h_{t+1} = h_t \cup \{(a_t, o_t)\}$ and repository state $\mathcal{R}_{t+1}$ based on the tool's response $o_t$, which is consistent given the same repository state and command inputs.
-
-\textbf{Reward Function} $\mathcal{R}$: We employ a sparse terminal reward based on multi-component evaluation against ground truth:
-\begin{align}
-	\mathcal{R}(s_t, a_t) = \begin{cases}
-		                        R_{\text{total}}(p_{\text{generated}}, p_{\text{true}}) & \text{if } t = T \text{ (terminal state)} \\
-		                        0                                                       & \text{otherwise}
-	                        \end{cases}
-\end{align}
-
-where $p_{\text{generated}}$ is the patch produced by executing all \texttt{apply\_patch} operations, $p_{\text{true}}$ is the ground-truth solution, and $R_{\text{total}}$ combines file targeting, functional similarity, and testing alignment components (detailed in Section~\ref{sec:reward-design}).
-
-\textbf{Discount Factor} $\gamma$: For episodic tasks with terminal rewards, we typically set $\gamma = 1.0$ to avoid discounting the final outcome.
-
-\subsection{Policy Representation}
-
-The policy $\pi_\theta: \mathcal{S} \rightarrow \Delta(\mathcal{A})$ is parameterized by a large language model with parameters $\theta$: \begin{align}
-	\pi_\theta(a_t | s_t) = \prod_{i=1}^{|a_t|} p_\theta(a_t^{(i)} | s_t, a_t^{(1:i-1)})
-\end{align}
-
-where $a_t^{(i)}$ represents the $i$-th token in action $a_t$, and the policy factorizes autoregressively over the token sequence.
-
-\subsection{Episode Structure}
-
-Episodes begin with initial state $s_0 = (\emptyset, \mathcal{R}_0, I)$ containing an empty conversation history, initial repository state, and issue description.
-Episodes terminate when:
-\begin{itemize}
-	\item The agent signals completion (implicitly through not calling a tool and having made changes to the repository)
-	\item Maximum action limit $T_{\max}$ is reached (Nano has a finite action budget)
-	\item Token limit exceeded: $\text{tokencount}(h_{t+1}) > \text{MAX\_TOKENS} - \text{SAFETY\_THRESHOLD}$
-	\item The agent produces an invalid action sequence
-\end{itemize}
-
-Importantly, inaction (i.e., not calling any tools) counts as an action toward the $T_{\max}$ limit, making this a finite time horizon \ac{MDP}.
-The token-based termination criterion reflects Nano's compute-aware design—the agent operates while the conversation history fits comfortably in \ac{GPU} memory, ensuring tractable resource usage during both training and inference.
-
-A complete trajectory is $\tau = (s_0, a_0, r_0, s_1, a_1, r_1, \ldots, s_T, r_T)$ where rewards are zero except at termination.
-
-\subsection{If Finite MDP, Why Not Q-Learning?}
-
-With finite state and action spaces, Q-learning becomes theoretically applicable.
-However, [placeholder for discussion of practical considerations, scalability challenges, and why policy gradient methods are preferred for this high-dimensional natural language domain].
-
-\subsection{Connection to GRPO}
-
-This \ac{MDP} formulation enables direct application of \ac{GRPO}.
-\ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} operates on batches of trajectories $\{\tau_1, \tau_2, \ldots, \tau_B\}$, computing advantages by comparing terminal rewards within each batch.
-The policy update maximizes: \begin{align}
-	\mathcal{L}_{\text{GRPO}}(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{T} A_t \log \pi_\theta(a_t | s_t) \right]
-\end{align}
-
-where advantages $A_t$ are computed via the \ac{GRPO} procedure using terminal rewards and within-batch normalization.
-
-This formalization establishes the theoretical foundation for applying \ac{RL} to conversational code repair, clarifying how natural language interactions map to standard \ac{RL} components while preserving the interactive, multi-step nature of debugging tasks.
 
 \section{Experimental Setup}
 \label{sec:experimental-setup}
