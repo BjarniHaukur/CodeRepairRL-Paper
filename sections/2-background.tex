@@ -29,12 +29,14 @@ Most recently, \ac{SWE-Bench}~\cite{sweBench2024} introduced repository-level ta
 
 We distinguish three modes of \ac{LLM}-assisted repair by the degree of system integration and autonomy: (i) prompt-only, non-repository interactions, (ii) repository-mediated “agentless” tools without autonomous tool use, and (iii) autonomous, tool-using “agentic” systems. This taxonomy clarifies what capabilities are evaluated and how results transfer across settings.
 
-\subsection{Prompt-only (non-repository) repair}
+\subsection{Manual}
 \label{subsec:prompt-only}
+\todoinline{nothing fancy here, just the tried and tested copy paste method, human crafts the context needed and parses the output into the repository}
 We define a prompt-only setting in which developers paste self-contained code snippets and natural-language instructions into a language model, and receive edited code as static output. The interaction is detached from repository state, build systems, and test feedback, and does not involve tool use. This mode has negligible setup cost and is common in practice, but it is not a faithful \ac{APR} setting because it obscures dependency structure and prevents executable validation. We treat it as a low-friction baseline to contextualize the benefits of repository-grounded, tool-using systems (e.g., action efficiency, invalid-call reduction, and correctness under tests). Comparisons to repository-grounded evaluations are indicative rather than isomorphic due to differences in available context and feedback.
 
-\subsection{Agentless, repository-mediated approaches}
+\subsection{Agentless}
 \label{subsec:agentless}
+\todoinline{context crafted by a system, system parses output}
 Agentless systems scaffold a structured conversation around a live repository without autonomous tool execution. Tools such as Aider exemplify this pattern: they manage file selection, propose patches, and inject contextual diffs, while a human (or scripted harness) remains responsible for running tests, shells, and version control. This framing preserves repository grounding and repeatability while avoiding autonomous planning and tool use. In our taxonomy, agentless systems are interfaces rather than agents; they clarify how much of \ac{APR} performance derives from careful context curation and patch formatting, distinct from autonomy. When included as a baseline, we report their configuration (prompt templates, file inclusion policies, and patch application rules) to enable fair comparison and replication.
 
 % \textbf{Aider}~\cite{aider2024} represents the heavyweight scaffolding approach, incorporating sophisticated features:
@@ -97,8 +99,9 @@ The gap highlights not just a quantitative difference in performance, but a qual
 
 Addressing this mismatch requires moving beyond supervised learning on static datasets toward online learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for online reinforcement learning explored in this thesis.
 
-\subsection{Agentic, tool-using approaches}
+\subsection{Agentic}
 \label{subsec:agentic}
+\todoinline{attains context autonomously, edits files autonomously, via tools}
 Agentic systems plan and execute tool calls autonomously (e.g., running tests, editing files, invoking shells and version control), using repository feedback loops to guide repair. Our focus is a single minimalist agent (the Nano agent) that exposes only essential tools and is trained with reinforcement learning to improve adaptation: reducing invalid tool calls, increasing action efficiency, and improving correctness under tests. We study whether a single training recipe learned on \ac{SWE-Gym} transfers to evaluations on \ac{SWE-Bench} and \ac{Multi-SWE-Bench} without overfitting, and whether the recipe transfers across base models without bespoke engineering. We also examine zero-shot transfer to other agentic coding interfaces and terminal-oriented tasks, framing these as out-of-distribution checks on the learned interaction policy rather than as separate scaffolds.
 
 Practically, these systems materialize via structured tool calling: the model emits well-formed function calls that external executors run, and their outputs are appended to the transcript. This closes the loop between hypothesis and verification and makes online \ac{RL} feasible; see Section~\ref{sec:rl-language-models} for the formalization we adopt. Throughout, we prioritize reproducibility via fixed tool \acs{API}s, deterministic evaluation harnesses, and explicit reporting of prompts and environment assumptions.
@@ -608,7 +611,11 @@ The combination of \ac{LoRA}'s efficiency with online \ac{RL} creates opportunit
 
 \section{Sampling Strategies}
 \label{sec:sampling-strategies}
-\todoinline{Is it worthwhile to drag LLM sampling parameters into the mix and tie them to "exploration vs exploitation"?}
+
+The temperature parameter in language model sampling directly controls the exploration-exploitation trade-off during inference.
+Higher temperatures increase randomness and exploration of diverse solutions, while lower temperatures favor exploitation of high-probability actions.
+Critically, deterministic sampling (temperature=0) prevents any exploration, making it unsuitable for reinforcement learning where the agent must discover new strategies through trial and error.
+During RL training, we typically use temperature values between 0.7 and 1.0 to balance exploration of novel debugging approaches with exploitation of learned patterns (see Appendix~\ref{app:sampling-params} for detailed sampling parameters).
 
 \section{Evaluation Benchmarks}
 \label{sec:evaluation-benchmarks}

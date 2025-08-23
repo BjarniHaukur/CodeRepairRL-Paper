@@ -389,8 +389,10 @@ The combination of these optimizations enables training of state-of-the-art agen
 
 \todoinline{Make this a table with empirical metrics like: "backprop time", "rollout time"}
 \begin{itemize}
-	\item \textbf{~8B models:}
-	      Trainable on 2-3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA \item \textbf{~14B models:} Trainable on 3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA \item \textbf{~32B models:} Trainable on 6x A100 \acsp{GPU} DeepSpeed ZeRO 3 and LoRA \end{itemize}
+	\item \textbf{~8B models:} Trainable on 2-3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA
+	\item \textbf{~14B models:} Trainable on 3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA
+	\item \textbf{~32B models:} Trainable on 6x A100 \acsp{GPU} DeepSpeed ZeRO 3 and LoRA
+\end{itemize}
 
 Stacking these optimizations make \ac{RL} practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
 
@@ -563,7 +565,7 @@ To contextualize our results, we compare:
 \textbf{State-of-the-art Models:} See how frontier models instead
 
 \subsection{Generalization Testing} Beyond in-domain performance, we evaluate generalization through: \todoinline{to MultiSwe?
-	to Tau?}
+to Tau?}
 
 \subsection{Statistical Significance}
 \todoinline{Should we have something like this?}

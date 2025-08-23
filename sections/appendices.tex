@@ -85,6 +85,30 @@ This suggests different exploration strategies and verbosity levels.
 
 \textbf{Test Similarity Gap}: Most models achieve low test similarity scores, suggesting that generating appropriate test changes alongside code fixes remains challenging even for frontier models.
 
+\section{Sampling Parameters}
+\label{app:sampling-params}
+
+\begin{table}[htbp]
+\centering
+\caption{Sampling parameters used across different models during training}
+\label{tab:sampling-parameters}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Parameter} & \textbf{Model 1} & \textbf{Model 2} & \textbf{Model 3} \\
+\midrule
+Temperature & & & \\
+Top-k & & & \\
+Top-p & & & \\
+Min-p & & & \\
+Token limit & & & \\
+Tool limit & & & \\
+Time limit & & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\todoinline{Fill in sampling parameters table. All parameters are identical across models except time limit. Include specific values for temperature (e.g., 0.7-1.0), top-k, top-p, min-p, token limit, tool limit, and model-specific time limits.}
+
 \section{Complete Training Metrics}
 
 This section would contain complete training logs and additional metrics that supplement the main results in Chapter~\ref{ch:results}.

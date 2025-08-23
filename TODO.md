@@ -1,5 +1,22 @@
 Thesis revision checklist (Intro, Background, Method)
 
+# 23.08.2025
+Background
+- [~] Move MDP to background and make it shorter
+- [~] Change APR with LLMs to Agentless / Agentic
+  - What about the basic ones? 
+- [ ] Cite and briefly describe relevant systems (e.g., SWE-Agent, OpenHands/OpenDevin, Aider; use citable sources)
+- [ ] Discuss and cite Terminal- and TauBench, cite SOTA numbers perhaps, cite
+- [ ] Dr. GRPO write and cite
+- [ ] Dapo write and cite
+- [ ] Remember more of these
+
+
+
+
+Misc
+- [ ] Move specific lora efficiency gains discussion to method
+
 Style and consistency
 - [ ] Reduce subsubsections; prefer sections/subsections; keep paragraphs over long bullet lists
 - [x] Use cref
@@ -11,16 +28,6 @@ Introduction
 - [x] Consider retitle in `main.tex` to: "Learning Agency in the Terminal: Lessons from Repository-Level Reinforcement Learning"
 - [ ] Justify Nano, CodeRepairRL, etc., as vehicles for the above scope; tie explicitly to initial motivation
 - [ ] DeepSWE comparison: double-check compute normalization and references; clearly state our novelty (test-free reward, much lower GPU cost)
-
-Background
-- [~] Move MDP to background and make it shorter
-- [ ] Change APR with LLMs to Agentless / Agentic
-  - What about the basic ones? 
-- [ ] Cite and briefly describe relevant systems (e.g., SWE-Agent, OpenHands/OpenDevin, Aider; use citable sources)
-- [ ] Discuss and cite Terminal- and TauBench, cite SOTA numbers perhaps, cite
-- [ ] Dr. GRPO write and cite
-- [ ] Dapo write and cite
-- [ ] Remember more of these
 
 Method
 - [ ] Split current Chapter 3 into three chapters and update `main.tex` includes
