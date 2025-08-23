@@ -28,13 +28,13 @@ Our \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} training demo
 
 \subsubsection{Reward Progression}
 
-\todoinline{Describe training progression from initial near-zero success rates through rapid improvement phases. Include analysis of:
-\begin{itemize}
+\todoinline{Describe training progression from initial near-zero success rates through rapid improvement phases.
+Include analysis of: \begin{itemize}
 \item Initial Phase: Tool usage pattern acquisition
 \item Intermediate Phase: Strategy development and generalization
 \item Convergence Phase: Refinement and breakthrough improvements
-\end{itemize}
-Validate hypothesis about RL enhancement of coding capabilities.}
+\end{itemize} Validate hypothesis about RL enhancement of coding capabilities.
+}
 
 \subsubsection{Training Stability}
 
@@ -45,7 +45,9 @@ Validate hypothesis about RL enhancement of coding capabilities.}
 	\label{fig:training-comparison}
 \end{figure}
 
-\todoinline{Analyze GRPO training stability compared to traditional PPO implementations. Report gradient variance reduction, convergence smoothness, and standard deviation metrics across training runs.}
+\todoinline{Analyze GRPO training stability compared to traditional PPO implementations.
+Report gradient variance reduction, convergence smoothness, and standard deviation metrics across training runs.
+}
 
 \subsection{Computational Efficiency}
 \label{subsec:computational-efficiency}
@@ -65,11 +67,10 @@ Validate hypothesis about RL enhancement of coding capabilities.}
 \end{itemize}
 Analyze NCCL-based weight synchronization overhead and contribution to efficiency gains.}
 
-\section{Main Results: RL vs. Baselines}
-\label{sec:main-results}
+\section{Main Results: RL vs.
+  Baselines} \label{sec:main-results}
 
-\subsection{SWE-Bench-Verified Performance}
-\label{subsec:swe-bench-performance}
+\subsection{SWE-Bench-Verified Performance} \label{subsec:swe-bench-performance}
 
 Table~\cref{tab:main-results} presents our primary experimental results on \ac{SWE-Bench-Verified}, comparing online \ac{RL} training against multiple baseline approaches.
 
@@ -79,8 +80,8 @@ Table~\cref{tab:main-results} presents our primary experimental results on \ac{S
 
 \todoinline{Report statistical significance analysis using McNemar's test for paired comparisons:
 \begin{itemize}
-\item 8B Model: RL vs SFT improvement with confidence intervals
-\item 32B Model: RL vs SFT improvement with confidence intervals
+\item 8B Model: \ac{RL} vs \ac{SFT} improvement with confidence intervals
+\item 32B Model: \ac{RL} vs \ac{SFT} improvement with confidence intervals
 \item Effect sizes (Cohen's d) for both model sizes
 \end{itemize}
 Provide evidence for substantial and statistically significant RL improvements.}
@@ -104,15 +105,13 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 
 \subsection{Methodology}
 \label{subsec:rq1-methodology}
-We analyze harness adaptation through three key metrics measured throughout training:
-\begin{itemize}
+We analyze harness adaptation through three key metrics measured throughout training: \begin{itemize}
 	\item \textbf{Tool success rate}: fraction of tool calls that execute without schema/validation errors
 	\item \textbf{Invalid call rate}: fraction of calls rejected by the harness (schema mismatch, unsafe commands)
 	\item \textbf{Action efficiency}: commands per successful episode; files viewed per solved task
 \end{itemize}
 
-\subsection{Results}
-\label{subsec:rq1-results}
+\subsection{Results} \label{subsec:rq1-results}
 
 \begin{figure}[htbp]
 	\centering
@@ -128,17 +127,15 @@ We analyze harness adaptation through three key metrics measured throughout trai
 	\label{fig:command-trend}
 \end{figure}
 
-\todoinline{Insert comprehensive analysis including:
-\begin{itemize}
+\todoinline{Insert comprehensive analysis including: \begin{itemize}
 \item Quantitative metrics from training logs
 \item Statistical significance of improvements
 \item Comparison with baseline models
 \item Actions-per-episode distribution analysis
 \end{itemize}}
 
-\subsection{Key Findings}
-\label{subsec:rq1-findings}
-\todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for RL training success.}
+\subsection{Key Findings} \label{subsec:rq1-findings} \todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for RL training success.
+}
 
 \section{RQ2: Multiple Base Models}
 \label{sec:rq2-multi-base}
@@ -147,18 +144,14 @@ We analyze harness adaptation through three key metrics measured throughout trai
 
 \subsection{Methodology}
 \label{subsec:rq2-methodology}
-We evaluate training recipe transferability by applying identical training procedures to multiple base models with consistent experimental conditions:
-\begin{itemize}
+We evaluate training recipe transferability by applying identical training procedures to multiple base models with consistent experimental conditions: \begin{itemize}
 	\item Same training budgets and episode counts
 	\item Identical prompts and evaluation protocols
 	\item Consistent hyperparameter scaling approaches
 	\item Uniform tool success metric collection
 \end{itemize}
 
-\subsection{Model Comparison}
-\label{subsec:rq2-comparison}
-\todoinline{Insert comprehensive comparison table including:
-\begin{itemize}
+\subsection{Model Comparison} \label{subsec:rq2-comparison} \todoinline{Insert comprehensive comparison table including: \begin{itemize}
 \item Performance on SWE-Bench-Verified across different base models
 \item Tool success metrics for each model
 \item Training convergence characteristics
@@ -166,39 +159,35 @@ We evaluate training recipe transferability by applying identical training proce
 \item Statistical significance of cross-model consistency
 \end{itemize}}
 
-\subsection{Analysis}
-\label{subsec:rq2-analysis}
-\todoinline{Analyze training recipe portability, identify model-specific adaptations required, and discuss implications for scaling to new architectures.}
+\subsection{Analysis} \label{subsec:rq2-analysis} \todoinline{Analyze training recipe portability, identify model-specific adaptations required, and discuss implications for scaling to new architectures.
+}
 
-\section{RQ3: \ac{SWE-Gym} Training vs. \ac{SWE-Bench}/\ac{Multi-SWE-Bench} Evaluation}
-\label{sec:rq3-overfit}
+\section{RQ3: \ac{SWE-Gym}
+  Training vs.
+  \ac{SWE-Bench}/\ac{Multi-SWE-Bench}
+  Evaluation} \label{sec:rq3-overfit}
 
 \textbf{Research Question 3}: Does training on \ac{SWE-Gym} lead to overfitting, or do learned debugging strategies generalize to unseen evaluation datasets?
 
 \subsection{Experimental Design}
 \label{subsec:rq3-design}
-We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating on held-out datasets:
-\begin{itemize}
+We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating on held-out datasets: \begin{itemize}
 	\item Training dataset: \ac{SWE-Gym} repository instances
 	\item Evaluation datasets: \ac{SWE-Bench} and \ac{Multi-SWE-Bench}
 	\item Comparison baselines: Models trained with \ac{SFT} on same data splits
 	\item Overfitting indicators: Performance gap analysis between training and evaluation
 \end{itemize}
 
-\subsection{Cross-Dataset Performance}
-\label{subsec:rq3-performance}
-\todoinline{Insert comprehensive cross-dataset analysis including:
-\begin{itemize}
+\subsection{Cross-Dataset Performance} \label{subsec:rq3-performance} \todoinline{Insert comprehensive cross-dataset analysis including: \begin{itemize}
 \item Performance comparison table across datasets
 \item Gap analysis between SWE-Gym training and evaluation performance
-\item Comparison with SFT baselines on same data splits
+\item Comparison with \ac{SFT} baselines on same data splits
 \item Statistical analysis of overfitting indicators
 \item Domain transfer success metrics
 \end{itemize}}
 
-\subsection{Generalization Analysis}
-\label{subsec:rq3-analysis}
-\todoinline{Analyze evidence for/against overfitting, discuss learned strategy transferability, and evaluate cross-dataset generalization effectiveness.}
+\subsection{Generalization Analysis} \label{subsec:rq3-analysis} \todoinline{Analyze evidence for/against overfitting, discuss learned strategy transferability, and evaluate cross-dataset generalization effectiveness.
+}
 
 \section{RQ4: Cross-Harness and Cross-Task Generalization}
 \label{sec:rq4-cross}
@@ -207,17 +196,13 @@ We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating 
 
 \subsection{Evaluation Domains}
 \label{subsec:rq4-domains}
-We assess out-of-domain generalization across multiple dimensions:
-\begin{itemize}
+We assess out-of-domain generalization across multiple dimensions: \begin{itemize}
 	\item \textbf{Cross-Harness}: Aider and OpenHands-style interaction paradigms
 	\item \textbf{Cross-Task}: Terminal-centric tasks (TauBench, TerminalBench)
 	\item \textbf{Adaptation Requirements}: Minimal prompt modifications vs. fine-tuning needs
 \end{itemize}
 
-\subsection{Evaluation Protocol}
-\label{subsec:rq4-protocol}
-\todoinline{Document evaluation protocol including:
-\begin{itemize}
+\subsection{Evaluation Protocol} \label{subsec:rq4-protocol} \todoinline{Document evaluation protocol including: \begin{itemize}
 \item Cross-harness evaluation setup and metrics
 \item Terminal-centric task evaluation procedures
 \item Prompt adaptation strategies and requirements
@@ -225,10 +210,7 @@ We assess out-of-domain generalization across multiple dimensions:
 \item Statistical significance testing approaches
 \end{itemize}}
 
-\subsection{Transfer Performance}
-\label{subsec:rq4-transfer}
-\todoinline{Insert results tables and analysis covering:
-\begin{itemize}
+\subsection{Transfer Performance} \label{subsec:rq4-transfer} \todoinline{Insert results tables and analysis covering: \begin{itemize}
 \item Performance on alternative harnesses
 \item Terminal task success rates
 \item Comparison with domain-specific baselines
@@ -236,19 +218,17 @@ We assess out-of-domain generalization across multiple dimensions:
 \item Implications for general agent capabilities
 \end{itemize}}
 
-\section{Transfer to General Code Generation}
-\label{sec:generalization}
+\section{Transfer to General Code Generation} \label{sec:generalization}
 
-\subsection{HumanEval Results}
-\label{subsec:humaneval}
+\subsection{HumanEval Results} \label{subsec:humaneval}
 
 To assess whether debugging-specific training affects general coding capabilities, we evaluate our models on HumanEval, a standard code generation benchmark.
 
 \todoinline{Insert HumanEval performance comparison table with Pass@1 results showing:
 \begin{itemize}
 \item Base model performance for different sizes
-\item SFT model improvements vs. base
-\item RL model improvements vs. base and SFT
+\item \ac{SFT} model improvements vs. base
+\item \ac{RL} model improvements vs. base and \ac{SFT}
 \item Statistical significance of improvements
 \item Cross-model consistency analysis
 \end{itemize}}
@@ -295,10 +275,9 @@ To understand the contribution of different system components, we conducted syst
 	\label{fig:problem-clustering}
 \end{figure}
 
-\todoinline{Insert ablation study results table comparing system configurations:
-\begin{itemize}
+\todoinline{Insert ablation study results table comparing system configurations: \begin{itemize}
 \item Full system performance baseline
-\item Impact of removing RL training (SFT only)
+\item Impact of removing \ac{RL} training (\ac{SFT} only)
 \item Effect of agent scaffold removal
 \item Multi-step interaction contribution
 \item GRPO vs. traditional PPO comparison
@@ -310,8 +289,7 @@ To understand the contribution of different system components, we conducted syst
 
 The ablation results highlight several critical system components:
 
-\todoinline{Analyze critical component contributions including:
-\begin{itemize}
+\todoinline{Analyze critical component contributions including: \begin{itemize}
 \item Multi-step interaction impact and validation of experiential learning hypothesis
 \item Agent scaffold integration benefits over direct generation
 \item RL training advantages over supervised fine-tuning
@@ -320,15 +298,13 @@ The ablation results highlight several critical system components:
 \item Ranking of component importance and implications
 \end{itemize}}
 
-\subsection{Hyperparameter Sensitivity}
-\label{subsec:hyperparameter}
+\subsection{Hyperparameter Sensitivity} \label{subsec:hyperparameter}
 
 We evaluated sensitivity to key hyperparameters to understand training robustness:
 
 \subsubsection{Learning Rate Analysis}
 
-\todoinline{Report learning rate sensitivity analysis including:
-\begin{itemize}
+\todoinline{Report learning rate sensitivity analysis including: \begin{itemize}
 \item Tested learning rate ranges
 \item Optimal values for different model sizes
 \item Performance robustness across effective ranges
@@ -351,24 +327,20 @@ We evaluated sensitivity to key hyperparameters to understand training robustnes
 	\label{fig:reward-evolution}
 \end{figure}
 
-\todoinline{Analyze trajectory length impact including:
-\begin{itemize}
+\todoinline{Analyze trajectory length impact including: \begin{itemize}
 \item Tested trajectory length ranges
 \item Performance plateaus and optimal values
 \item Context sufficiency for debugging tasks
 \item Computational efficiency tradeoffs
 \end{itemize}}
 
-\section{Error Analysis and Failure Modes}
-\label{sec:error-analysis}
+\section{Error Analysis and Failure Modes} \label{sec:error-analysis}
 
-\subsection{Systematic Failure Analysis}
-\label{subsec:failure-analysis}
+\subsection{Systematic Failure Analysis} \label{subsec:failure-analysis}
 
 To understand current limitations and guide future improvements, we analyzed failed debugging attempts across multiple categories:
 
-\todoinline{Insert failure mode analysis table categorizing failed tasks by:
-\begin{itemize}
+\todoinline{Insert failure mode analysis table categorizing failed tasks by: \begin{itemize}
 \item Problem understanding errors and frequency
 \item File identification mistakes
 \item Correct location but wrong fix applications
@@ -380,7 +352,8 @@ To understand current limitations and guide future improvements, we analyzed fai
 
 \subsubsection{Problem Understanding Challenges}
 
-\todoinline{Analyze most common failure modes and their implications for improvement strategies.}
+\todoinline{Analyze most common failure modes and their implications for improvement strategies.
+}
 This suggests areas for improvement:
 
 \begin{itemize}
@@ -391,7 +364,8 @@ This suggests areas for improvement:
 
 \subsubsection{File Localization Accuracy}
 
-\todoinline{Discuss file identification challenges and potential improvements in repository understanding.}
+\todoinline{Discuss file identification challenges and potential improvements in repository understanding.
+}
 
 \begin{itemize}
 	\item \textbf{Improved Search Strategies}: Learning more effective patterns for locating relevant code through grep and find operations
@@ -427,16 +401,13 @@ Successful agents develop efficient tool usage patterns:
 	\item \textbf{Error-Driven Learning}: Adapt strategies based on command outputs and error messages
 \end{itemize}
 
-\section{Computational Performance Analysis}
-\label{sec:performance-analysis}
+\section{Computational Performance Analysis} \label{sec:performance-analysis}
 
-\subsection{Training Efficiency Metrics}
-\label{subsec:training-efficiency}
+\subsection{Training Efficiency Metrics} \label{subsec:training-efficiency}
 
 Our infrastructure achievements enable practical large-scale agent training:
 
-\todoinline{Insert training performance metrics table including:
-\begin{itemize}
+\todoinline{Insert training performance metrics table including: \begin{itemize}
 \item Episodes per hour for different model configurations
 \item Memory usage across model sizes
 \item Update latency measurements
@@ -447,8 +418,7 @@ Our infrastructure achievements enable practical large-scale agent training:
 
 \subsubsection{Scalability Achievements}
 
-\todoinline{Analyze scalability characteristics including:
-\begin{itemize}
+\todoinline{Analyze scalability characteristics including: \begin{itemize}
 \item GPU scaling linearity up to tested limits
 \item Memory utilization efficiency achievements
 \item Network bandwidth consumption for NCCL updates
@@ -456,11 +426,9 @@ Our infrastructure achievements enable practical large-scale agent training:
 \item Performance bottlenecks and limitations
 \end{itemize}}
 
-\subsection{Cost-Effectiveness Analysis}
-\label{subsec:cost-effectiveness}
+\subsection{Cost-Effectiveness Analysis} \label{subsec:cost-effectiveness}
 
-\todoinline{Analyze computational cost-effectiveness including:
-\begin{itemize}
+\todoinline{Analyze computational cost-effectiveness including: \begin{itemize}
 \item Total training costs for different model sizes
 \item Per-episode cost comparisons with commercial APIs
 \item Development cost implications for academic research
@@ -468,23 +436,34 @@ Our infrastructure achievements enable practical large-scale agent training:
 \item Budget accessibility and democratization implications
 \end{itemize}}
 
-\todoinline{Table of A100 GPU hours per run?}
+\todoinline{Table of A100 GPU hours per run?
+}
 
 \section{Summary of Key Findings}
 \label{sec:key-findings}
 
 Our comprehensive experimental evaluation yields several important conclusions:
 
-\subsection{Research Question Answers}
-\label{subsec:research-answers}
+\subsection{Research Question Answers} \label{subsec:research-answers}
 
-\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize RL training improvements in Nano harness adaptation, including concrete metrics for tool success rates, invalid call reductions, and action efficiency improvements. Reference Section~\ref{sec:rq1-harness}.}
+\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize RL training improvements in Nano harness adaptation, including concrete metrics for tool success rates, invalid call reductions, and action efficiency improvements.
+Reference Section~\ref{sec:rq1-harness}.
+}
 
-\textbf{RQ2 (Multiple Base Models)}: \todoinline{Summarize training recipe portability across base models and consistent gains over SFT. Include specific performance deltas and statistical significance. Reference Section~\ref{sec:rq2-multi-base}.}
+\textbf{RQ2 (Multiple Base Models)}: \todoinline{Summarize training recipe portability across base models and consistent gains over \ac{SFT}.
+Include specific performance deltas and statistical significance.
+Reference Section~\ref{sec:rq2-multi-base}.
+}
 
-\textbf{RQ3 (Cross-Dataset Generalization)}: \todoinline{Summarize SWE-Gym training performance on SWE-Bench and Multi-SWE-Bench, including quantitative results and confidence intervals. Discuss overfitting evidence. Reference Section~\ref{sec:rq3-overfit}.}
+\textbf{RQ3 (Cross-Dataset Generalization)}: \todoinline{Summarize SWE-Gym training performance on SWE-Bench and Multi-SWE-Bench, including quantitative results and confidence intervals.
+Discuss overfitting evidence.
+Reference Section~\ref{sec:rq3-overfit}.
+}
 
-\textbf{RQ4 (Cross-Harness/Task Generalization)}: \todoinline{Summarize zero-shot transfer results to alternative harnesses and terminal-centric tasks. Include specific performance metrics and generalization analysis. Reference Section~\ref{sec:rq4-cross}.}
+\textbf{RQ4 (Cross-Harness/Task Generalization)}: \todoinline{Summarize zero-shot transfer results to alternative harnesses and terminal-centric tasks.
+Include specific performance metrics and generalization analysis.
+Reference Section~\ref{sec:rq4-cross}.
+}
 
 \subsection{Broader Implications}
 \label{subsec:broader-implications}

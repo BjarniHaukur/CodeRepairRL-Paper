@@ -10,7 +10,7 @@ defaultIndent: ''
 
 # Do not indent the preamble or after headings
 indentPreamble: 0
-indentAfterHeadings: 0
+indentAfterHeadings: {}
 # Make math, lists, floats, and tables untouchable
 verbatimEnvironments:
   # AMS math

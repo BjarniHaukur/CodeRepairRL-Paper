@@ -1,9 +1,9 @@
 \usepackage[
-	citestyle=ieee,
-	bibstyle=ieee,
-	style=numeric-comp,
-	sorting=nty,
-	maxbibnames=99, % Make sure we are printing all authors in the appendix
+citestyle=ieee,
+bibstyle=ieee,
+style=numeric-comp,
+sorting=nty,
+maxbibnames=99, % Make sure we are printing all authors in the appendix
 ]{biblatex}
 
 % Makes the last name first in the bibliography.
@@ -29,7 +29,13 @@
 \usepackage{fancyhdr}					% Setting the style for header and footer.
 \usepackage{tabularx}
 \usepackage{multirow}                   % For better tables 
-\usepackage[hidelinks]{hyperref}		% Clickable links
+\usepackage{hyperref}		% Clickable links
+\hypersetup{
+colorlinks=true,
+linkcolor=black,
+urlcolor=black,
+citecolor=blue
+}
 \usepackage{nameref}					% References with names
 \usepackage[parfill]{parskip}			% New line instead of indent for sections
 
@@ -66,8 +72,8 @@
 
 \usepackage{todonotes}
 \newcommand{\todoinline}[1]{%
-	\leavevmode\noindent%
-	\colorbox{yellow!30}{\parbox{\dimexpr\linewidth-2\fboxsep}{\textbf{TODO:} #1}}%
+\leavevmode\noindent%
+\colorbox{yellow!30}{\parbox{\dimexpr\linewidth-2\fboxsep}{\textbf{TODO:} #1}}%
 }
 
 \usepackage[capitalise,noabbrev,nameinlink]{cleveref}
@@ -111,18 +117,18 @@
 \setlength{\headheight}{15.5pt}
 
 \fancypagestyle{plain}{
-	\fancyhf{}
-	\fancyhead{}
-	\fancyfoot{}
-	\renewcommand{\headrulewidth}{0pt}
-	\fancyfoot[R]{\footerfont\thepage}
+\fancyhf{}
+\fancyhead{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[R]{\footerfont\thepage}
 }
 
 \pagestyle{fancy}
 
 % Making the command for placing text in random locations
 \newcommand\PlaceText[3]{%
-	\begin{tikzpicture}[remember picture,overlay]
+\begin{tikzpicture}[remember picture,overlay]
 \node[outer sep=0pt,inner sep=0pt,anchor=south west] 
   at ([xshift=#1,yshift=-#2]current page.north west) {#3};
 \end{tikzpicture}%

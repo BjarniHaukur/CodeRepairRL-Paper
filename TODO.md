@@ -10,8 +10,7 @@ Background
 - [ ] Dr. GRPO write and cite
 - [ ] Dapo write and cite
 - [ ] Remember more of these
-
-
+- [ ] "The ecosystem has evolved by leaps and bounds since I started"
 
 
 Misc

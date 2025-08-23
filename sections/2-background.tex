@@ -1,43 +1,58 @@
 \chapter{Theoretical Background and Related Work}
 \label{ch:background}
 
-This chapter provides the theoretical foundation for online reinforcement learning applied to automated code repair.
-We review key concepts in reinforcement learning for language models, automated program repair, and agent-based software engineering approaches.
+This chapter establishes the theoretical and empirical background for online \ac{RL} applied to \ac{APR} with tool-using \acp{LLM}.
+We first situate \ac{APR} historically—from search- and learning-based methods before \acp{LLM} to contemporary, repository-grounded systems—and introduce a simple taxonomy spanning manual, agentless, and agentic workflows.
+We then formalize agentic repair as a history-based \ac{MDP} driven by structured tool calls, and review optimization methods for training such policies, including \ac{PPO}, \ac{GRPO}, and \ac{GSPO}, as well as practical issues such as variance collapse.
+Complementary techniques for scalable training—parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation—are summarized alongside evaluation resources such as \ac{SWE-Bench} and \ac{TauBench}.
+We close with related work and limitations that motivate the minimalist agent and online training recipe developed in the following chapters.
 
-\section{Automated Program Repair before LLMs}
-\label{sec:apr-pre-llm}
-\todoinline{GENProg, Defect4j, etc.}
-The evolution of \ac{APR} can be traced through three distinct paradigms.
-Early search-based approaches like GenProg~\cite{genProg2012} and PAR~\cite{PAR2013} employed genetic programming and pattern-based transformations to search for valid patches within a predefined space of mutations.
-These systems demonstrated the feasibility of automated repair but suffered from low precision and limited generalization capabilities.
+\section{Automated Program Repair before LLMs}\label{sec:apr-pre-llm}
 
-The transition to learning-based approaches began with Prophet~\cite{prophet2016} and DeepFix~\cite{deepfix2017}, which introduced \ac{ML} to rank patch candidates and fix compilation errors respectively.
-The emergence of neural sequence-to-sequence models marked a fundamental shift, with works like SequenceR~\cite{sequencer2019} and CoCoNuT~\cite{coconut2020} treating program repair as a neural machine translation task.
+Prior to \acp{LLM}, empirical research in \ac{APR} centered on benchmarks that provide localized bugs with executable tests, typically single files or short patch sets.
+Canonical corpora include Defects4J for Java~\cite{defects4J2014}, QuixBugs for small algorithmic programs in Java and Python~\cite{quixBugs2017}, and the recent GitBug-Java, which refreshes evaluation with recent, reproducible bugs~\cite{gitbugJava2024}.
+These datasets set the scope of most methods: the system observes a compact fault context and must propose a patch that satisfies the test suite.
+
+Within this setting, three families of approaches emerged.
+Generate-and-validate search explores a mutation space and accepts candidates that pass tests, with GenProg as a canonical example and PAR illustrating pattern guided patching~\cite{genProg2012,par2013}.
+Semantics based repair uses symbolic execution and constraint solving to synthesize expressions at instrumented locations, exemplified by SemFix~\cite{semFix2013}.
+Early learning based methods incorporate statistical guidance to prioritize candidates; Prophet learns a patch ranking model from past fixes~\cite{prophet2016}.
+Together, these lines established feasibility and clarified limitations of test adequacy as a correctness proxy, motivating the move to richer, repository grounded settings reviewed next.
 
 \section{Automated Program Repair with LLMs}
 \label{sec:apr-with-llms}
 
-Large language models have transformed automated program repair, moving from rule-based and search-based approaches to neural methods capable of understanding complex code patterns and generating sophisticated patches.
+Codex marked the inflection point where large pretrained models on code enabled practical repair and synthesis, shifting \ac{APR} from rules or search to learned edit priors~\cite{chen2021evaluatinglargelanguagemodels2021}.
+Since then, frontier labs have converged on repository-level evaluation and visibly compete on \ac{SWE-Bench} Verified~\cite{sweBench2024,sweBenchVerified2024}.
+In parallel, these systems increasingly ship first-party \emph{agent harnesses}—OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI}—that run in the terminal and orchestrate tool calls over repositories~\cite{openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
+We posit that these public harnesses closely mirror the internal environments used for large-scale post-training (including \ac{RL}) on coding agents, which helps explain their strong, rapidly improving results on repository-grounded tasks~\cite{claude4_2025, gpt41_2025}.
 
-The advent of large language models has transformed the landscape entirely.
-Modern systems leveraging models like Codex~\cite{codex2021}, CodeT5~\cite{codet5}, and more recently CodeLlama~\cite{codellama2023} and DeepSeek-Coder~\cite{deepseek2024} have achieved unprecedented performance on established benchmarks.
-However, even state-of-the-art models achieve only approximately 20\% success rates on realistic benchmarks like \ac{SWE-Bench}~\cite{sweBench2024}, highlighting the substantial gap between current capabilities and human-level performance.
+Open-weight series follow the same trajectory while only partially disclosing training recipes.
+The Qwen3 technical report documents multi-stage post-training with \ac{RL} and explicit tool-use evaluation, and the code-specialized Qwen3-Coder is released together with a matching agent harness (\emph{Qwen Code}) that surfaces its programming abilities~\cite{qwen3CoderBlog2025,qwenCodeCLI}.
+Kimi-K2's report describes an agentic data pipeline combined with general \ac{RL} for code/agent tasks~\cite{kimiK2_2025}.
+DeepSeek's V3 report details \ac{SFT}+\ac{RL} stages, and the V3.1 release emphasizes strengthened tool use for multi-step agent tasks~\cite{deepseek_v31_notes}.
+This pattern—agentic models paired with first-party harnesses but incomplete recipe disclosure—motivates our focus on online \ac{RL} in a coding-agent environment with explicit terminal feedback.
 
-Key evaluation datasets have evolved alongside these approaches.
-CodeXGLUE~\cite{codexglue2021} provides a comprehensive multi-task benchmark including bug fixing across multiple languages.
-Most recently, \ac{SWE-Bench}~\cite{sweBench2024} introduced repository-level tasks requiring understanding of entire codebases, representing a significant leap in evaluation complexity.
-
-We distinguish three modes of \ac{LLM}-assisted repair by the degree of system integration and autonomy: (i) prompt-only, non-repository interactions, (ii) repository-mediated “agentless” tools without autonomous tool use, and (iii) autonomous, tool-using “agentic” systems. This taxonomy clarifies what capabilities are evaluated and how results transfer across settings.
+We organize \ac{LLM}-assisted repair by degree of autonomy: (i) manual prompting, (ii) agentless systems that scaffold repository context without autonomous tool use, and (iii) agentic systems that plan and execute tools.
+This taxonomy clarifies which capabilities are measured and how results transfer across settings.
 
 \subsection{Manual}
-\label{subsec:prompt-only}
-\todoinline{nothing fancy here, just the tried and tested copy paste method, human crafts the context needed and parses the output into the repository}
-We define a prompt-only setting in which developers paste self-contained code snippets and natural-language instructions into a language model, and receive edited code as static output. The interaction is detached from repository state, build systems, and test feedback, and does not involve tool use. This mode has negligible setup cost and is common in practice, but it is not a faithful \ac{APR} setting because it obscures dependency structure and prevents executable validation. We treat it as a low-friction baseline to contextualize the benefits of repository-grounded, tool-using systems (e.g., action efficiency, invalid-call reduction, and correctness under tests). Comparisons to repository-grounded evaluations are indicative rather than isomorphic due to differences in available context and feedback.
+\label{subsec:manual-prompting}
+\todoinline{nothing fancy here, just the tried and tested copy paste method, human crafts the context needed and parses the output into the repository, ill suited for large scale training since it requires human authored data}
+We define a prompt-only setting in which developers paste self-contained code snippets and natural-language instructions into a language model, and receive edited code as static output.
+The interaction is detached from repository state, build systems, and test feedback, and does not involve tool use.
+This mode has negligible setup cost and is common in practice, but it is not a faithful \ac{APR} setting because it obscures dependency structure and prevents executable validation.
+We treat it as a low-friction baseline to contextualize the benefits of repository-grounded, tool-using systems (e.g., action efficiency, invalid-call reduction, and correctness under tests).
+Comparisons to repository-grounded evaluations are indicative rather than isomorphic due to differences in available context and feedback.
 
 \subsection{Agentless}
 \label{subsec:agentless}
 \todoinline{context crafted by a system, system parses output}
-Agentless systems scaffold a structured conversation around a live repository without autonomous tool execution. Tools such as Aider exemplify this pattern: they manage file selection, propose patches, and inject contextual diffs, while a human (or scripted harness) remains responsible for running tests, shells, and version control. This framing preserves repository grounding and repeatability while avoiding autonomous planning and tool use. In our taxonomy, agentless systems are interfaces rather than agents; they clarify how much of \ac{APR} performance derives from careful context curation and patch formatting, distinct from autonomy. When included as a baseline, we report their configuration (prompt templates, file inclusion policies, and patch application rules) to enable fair comparison and replication.
+Agentless systems scaffold a structured conversation around a live repository without autonomous tool execution.
+Tools such as Aider exemplify this pattern: they manage file selection, propose patches, and inject contextual diffs, while a human (or scripted harness) remains responsible for running tests, shells, and version control.
+This framing preserves repository grounding and repeatability while avoiding autonomous planning and tool use.
+In our taxonomy, agentless systems are interfaces rather than agents; they clarify how much of \ac{APR} performance derives from careful context curation and patch formatting, distinct from autonomy.
+When included as a baseline, we report their configuration (prompt templates, file inclusion policies, and patch application rules) to enable fair comparison and replication.
 
 % \textbf{Aider}~\cite{aider2024} represents the heavyweight scaffolding approach, incorporating sophisticated features:
 % \begin{itemize}
@@ -49,9 +64,8 @@ Agentless systems scaffold a structured conversation around a live repository wi
 
 Current \ac{LLM}-based approaches exhibit several fundamental limitations that constrain their effectiveness:
 
-Recent specialized models like RepairLLaMA~\cite{repairllama2024} have attempted to address these limitations through continued pre-training on bug-fix datasets, achieving modest improvements on benchmarks.
-% \textbf{Lack of environmental interaction}: Models cannot execute code, run tests, or observe runtime behavior, limiting their ability to understand dynamic program properties and verify correctness.% \textbf{Single-step generation}: Most models generate patches in a single forward pass without the ability to explore the codebase, test hypotheses, or iteratively refine solutions based on feedback.% \textbf{Limited context windows}: Even with recent advances extending context lengths to 128K+ tokens, models struggle to maintain coherent understanding across large codebases with complex dependencies.% \textbf{Poor multi-file coordination}: Real-world bugs often require coordinated changes across multiple files.% Current models frequently produce inconsistent edits that fail to maintain invariants across file boundaries.
 However, these approaches still operate within the fundamental constraint of single-pass generation without environmental feedback.
+% \textbf{Lack of environmental interaction}: Models cannot execute code, run tests, or observe runtime behavior, limiting their ability to understand dynamic program properties and verify correctness.% \textbf{Single-step generation}: Most models generate patches in a single forward pass without the ability to explore the codebase, test hypotheses, or iteratively refine solutions based on feedback.% \textbf{Limited context windows}: Even with recent advances extending context lengths to 128K+ tokens, models struggle to maintain coherent understanding across large codebases with complex dependencies.% \textbf{Poor multi-file coordination}: Real-world bugs often require coordinated changes across multiple files.% Current models frequently produce inconsistent edits that fail to maintain invariants across file boundaries.
 
 Current approaches primarily rely on supervised fine-tuning on bug-fix datasets, where models learn to map broken code snippets to corrected versions.
 However, this paradigm has fundamental limitations when applied to real-world debugging scenarios.
@@ -102,9 +116,14 @@ Addressing this mismatch requires moving beyond supervised learning on static da
 \subsection{Agentic}
 \label{subsec:agentic}
 \todoinline{attains context autonomously, edits files autonomously, via tools}
-Agentic systems plan and execute tool calls autonomously (e.g., running tests, editing files, invoking shells and version control), using repository feedback loops to guide repair. Our focus is a single minimalist agent (the Nano agent) that exposes only essential tools and is trained with reinforcement learning to improve adaptation: reducing invalid tool calls, increasing action efficiency, and improving correctness under tests. We study whether a single training recipe learned on \ac{SWE-Gym} transfers to evaluations on \ac{SWE-Bench} and \ac{Multi-SWE-Bench} without overfitting, and whether the recipe transfers across base models without bespoke engineering. We also examine zero-shot transfer to other agentic coding interfaces and terminal-oriented tasks, framing these as out-of-distribution checks on the learned interaction policy rather than as separate scaffolds.
+Agentic systems plan and execute tool calls autonomously (e.g., running tests, editing files, invoking shells and version control), using repository feedback loops to guide repair.
+Our focus is a single minimalist agent (the Nano agent) that exposes only essential tools and is trained with reinforcement learning to improve adaptation: reducing invalid tool calls, increasing action efficiency, and improving correctness under tests.
+We study whether a single training recipe learned on \ac{SWE-Gym} transfers to evaluations on \ac{SWE-Bench} and \ac{Multi-SWE-Bench} without overfitting, and whether the recipe transfers across base models without bespoke engineering.
+We also examine zero-shot transfer to other agentic coding interfaces and terminal-oriented tasks, framing these as out-of-distribution checks on the learned interaction policy rather than as separate scaffolds.
 
-Practically, these systems materialize via structured tool calling: the model emits well-formed function calls that external executors run, and their outputs are appended to the transcript. This closes the loop between hypothesis and verification and makes online \ac{RL} feasible; see Section~\ref{sec:rl-language-models} for the formalization we adopt. Throughout, we prioritize reproducibility via fixed tool \acs{API}s, deterministic evaluation harnesses, and explicit reporting of prompts and environment assumptions.
+Practically, these systems materialize via structured tool calling: the model emits well-formed function calls that external executors run, and their outputs are appended to the transcript.
+This closes the loop between hypothesis and verification and makes online \ac{RL} feasible; see Section~\ref{sec:rl-language-models} for the formalization we adopt.
+Throughout, we prioritize reproducibility via fixed tool \acs{API}s, deterministic evaluation harnesses, and explicit reporting of prompts and environment assumptions.
 
 The integration of language models with dynamic programming environments has opened new possibilities for automated software engineering, enabling models to perform complex, multi-step reasoning tasks.
 The predominant approach for creating agentic LLMs is through tool calling—enabling models to interact with external systems, execute commands, and observe results.
@@ -192,7 +211,6 @@ This enables:
 
 This training-time integration represents the core innovation of our approach, potentially bridging the gap between current agent capabilities and human-level performance on complex software engineering tasks.
 
-
 \section{Reinforcement Learning for Language Models}
 \label{sec:rl-language-models}
 
@@ -212,30 +230,19 @@ The transition kernel $\mathcal{P}$ maps a current history and an assistant chun
 We use $\gamma=1$ for finite episodes with terminal returns.
 
 \paragraph{State, action, observation}
-At step $t$ the state is the transcript prefix
-$h_t \in \mathcal{H}$,
-which contains the initial instruction and all prior assistant messages and tool outputs.
-The policy $\pi_\theta(\cdot \mid h_t)$ produces an assistant chunk
-$y_t \in \mathcal{Y}$.
-A deterministic parser $\psi:\mathcal{Y}\to\mathcal{C}$ extracts the first tool call
-$c_t = \psi(y_t)$,
-where $\mathcal{C}$ is the space of executable tool calls.
-The environment executes $c_t$ and returns textual output
-$o_t \in \text{Text}$.
-The next state is the history with both the assistant chunk and the tool output appended:
-$h_{t+1} = \text{append}(h_t, y_t, o_t)$.
+At step $t$ the state is the transcript prefix $h_t \in \mathcal{H}$, which contains the initial instruction and all prior assistant messages and tool outputs.
+The policy $\pi_\theta(\cdot \mid h_t)$ produces an assistant chunk $y_t \in \mathcal{Y}$.
+A deterministic parser $\psi:\mathcal{Y}\to\mathcal{C}$ extracts the first tool call $c_t = \psi(y_t)$, where $\mathcal{C}$ is the space of executable tool calls.
+The environment executes $c_t$ and returns textual output $o_t \in \text{Text}$.
+The next state is the history with both the assistant chunk and the tool output appended: $h_{t+1} = \text{append}(h_t, y_t, o_t)$.
 
 \paragraph{Trajectory and termination}
-A trajectory of length $T$ is the finite sequence
-$\tau = \{(h_t, y_t, c_t, o_t)\}_{t=0}^{T-1}$ with terminal transcript $h_T$.
+A trajectory of length $T$ is the finite sequence $\tau = \{(h_t, y_t, c_t, o_t)\}_{t=0}^{T-1}$ with terminal transcript $h_T$.
 Episodes terminate on success or when resource budgets are exhausted.
 
 \paragraph{Return}
 Intermediate rewards are zero.
-A scalar terminal return is computed from the terminal transcript,
-$R(\tau) \equiv R(h_T) \in \mathbb{R}$,
-and the objective is to maximize the expected return over trajectories induced by the policy:
-\begin{equation}
+A scalar terminal return is computed from the terminal transcript, $R(\tau) \equiv R(h_T) \in \mathbb{R}$, and the objective is to maximize the expected return over trajectories induced by the policy: \begin{equation}
 J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[ R(\tau) ]
 \end{equation}
 
@@ -369,8 +376,7 @@ When advantages are negative (indicating poor actions), we clip from below at $(
 The intuition behind \ac{GRPO} is elegantly simple: each policy update makes the model more likely to produce actions that performed relatively better than other actions tried at the same state, and less likely to produce actions that performed relatively worse.
 This creates a natural competitive dynamic where actions are evaluated against their peers rather than against an absolute baseline.
 
-Consider a concrete example: if for a given coding problem, the model generates five different debugging approaches with rewards $[0.1, 0.8, 0.3, 0.9, 0.2]$, \ac{GRPO} will:
-\begin{itemize}
+Consider a concrete example: if for a given coding problem, the model generates five different debugging approaches with rewards $[0.1, 0.8, 0.3, 0.9, 0.2]$, \ac{GRPO} will: \begin{itemize}
 	\item Strongly reinforce the action with reward $0.9$ (highest z-score)
 	\item Moderately reinforce the action with reward $0.8$ (second highest z-score)
 	\item Slightly penalize actions with rewards $0.3, 0.2, 0.1$ (below-average performance)
@@ -382,17 +388,13 @@ This relative ranking approach is particularly powerful for code repair where ab
 
 It's crucial to understand that \ac{GRPO} is not a fundamentally different algorithm from \ac{PPO}—it is \ac{PPO} with a specific choice of advantage estimation.
 The clipping mechanism, importance sampling, and optimization dynamics remain identical.
-The only change is replacing:
-\begin{equation}
+The only change is replacing: \begin{equation}
 \hat{A}_t^{PPO} = R_t - V_\phi(s_t)
-\end{equation}
-with:
-\begin{equation}
+\end{equation} with: \begin{equation}
 \hat{A}_t^{GRPO} = \frac{r_t - \mu_{\text{group}}}{\sigma_{\text{group}}}
 \end{equation}
 
-This substitution eliminates the need for:
-\begin{itemize}
+This substitution eliminates the need for: \begin{itemize}
 	\item Training a separate value network $V_\phi$
 	\item Computing value loss $L^{VF}(\phi)$
 	\item Managing value network hyperparameters
@@ -470,8 +472,7 @@ A practical surrogate for the KL term at the sampled output is \begin{equation}
     \text{KL}(\pi_{\theta}\,\|\,\pi_{\text{ref}}) = \mathbb{E}_t\left[\text{KL}\left(\sigma(z_{\theta}(h_t))\,\|\,\sigma(z_{\text{ref}}(h_t))\right)\right].
 \end{equation}
 
-\subsection{Group Sequence Policy Optimization (GSPO)}
-\label{subsec:gspo}
+\subsection{Group Sequence Policy Optimization (GSPO)} \label{subsec:gspo}
 
 While \ac{GRPO} offers computational efficiency over traditional \ac{PPO}, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool-use scenarios~\cite{zheng2025groupsequencepolicyoptimization}.
 \ac{GSPO} addresses these fundamental limitations through a theoretically grounded reformulation of the importance sampling mechanism.
@@ -482,8 +483,7 @@ The core instability in \ac{GRPO} stems from its token-level importance ratios.
 When training models for multi-turn interactions with coding agents, this becomes especially problematic due to numerical discrepancies between logits generated during fast inference (using engines like vLLM) and those computed during training.
 These discrepancies compound across long sequences, creating high-variance training noise that progressively destabilizes the model.
 
-For our specific use case—training models to use tools iteratively across multiple turns—this instability manifests as:
-\begin{itemize}
+For our specific use case—training models to use tools iteratively across multiple turns—this instability manifests as: \begin{itemize}
 	\item Catastrophic forgetting of tool-use patterns mid-training
 	\item Divergence between inference and training behavior
 	\item Irreversible model collapse when sequences exceed typical lengths
@@ -607,7 +607,6 @@ Recent research has examined \ac{LoRA}'s representational capacity and limitatio
 Higher ranks provide more flexibility but reduce computational savings.
 
 The combination of \ac{LoRA}'s efficiency with online \ac{RL} creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
-
 
 \section{Sampling Strategies}
 \label{sec:sampling-strategies}

@@ -121,7 +121,7 @@ The overarching goal of this thesis is to develop and empirically validate an on
 To make this goal concrete, we address the following research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
 
 \textbf{RQ1: Does the trained model adapt to the harness (tools and prompts)?
-	% This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
+% This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
 }
 \begin{itemize}
 	\item Primary indicators: increasing reward, tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity
@@ -129,7 +129,7 @@ To make this goal concrete, we address the following research questions aligned 
 \end{itemize}
 
 \todoinline{should be how much of the gains can be attributed to the specific model being post-trained.
-	Common failure point of recent papers only training Qwen}	\textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?
+Common failure point of recent papers only training Qwen}	\textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?
 }
 \begin{itemize}
 	\item Goal: validate that our training recipe generalizes beyond the Qwen3 family used for development.
@@ -184,8 +184,8 @@ Data collection encompasses multiple complementary sources: detailed logs of age
 We employ both the \ac{SWE-Gym} environment for training, which provides thousands of real-world Python bug-fixing tasks, and \ac{SWE-Bench} for evaluation, ensuring robust assessment on human-verified bug fixes.
 
 \todoinline{SWE-Bench?
-	Verified?
-	R2E?
+Verified?
+R2E?
 }
 
 Statistical analysis includes significance testing for performance differences, learning curve analysis to understand training dynamics, and qualitative examination of agent behaviors to identify emergent strategies.
@@ -225,7 +225,7 @@ Additionally, our evaluation emphasizes single-commit bug fixes rather than comp
 \textbf{Agent Implementation}: Our Nano agent represents a deliberately minimalist approach to agent design, providing only essential terminal commands and file operations.
 While this simplicity enables clean experimental validation of the \ac{RL} approach, more sophisticated tool sets could potentially yield different performance characteristics.
 
-\textbf{Methodological Boundaries}: We briefly explored distillation via \ac{SFT}, but did not pursue it further due to limited empirical benefit and because reliance on proprietary teacher models would run counter to the thesis objective of advancing open RL training for agentic coding behaviour.
+\textbf{Methodological Boundaries}: We briefly explored distillation via \ac{SFT}, but did not pursue it further due to limited empirical benefit and because reliance on proprietary teacher models would run counter to the thesis objective of advancing open \ac{RL} training for agentic coding behaviour.
 
 \section{Outline}
 \label{sec:intro-outline}

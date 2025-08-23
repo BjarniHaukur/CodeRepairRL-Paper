@@ -74,30 +74,6 @@
   year={2025}
 }
 
-@INPROCEEDINGS{genProg2012,
-  author={Le Goues, Claire and Dewey-Vogt, Michael and Forrest, Stephanie and Weimer, Westley},
-  booktitle={2012 34th International Conference on Software Engineering (ICSE)}, 
-  title={A systematic study of automated program repair: Fixing 55 out of 105 bugs for \$8 each}, 
-  year={2012},
-  volume={},
-  number={},
-  pages={3-13},
-  keywords={Maintenance engineering;Computer bugs;Cloud computing;Benchmark testing;Systematics;Open source software;Genetic programming;genetic programming;automated program repair;cloud computing},
-  doi={10.1109/ICSE.2012.6227211}
-}
-
-@INPROCEEDINGS{PAR2013,
-  author={Kim, Dongsun and Nam, Jaechang and Song, Jaewoo and Kim, Sunghun},
-  booktitle={2013 35th International Conference on Software Engineering (ICSE)}, 
-  title={Automatic patch generation learned from human-written patches}, 
-  year={2013},
-  volume={},
-  number={},
-  pages={802-811},
-  keywords={Fault location;Computer bugs;Context;Semantics;Manuals;Arrays;Maintenance engineering},
-  doi={10.1109/ICSE.2013.6606626}
-}
-
 @misc{qwen2024,
   title={Qwen Technical Report},
   author={Bai, Jinze and Bai, Shuai and Chu, Yunfei and Cui, Zeyu and Dang, Kai and Deng, Xiaodong and Fan, Yang and Ge, Wenbin and Han, Yu and Huang, Fei and others},
@@ -222,7 +198,7 @@
       url={https://arxiv.org/abs/2309.06180}, 
 }
 
-@misc{swe_bench,
+@misc{sweBench2024,
     title={SWE-bench: Can Language Models Resolve Real-World GitHub Issues?}, 
     author={Carlos E. Jimenez and John Yang and Alexander Wettig and Shunyu Yao and Kexin Pei and Ofir Press and Karthik Narasimhan},
     year={2024},
@@ -232,6 +208,13 @@
     url={https://arxiv.org/abs/2310.06770}, 
 }
 
+@article{sweBenchVerified2024,
+  author       = {{OpenAI}},
+  title        = {Introducing SWE-bench Verified},
+  howpublished = {\url{https://openai.com/index/introducing-swe-bench-verified/}},
+  year         = {2024},
+  note         = {Updated 2025-02-24. Accessed 2025-08-23}
+}
 @article{multiswebench2024,
   title={Multi-SWE-bench: Are LLMs Proficient Problem Solvers beyond Python?},
   author={Wang, Albert and Singh, Inderjeet and Blanco-Cuaresma, Sergi},
@@ -247,13 +230,6 @@
       archivePrefix={arXiv},
       primaryClass={cs.CL},
       url={https://arxiv.org/abs/2310.06770}, 
-}
-
-@article{sweBenchVerified2024,
-  title={SWE-bench-verified: A Curated Subset of Real-world Software Engineering Problems},
-  author={Jimenez, Carlos E and Yang, John and Wettig, Alexander},
-  journal={arXiv preprint arXiv:2403.11506},
-  year={2024}
 }
 
 @article{swegym2024,
@@ -283,8 +259,36 @@
 @misc{tbench_2025,
       title={Terminal-Bench: A Benchmark for AI Agents in Terminal Environments}, 
       url={https://github.com/laude-institute/terminal-bench}, 
-      author={The Terminal-Bench Team}, year={2025}, month={Apr}
-} 
+      author={The Terminal-Bench Team}, year={2025}, month={Apr},
+}
+
+@software{openaiCodexCLIRepo,
+  author   = {{OpenAI}},
+  title    = {Codex CLI},
+  version  = {rust-v0.23.0},
+  date     = {2025-08-20},
+  url      = {https://github.com/openai/codex},
+  note     = {GitHub release tag rust-v0.23.0},
+  urldate  = {2025-08-23}
+}
+
+@online{claudeCode,
+  author   = {{Anthropic PBC}},
+  title    = {Claude Code: Overview and Docs},
+  url      = {https://docs.anthropic.com/en/docs/claude-code/overview},
+  note     = {Product documentation},
+  urldate  = {2025-08-23}
+}
+
+@software{geminiCLIRepo,
+  author   = {{Google}},
+  title    = {Gemini CLI},
+  version  = {v0.3.0-nightly.20250823.1a89d185},
+  date     = {2025-08-23},
+  url      = {https://github.com/google-gemini/gemini-cli},
+  note     = {GitHub release tag; use a stable tag if citing a non-nightly build},
+  urldate  = {2025-08-23}
+}
 
 
 @article{bitterLesson2019,
@@ -315,7 +319,7 @@
       url={https://arxiv.org/abs/2301.13816}, 
 }
 
-@misc{chen2021evaluatinglargelanguagemodels,
+@misc{chen2021evaluatinglargelanguagemodels2021,
       title={Evaluating Large Language Models Trained on Code}, 
       author={Mark Chen and Jerry Tworek and Heewoo Jun and Qiming Yuan and Henrique Ponde de Oliveira Pinto and Jared Kaplan and Harri Edwards and Yuri Burda and Nicholas Joseph and Greg Brockman and Alex Ray and Raul Puri and Gretchen Krueger and Michael Petrov and Heidy Khlaaf and Girish Sastry and Pamela Mishkin and Brooke Chan and Scott Gray and Nick Ryder and Mikhail Pavlov and Alethea Power and Lukasz Kaiser and Mohammad Bavarian and Clemens Winter and Philippe Tillet and Felipe Petroski Such and Dave Cummings and Matthias Plappert and Fotios Chantzis and Elizabeth Barnes and Ariel Herbert-Voss and William Hebgen Guss and Alex Nichol and Alex Paino and Nikolas Tezak and Jie Tang and Igor Babuschkin and Suchir Balaji and Shantanu Jain and William Saunders and Christopher Hesse and Andrew N. Carr and Jan Leike and Josh Achiam and Vedant Misra and Evan Morikawa and Alec Radford and Matthew Knight and Miles Brundage and Mira Murati and Katie Mayer and Peter Welinder and Bob McGrew and Dario Amodei and Sam McCandlish and Ilya Sutskever and Wojciech Zaremba},
       year={2021},
@@ -353,53 +357,146 @@
   year={2024}
 }
 
-@article{defects4j2014,
-  title={Defects4J: A Database of Existing Faults to Enable Controlled Testing Studies for Java Programs},
-  author={Just, René and Jalali, Darioush and Ernst, Michael D},
-  journal={Proceedings of the 2014 International Symposium on Software Testing and Analysis},
-  pages={437--440},
-  year={2014}
+@inproceedings{defects4J2014,
+  author = {Just, Ren\'{e} and Jalali, Darioush and Ernst, Michael D.},
+  title = {Defects4J: a database of existing faults to enable controlled testing studies for Java programs},
+  year = {2014},
+  isbn = {9781450326452},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/2610384.2628055},
+  doi = {10.1145/2610384.2628055},
+  abstract = {Empirical studies in software testing research may not be comparable, reproducible, or characteristic of practice. One reason is that real bugs are too infrequently used in software testing research. Extracting and reproducing real bugs is challenging and as a result hand-seeded faults or mutants are commonly used as a substitute. This paper presents Defects4J, a database and extensible framework providing real bugs to enable reproducible studies in software testing research. The initial version of Defects4J contains 357 real bugs from 5 real-world open source pro- grams. Each real bug is accompanied by a comprehensive test suite that can expose (demonstrate) that bug. Defects4J is extensible and builds on top of each program’s version con- trol system. Once a program is configured in Defects4J, new bugs can be added to the database with little or no effort. Defects4J features a framework to easily access faulty and fixed program versions and corresponding test suites. This framework also provides a high-level interface to common tasks in software testing research, making it easy to con- duct and reproduce empirical studies. Defects4J is publicly available at http://defects4j.org.},
+  booktitle = {Proceedings of the 2014 International Symposium on Software Testing and Analysis},
+  pages = {437–440},
+  numpages = {4},
+  keywords = {testing framework, real bugs, Bug database},
+  location = {San Jose, CA, USA},
+  series = {ISSTA 2014}
 }
 
-@article{defects4j2020,
-  title={The Defects4J Database and Framework for Research in Automated Debugging},
-  author={Just, René and Jalali, Darioush and Inozemtseva, Laura and Ernst, Michael D and Holmes, Reid and Fraser, Gordon},
-  journal={Software Testing, Verification and Reliability},
-  volume={30},
-  number={6},
-  year={2020}
+@inproceedings{quixBugs2017,
+  author = {Lin, Derrick and Koppel, James and Chen, Angela and Solar-Lezama, Armando},
+  title = {QuixBugs: a multi-lingual program repair benchmark set based on the quixey challenge},
+  year = {2017},
+  isbn = {9781450355148},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3135932.3135941},
+  doi = {10.1145/3135932.3135941},
+  abstract = {Recent years have seen an explosion of work in automated program repair. While previous work has focused exclusively on tools for single languages, recent work in multi-language transformation has opened the door for multi-language program repair tools. Evaluating the performance of such a tool requires having a benchmark set of similar buggy programs in different languages. We present QuixBugs, consisting of 40 programs translated to both Python and Java, each with a bug on a single line. The QuixBugs benchmark suite is based on problems from the Quixey Challenge, where programmers were given a short buggy program and 1 minute to fix the bug.},
+  booktitle = {Proceedings Companion of the 2017 ACM SIGPLAN International Conference on Systems, Programming, Languages, and Applications: Software for Humanity},
+  pages = {55–56},
+  numpages = {2},
+  keywords = {automated program repair, benchmark},
+  location = {Vancouver, BC, Canada},
+  series = {SPLASH Companion 2017}
 }
 
-@article{gitbugJava2023,
-  title={GitBug-Java: A Reproducible Benchmark for Java Program Repair},
-  author={Wang, Yuxiao and Li, Chunqiu Steven and Joty, Shafiq},
-  journal={arXiv preprint arXiv:2309.11044},
-  year={2023}
+@inproceedings{gitbugJava2024, series={MSR ’24},
+   title={GitBug-Java: A Reproducible Benchmark of Recent Java Bugs},
+   url={http://dx.doi.org/10.1145/3643991.3644884},
+   DOI={10.1145/3643991.3644884},
+   booktitle={Proceedings of the 21st International Conference on Mining Software Repositories},
+   publisher={ACM},
+   author={Silva, André and Saavedra, Nuno and Monperrus, Martin},
+   year={2024},
+   month=apr, pages={118–122},
+   collection={MSR ’24} }
+
+
+
+@ARTICLE{genProg2012,
+  author={Le Goues, Claire and Nguyen, ThanhVu and Forrest, Stephanie and Weimer, Westley},
+  journal={IEEE Transactions on Software Engineering}, 
+  title={GenProg: A Generic Method for Automatic Software Repair}, 
+  year={2012},
+  volume={38},
+  number={1},
+  pages={54-72},
+  keywords={Maintenance engineering;Encoding;Computer bugs;Automatic programming;Debugging;Syntactics;Automatic programming;corrections;testing and debugging.},
+  doi={10.1109/TSE.2011.104}}
+
+
+@INPROCEEDINGS{par2013,
+  author={Kim, Dongsun and Nam, Jaechang and Song, Jaewoo and Kim, Sunghun},
+  booktitle={2013 35th International Conference on Software Engineering (ICSE)}, 
+  title={Automatic patch generation learned from human-written patches}, 
+  year={2013},
+  volume={},
+  number={},
+  pages={802-811},
+  keywords={Fault location;Computer bugs;Context;Semantics;Manuals;Arrays;Maintenance engineering},
+  doi={10.1109/ICSE.2013.6606626}}
+
+@INPROCEEDINGS{semFix2013,
+  author={Nguyen, Hoang Duong Thien and Qi, Dawei and Roychoudhury, Abhik and Chandra, Satish},
+  booktitle={2013 35th International Conference on Software Engineering (ICSE)}, 
+  title={SemFix: Program repair via semantic analysis}, 
+  year={2013},
+  volume={},
+  number={},
+  pages={772-781},
+  keywords={Maintenance engineering;Computer bugs;Genetic programming;Input variables;Semantics;Syntactics;Educational institutions},
+  doi={10.1109/ICSE.2013.6606623}}
+
+@inproceedings{prophet2016,
+  author = {Long, Fan and Rinard, Martin},
+  title = {Automatic patch generation by learning correct code},
+  year = {2016},
+  isbn = {9781450335492},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/2837614.2837617},
+  doi = {10.1145/2837614.2837617},
+  abstract = {We present Prophet, a novel patch generation system that works with a set of successful human patches obtained from open- source software repositories to learn a probabilistic, application-independent model of correct code. It generates a space of candidate patches, uses the model to rank the candidate patches in order of likely correctness, and validates the ranked patches against a suite of test cases to find correct patches. Experimental results show that, on a benchmark set of 69 real-world defects drawn from eight open-source projects, Prophet significantly outperforms the previous state-of-the-art patch generation system.},
+  booktitle = {Proceedings of the 43rd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+  pages = {298–312},
+  numpages = {15},
+  keywords = {Code correctness model, Learning correct code, Program repair},
+  location = {St. Petersburg, FL, USA},
+  series = {POPL '16}
 }
 
-@article{openhands2024,
-  title={OpenHands: An Open Platform for AI Software Developers as Generalist Agents},
-  author={Wang, Xingyao and Chen, Boxuan and Li, Yufan and Zhang, Bowen and Liu, Zhengyang and Gao, Cheng and Huang, Yue and Li, Guanzhi and Zhang, Nan and Xu, Mengnan and others},
-  journal={arXiv preprint arXiv:2407.16741},
-  year={2024}
+@misc{chen2021evaluatinglargelanguagemodels,
+    title={Evaluating Large Language Models Trained on Code}, 
+    author={Mark Chen and Jerry Tworek and Heewoo Jun and Qiming Yuan and Henrique Ponde de Oliveira Pinto and Jared Kaplan and Harri Edwards and Yuri Burda and Nicholas Joseph and Greg Brockman and Alex Ray and Raul Puri and Gretchen Krueger and Michael Petrov and Heidy Khlaaf and Girish Sastry and Pamela Mishkin and Brooke Chan and Scott Gray and Nick Ryder and Mikhail Pavlov and Alethea Power and Lukasz Kaiser and Mohammad Bavarian and Clemens Winter and Philippe Tillet and Felipe Petroski Such and Dave Cummings and Matthias Plappert and Fotios Chantzis and Elizabeth Barnes and Ariel Herbert-Voss and William Hebgen Guss and Alex Nichol and Alex Paino and Nikolas Tezak and Jie Tang and Igor Babuschkin and Suchir Balaji and Shantanu Jain and William Saunders and Christopher Hesse and Andrew N. Carr and Jan Leike and Josh Achiam and Vedant Misra and Evan Morikawa and Alec Radford and Matthew Knight and Miles Brundage and Mira Murati and Katie Mayer and Peter Welinder and Bob McGrew and Dario Amodei and Sam McCandlish and Ilya Sutskever and Wojciech Zaremba},
+    year={2021},
+    eprint={2107.03374},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG},
+    url={https://arxiv.org/abs/2107.03374}, 
 }
 
-@article{repairllama2024,
-  title={RepairLLaMA: Efficient Representations and Fine-Tuned Adapters for Program Repair},
-  author={Silva, André and Fang, Sen and Monperrus, Martin},
-  journal={arXiv preprint arXiv:2312.15698},
-  year={2024}
+@online{stackoverflowSurvey2025,
+  author    = {{Stack Overflow}},
+  title     = {2025 Stack Overflow Developer Survey},
+  url       = {https://survey.stackoverflow.co/2025/},
+  urldate   = {2025-08-23},
+  year      = {2025},
+  note      = {Results site}
 }
 
-@article{sequencer2019,
-  title={Sequencer: Sequence-to-Sequence Learning for End-to-End Program Repair},
-  author={Chen, Zimin and Kommrusch, Steve and Tufano, Michele and Poshyvanyk, Denys and Monperrus, Martin},
-  journal={IEEE Transactions on Software Engineering},
-  volume={47},
-  number={9},
-  pages={1943--1959},
-  year={2019}
+
+% @article{sequencer2019,
+%   title={Sequencer: Sequence-to-Sequence Learning for End-to-End Program Repair},
+%   author={Chen, Zimin and Kommrusch, Steve and Tufano, Michele and Poshyvanyk, Denys and Monperrus, Martin},
+%   journal={IEEE Transactions on Software Engineering},
+%   volume={47},
+%   number={9},
+%   pages={1943--1959},
+%   year={2019}
+% }
+
+@online{gpt41_2025,
+  author  = {{OpenAI}},
+  title   = {Introducing GPT-4.1 in the API},
+  url     = {https://openai.com/index/gpt-4-1/},
+  date    = {2025-04-14},
+  urldate = {2025-08-23},
+  note    = {Product and research announcement}
 }
+
 
 @misc{claude4_2025,
   title={Claude 4: Building a New Era of AI Assistant Capabilities},
@@ -410,19 +507,13 @@
 }
 
 @misc{kimiK2_2025,
-  title={Kimi-K2 Technical Report},
-  author={MoonshotAI},
-  year={2025},
-  howpublished={\url{https://github.com/MoonshotAI/Kimi-K2/blob/main/tech_report.pdf}},
-  note={Open weight model technical documentation}
-}
-
-@misc{qwen3coder_blog_2025,
-  title={Qwen3-Coder: Agentic Coding in the World},
-  author={Qwen Team},
-  year={2025},
-  howpublished={\url{https://qwenlm.github.io/blog/qwen3-coder/}},
-  note={Blog post introducing Qwen3-Coder capabilities}
+    title={Kimi K2: Open Agentic Intelligence}, 
+    author={Kimi Team and Yifan Bai and Yiping Bao and Guanduo Chen and Jiahao Chen and Ningxin Chen and Ruijue Chen and Yanru Chen and Yuankun Chen and Yutian Chen and Zhuofu Chen and Jialei Cui and Hao Ding and Mengnan Dong and Angang Du and Chenzhuang Du and Dikang Du and Yulun Du and Yu Fan and Yichen Feng and Kelin Fu and Bofei Gao and Hongcheng Gao and Peizhong Gao and Tong Gao and Xinran Gu and Longyu Guan and Haiqing Guo and Jianhang Guo and Hao Hu and Xiaoru Hao and Tianhong He and Weiran He and Wenyang He and Chao Hong and Yangyang Hu and Zhenxing Hu and Weixiao Huang and Zhiqi Huang and Zihao Huang and Tao Jiang and Zhejun Jiang and Xinyi Jin and Yongsheng Kang and Guokun Lai and Cheng Li and Fang Li and Haoyang Li and Ming Li and Wentao Li and Yanhao Li and Yiwei Li and Zhaowei Li and Zheming Li and Hongzhan Lin and Xiaohan Lin and Zongyu Lin and Chengyin Liu and Chenyu Liu and Hongzhang Liu and Jingyuan Liu and Junqi Liu and Liang Liu and Shaowei Liu and T. Y. Liu and Tianwei Liu and Weizhou Liu and Yangyang Liu and Yibo Liu and Yiping Liu and Yue Liu and Zhengying Liu and Enzhe Lu and Lijun Lu and Shengling Ma and Xinyu Ma and Yingwei Ma and Shaoguang Mao and Jie Mei and Xin Men and Yibo Miao and Siyuan Pan and Yebo Peng and Ruoyu Qin and Bowen Qu and Zeyu Shang and Lidong Shi and Shengyuan Shi and Feifan Song and Jianlin Su and Zhengyuan Su and Xinjie Sun and Flood Sung and Heyi Tang and Jiawen Tao and Qifeng Teng and Chensi Wang and Dinglu Wang and Feng Wang and Haiming Wang and Jianzhou Wang and Jiaxing Wang and Jinhong Wang and Shengjie Wang and Shuyi Wang and Yao Wang and Yejie Wang and Yiqin Wang and Yuxin Wang and Yuzhi Wang and Zhaoji Wang and Zhengtao Wang and Zhexu Wang and Chu Wei and Qianqian Wei and Wenhao Wu and Xingzhe Wu and Yuxin Wu and Chenjun Xiao and Xiaotong Xie and Weimin Xiong and Boyu Xu and Jing Xu and Jinjing Xu and L. H. Xu and Lin Xu and Suting Xu and Weixin Xu and Xinran Xu and Yangchuan Xu and Ziyao Xu and Junjie Yan and Yuzi Yan and Xiaofei Yang and Ying Yang and Zhen Yang and Zhilin Yang and Zonghan Yang and Haotian Yao and Xingcheng Yao and Wenjie Ye and Zhuorui Ye and Bohong Yin and Longhui Yu and Enming Yuan and Hongbang Yuan and Mengjie Yuan and Haobing Zhan and Dehao Zhang and Hao Zhang and Wanlu Zhang and Xiaobin Zhang and Yangkun Zhang and Yizhi Zhang and Yongting Zhang and Yu Zhang and Yutao Zhang and Yutong Zhang and Zheng Zhang and Haotian Zhao and Yikai Zhao and Huabin Zheng and Shaojie Zheng and Jianren Zhou and Xinyu Zhou and Zaida Zhou and Zhen Zhu and Weiyu Zhuang and Xinxing Zu},
+    year={2025},
+    eprint={2507.20534},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG},
+    url={https://arxiv.org/abs/2507.20534}, 
 }
 
 @article{qwen3_2025,
@@ -430,6 +521,38 @@
   author={Qwen Team},
   journal={arXiv preprint arXiv:2505.09388},
   year={2025}
+}
+
+@misc{qwen3CoderBlog2025,
+  title={Qwen3-Coder: Agentic Coding in the World},
+  author={Qwen Team},
+  year={2025},
+  howpublished={\url{https://qwenlm.github.io/blog/qwen3-coder/}},
+  note={Blog post introducing Qwen3-Coder capabilities}
+}
+
+@software{qwenCodeCLI,
+  author  = {{Qwen Team}},
+  title   = {Qwen Code},
+  url     = {https://github.com/QwenLM/qwen-code},
+  note    = {Command-line agent harness; GitHub repository},
+  urldate = {2025-08-23}
+}
+
+@online{deepseek_v31_notes,
+  author  = {{DeepSeek}},
+  title   = {DeepSeek{-}V3.1 Release Notes},
+  url     = {https://api-docs.deepseek.com/news/news250821},
+  date    = {2025-08-21},
+  note    = {Product release notes},
+  urldate = {2025-08-23}
+}
+
+@article{openhands2024,
+  title={OpenHands: An Open Platform for AI Software Developers as Generalist Agents},
+  author={Wang, Xingyao and Chen, Boxuan and Li, Yufan and Zhang, Bowen and Liu, Zhengyang and Gao, Cheng and Huang, Yue and Li, Guanzhi and Zhang, Nan and Xu, Mengnan and others},
+  journal={arXiv preprint arXiv:2407.16741},
+  year={2024}
 }
 
 @misc{zheng2025groupsequencepolicyoptimization,
