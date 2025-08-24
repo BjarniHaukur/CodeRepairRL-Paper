@@ -60,6 +60,8 @@ The model does not learn the decision-making that drives repair—what to try ne
 The reward signal therefore entangles scaffold choices with model output, and the resulting histories are not suitable for end-to-end training.
 Agentless setups are excellent for reproducible evaluation and for collecting logs, but they are a poor fit when the goal is to train a model to use tools by itself.
 
+\todoinline{State that these methods often use LLMs as "functions" in these systems instead of end-to-end processes, meaning conversation histories are modified / restarted frequently which makes end-to-end learning hard / infeasible}
+
 \subsection{Agentic}\label{subsec:agentic}
 
 Agentic systems operate directly over a live repository and let the model initiate actions.
@@ -82,14 +84,34 @@ The model emits a well-formed function call with arguments, an external executor
 
 This approach transforms \acp{LLM} from passive text generators into systems capable of interacting with their environment by invoking tools and observing their results.
 
-As noted at the beginning of this section, frontier deployments increasingly pair model updates with first-party harnesses.
-Open-weight series echo this pattern while disclosing recipes only in part: Qwen3 reports multi-stage post-training with \ac{RL} and releases a matching harness (Qwen Code); Kimi-K2 describes an agentic data pipeline with general \ac{RL}; DeepSeek V3.1 details \ac{SFT}+\ac{RL} with strengthened tool use~\cite{qwen3CoderBlog2025,qwenCodeCLI,kimiK2_2025,deepseek_v31_notes}.
-Alongside these trends, recent research begins to train \emph{within} agentic interfaces: \emph{DeepSWE} reports a fully open source coding agent trained with \ac{RL} in a terminal environment.
+This shift has also shaped how models are packaged and evaluated: recent open-weight releases pair model checkpoints with first-party harnesses and report agent-style evaluations, while disclosing only partial training details.
+We summarize representative examples.
+
+\paragraph{Qwen3\textendash Coder (Alibaba/Qwen team).}
+Qwen3\textendash Coder is positioned as an \emph{agentic} coding model and ships with a first-party command-line harness (\emph{Qwen Code}) that drives repository-grounded autonomous workflows~\cite{qwen3CoderBlog2025,qwenCodeCLI}.
+The release materials emphasize agent behavior in realistic development loops and demonstrate how the paired harness surfaces those capabilities.
+At the same time, the post-training recipe—data generation, reward design, and optimization details—is described only at a high level; weights and the harness are available, but a reproducible end-to-end training pipeline is not.
+
+\paragraph{Kimi\textendash K2 (Moonshot AI).}
+Kimi-K2 details an \emph{agentic} data synthesis pipeline paired with a joint reinforcement learning stage that mixes real and synthetic environment interactions.
+\cite{kimiK2_2025}
+The stated goal is to shape multi-step decision making—tool selection, iterative trial-and-error, and revision—rather than single-pass text generation.
+The report frames this as necessary for repository-grounded coding and other multi-step tasks.
+As with Qwen3, model artifacts and high-level methodology are public, but the full training code and complete RL environment setup are not.
+
+\paragraph{GLM\textendash 4.5 (Zhipu AI).}
+GLM-4.5 presents a hybrid reasoning MoE with dedicated ``thinking'' and tool-use modes, and explicitly reports a comprehensive post-training phase combining expert iteration and reinforcement learning.
+\cite{glm45_2025}
+The release includes open weights and inference code as well as pointers for SFT/RL fine-tuning with common frameworks; however, a complete, reproducible agentic RL pipeline with environment traces is not provided.
+
+Taken together, these open-weight efforts converge on the same direction: agent-facing post-training that couples tool use, long-context coding, and multi-turn control.
+They document RL or agent-based post-training and evaluate on agentic tasks, but stop short of releasing fully reproducible training stacks (task generators, executors, rewarders, roll-out logging, and optimization code).
+In contrast, recent work such as \emph{DeepSWE} publicly reports an RL-trained coding agent within a terminal environment and releases open-weight models alongside practical training details, offering a rare end-to-end reference point for open agentic RL on software tasks.
+\cite{deepSWE2025}
 
 In practical terms, agentic systems close the loop between hypothesis and verification: the model requests an action, observes the real outcome, and can adjust.
 This makes online \ac{RL} feasible and aligns the learning signal with the deployed behavior.
 By contrast with agentless setups, the model is exposed to the full decision process of repair rather than a curated slice, so the resulting histories are suitable for end-to-end training.
-We defer algorithmic details to \cref{sec:rl-language-models}, which formalizes reinforcement learning for multi-turn tool use and reviews related methods.
 
 \section{\acl{RL} for Language Models}
 \label{sec:rl-language-models}
