@@ -10,129 +10,65 @@ We close with related work and limitations that motivate the minimalist agent an
 \section{Automated Program Repair before LLMs}\label{sec:apr-pre-llm}
 
 Prior to \acp{LLM}, empirical research in \ac{APR} centered on benchmarks that provide localized bugs with executable tests, typically single files or short patch sets.
-Canonical corpora include Defects4J for Java~\cite{defects4J2014}, QuixBugs for small algorithmic programs in Java and Python~\cite{quixBugs2017}, and the recent GitBug-Java, which refreshes evaluation with recent, reproducible bugs~\cite{gitbugJava2024}.
+Standard datasets include Defects4J for Java~\cite{defects4J2014}, QuixBugs for small algorithmic programs in Java and Python~\cite{quixBugs2017}, and the recent GitBug-Java, which introduces up-to-date, reproducible bugs~\cite{gitbugJava2024}.
 These datasets set the scope of most methods: the system observes a compact fault context and must propose a patch that satisfies the test suite.
 
 Within this setting, three families of approaches emerged.
-Generate-and-validate search explores a mutation space and accepts candidates that pass tests, with GenProg as a canonical example and PAR illustrating pattern guided patching~\cite{genProg2012,par2013}.
-Semantics based repair uses symbolic execution and constraint solving to synthesize expressions at instrumented locations, exemplified by SemFix~\cite{semFix2013}.
-Early learning based methods incorporate statistical guidance to prioritize candidates; Prophet learns a patch ranking model from past fixes~\cite{prophet2016}.
-Together, these lines established feasibility and clarified limitations of test adequacy as a correctness proxy, motivating the move to richer, repository grounded settings reviewed next.
+Generate-and-validate search explores a mutation space and accepts candidates that pass tests, with GenProg as a canonical example and PAR illustrating pattern-guided patching~\cite{genProg2012,par2013}.
+Semantics-based repair uses symbolic execution and constraint solving to synthesize expressions at instrumented locations, exemplified by SemFix~\cite{semFix2013}.
+Early learning-based methods incorporate statistical guidance to prioritize candidates; Prophet learns a patch ranking model from past fixes~\cite{prophet2016}.
+Together, these lines established feasibility and clarified limitations of test adequacy as a correctness proxy, motivating the move to richer, repository-grounded settings reviewed next.
 
 \section{Automated Program Repair with LLMs}
 \label{sec:apr-with-llms}
 
-Codex marked the inflection point where large pretrained models on code enabled practical repair and synthesis, shifting \ac{APR} from rules or search to learned edit priors~\cite{chen2021evaluatinglargelanguagemodels2021}.
-Since then, frontier labs have converged on repository-level evaluation and visibly compete on \ac{SWE-Bench} Verified~\cite{sweBench2024,sweBenchVerified2024}.
-In parallel, these systems increasingly ship first-party \emph{agent harnesses}—OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI}—that run in the terminal and orchestrate tool calls over repositories~\cite{openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
-We posit that these public harnesses closely mirror the internal environments used for large-scale post-training (including \ac{RL}) on coding agents, which helps explain their strong, rapidly improving results on repository-grounded tasks~\cite{claude4_2025, gpt41_2025}.
+Codex marked an inflection point where large pretrained models on code enabled practical repair and synthesis, shifting \ac{APR} from rules or search to learned edit priors~\cite{chen2021evaluatinglargelanguagemodels2021}.
+Since then, frontier labs have converged on repository-grounded evaluation (e.g., \ac{SWE-Bench} Verified) and increasingly ship first-party \emph{agent harnesses}—OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI}—that orchestrate tool calls over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
 
-Open-weight series follow the same trajectory while only partially disclosing training recipes.
-The Qwen3 technical report documents multi-stage post-training with \ac{RL} and explicit tool-use evaluation, and the code-specialized Qwen3-Coder is released together with a matching agent harness (\emph{Qwen Code}) that surfaces its programming abilities~\cite{qwen3CoderBlog2025,qwenCodeCLI}.
-Kimi-K2's report describes an agentic data pipeline combined with general \ac{RL} for code/agent tasks~\cite{kimiK2_2025}.
-DeepSeek's V3 report details \ac{SFT}+\ac{RL} stages, and the V3.1 release emphasizes strengthened tool use for multi-step agent tasks~\cite{deepseek_v31_notes}.
-This pattern—agentic models paired with first-party harnesses but incomplete recipe disclosure—motivates our focus on online \ac{RL} in a coding-agent environment with explicit terminal feedback.
+We therefore organize \ac{LLM}-assisted repair by the degree of autonomy at inference: (i) \emph{scaffold-free} models operating without an execution harness, (ii) \emph{agentless} scaffolds that curate repository context without centralized autonomy, and (iii) \emph{agentic} systems that plan and execute tools end-to-end.
+This taxonomy clarifies which capabilities are evaluated and how results transfer across settings.
 
-We organize \ac{LLM}-assisted repair by degree of autonomy: (i) manual prompting, (ii) agentless systems that scaffold repository context without autonomous tool use, and (iii) agentic systems that plan and execute tools.
-This taxonomy clarifies which capabilities are measured and how results transfer across settings.
+\subsection{Scaffold-free}\label{subsec:scaffold-free}
+Scaffold-free approaches frame repair as translation from buggy code to fixed code.
+The model receives a localized and self-contained context, typically a snippet or a single file with a narrow edit window, and proposes a patch in one interaction turn.
+There is no repository traversal, no tool use during generation, and no execution signal in the loop.
+Any tests are run outside the model after the fact.
 
-\subsection{Manual}
-\label{subsec:manual-prompting}
-\todoinline{nothing fancy here, just the tried and tested copy paste method, human crafts the context needed and parses the output into the repository, ill suited for large scale training since it requires human authored data}
-We define a prompt-only setting in which developers paste self-contained code snippets and natural-language instructions into a language model, and receive edited code as static output.
-The interaction is detached from repository state, build systems, and test feedback, and does not involve tool use.
-This mode has negligible setup cost and is common in practice, but it is not a faithful \ac{APR} setting because it obscures dependency structure and prevents executable validation.
-We treat it as a low-friction baseline to contextualize the benefits of repository-grounded, tool-using systems (e.g., action efficiency, invalid-call reduction, and correctness under tests).
-Comparisons to repository-grounded evaluations are indicative rather than isomorphic due to differences in available context and feedback.
+Within this regime we focus on post-training methods that adapt an existing \ac{LLM} for repair.
+A representative example is \emph{RepairLLaMA}, which fine-tunes a general code model on curated bug-fix pairs so that it proposes minimal and targeted edits without relying on an execution harness~\cite{repairllama2023}.
+A parallel thread brings \ac{RL} into the same scaffold-free setting at the function or snippet level.
+\emph{CodeRL} optimizes code generation with unit test execution as feedback while operating on localized contexts \cite{le2022coderlmasteringcodegeneration}.
 
-\subsection{Agentless}
-\label{subsec:agentless}
-\todoinline{context crafted by a system, system parses output}
-Agentless systems scaffold a structured conversation around a live repository without autonomous tool execution.
-Tools such as Aider exemplify this pattern: they manage file selection, propose patches, and inject contextual diffs, while a human (or scripted harness) remains responsible for running tests, shells, and version control.
-This framing preserves repository grounding and repeatability while avoiding autonomous planning and tool use.
-In our taxonomy, agentless systems are interfaces rather than agents; they clarify how much of \ac{APR} performance derives from careful context curation and patch formatting, distinct from autonomy.
-When included as a baseline, we report their configuration (prompt templates, file inclusion policies, and patch application rules) to enable fair comparison and replication.
+These setups are attractive because data and pipelines are simple, adaptation is straightforward, and inference is fast.
+It provides an effective baseline for measuring translation quality in localized contexts.
+Its limitations follow from the design: without an execution loop the model cannot test hypotheses, observe runtime behavior, or coordinate edits across files.
+Repository state and build systems remain external to generation.
 
-% \textbf{Aider}~\cite{aider2024} represents the heavyweight scaffolding approach, incorporating sophisticated features:
-% \begin{itemize}
-% 	\item \textit{Repository mapping}: Automatic generation of codebase summaries and dependency graphs
-% 	\item \textit{Multi-file coordination}: Tracking and maintaining consistency across file edits
-% 	\item \textit{Conversation memory}: Maintaining context across multiple interaction turns
-% 	\item \textit{Git integration}: Automatic commit generation and version management
-% \end{itemize}
+\subsection{Agentless}\label{subsec:agentless}
+Moving beyond scaffold-free translation, \emph{agentless} systems typically operate over a live repository while keeping execution outside the model.
+A thin scaffold retrieves relevant files, builds diffs, and structures the prompt; the model returns patch blocks or edit intents; a human or scripted harness runs tests and shell commands and applies the edits.
+This preserves repository grounding and repeatability without autonomous tool use.
 
-Current \ac{LLM}-based approaches exhibit several fundamental limitations that constrain their effectiveness:
+We treat agentless systems as interfaces rather than agents: they make the contributions of context curation and patch formatting explicit and easy to ablate.
+In practice, components inside the scaffold (retrievers, rankers, patch validators) can be trained, and logs from these pipelines support offline learning or imitation without exposing the model to a full tool loop.
+Representative analyses show that a simple three-stage pipeline (localize, repair, validate) can match or exceed more complex setups when the scaffold is well-engineered~\cite{xia2024agentlessdemystifyingllmbasedsoftware}.
+Related work begins to introduce reinforcement signals in repository settings while still short of a fully autonomous terminal loop, e.g., SWE-RL for repository-level reasoning~\cite{wei2025swerladvancingllmreasoning}.
 
-However, these approaches still operate within the fundamental constraint of single-pass generation without environmental feedback.
-% \textbf{Lack of environmental interaction}: Models cannot execute code, run tests, or observe runtime behavior, limiting their ability to understand dynamic program properties and verify correctness.% \textbf{Single-step generation}: Most models generate patches in a single forward pass without the ability to explore the codebase, test hypotheses, or iteratively refine solutions based on feedback.% \textbf{Limited context windows}: Even with recent advances extending context lengths to 128K+ tokens, models struggle to maintain coherent understanding across large codebases with complex dependencies.% \textbf{Poor multi-file coordination}: Real-world bugs often require coordinated changes across multiple files.% Current models frequently produce inconsistent edits that fail to maintain invariants across file boundaries.
+The limitation is structural.
+Because execution remains outside the model, the scaffold decides what to surface, when to run tests, and how to apply or revert edits.
+The model does not learn the decision-making that drives repair—what to try next, when to backtrack, when to submit or abandon a patch—because those choices live in the interface rather than in the policy.
+The reward signal therefore entangles scaffold choices with model output, and the resulting histories are not suitable for end-to-end training.
+Agentless setups are excellent for reproducible evaluation and for collecting logs, but they are a poor fit when the goal is to train a model to use tools by itself.
 
-Current approaches primarily rely on supervised fine-tuning on bug-fix datasets, where models learn to map broken code snippets to corrected versions.
-However, this paradigm has fundamental limitations when applied to real-world debugging scenarios.
+\subsection{Agentic}\label{subsec:agentic}
 
-The fundamental mismatch between training and deployment paradigms represents a critical challenge in automated program repair.
-During training, models learn from static datasets of bug-fix pairs, typically formatted as:
+Agentic systems operate directly over a live repository and let the model initiate actions.
+The model can open and edit files, run tests and shell commands, read raw outputs, and iterate until a patch is ready.
+Public research harnesses make this concrete: \emph{SWE-Agent} formalizes an agent-computer loop for software tasks, \emph{OpenHands} provides a general terminal-based platform for coding agents, and \emph{mini-swe-agent} shows that a small, disciplined tool set in a tight loop is effective~\cite{sweAgent2024,openhands2024, miniSWEAgentRepo}.
+Our Nano agent (\cref{sec:nano-agent}) adopts a similar minimalist philosophy, providing only essential terminal commands and file patching capabilities, allowing effective debugging behaviors to emerge through \ac{RL}.
 
-\begin{verbatim}
-<buggy_code>
-def calculate_average(numbers):
-    return sum(numbers) / len(numbers) + 1  # Bug: +1
-</buggy_code>
-
-<fixed_code>
-def calculate_average(numbers):
-    return sum(numbers) / len(numbers)
-</fixed_code>
-\end{verbatim}
-
-This training regime assumes that all necessary information for generating a fix is contained within the immediate code context.
-However, real-world debugging is inherently dynamic and exploratory:
-
-\textbf{Hypothesis formation and testing}: Developers form hypotheses about bug causes, test them through code execution or inspection, and iteratively refine their understanding.
-This exploratory process cannot be captured in static input-output pairs.
-
-\textbf{Dynamic information gathering}: Debugging often requires examining stack traces, variable values at runtime, test outputs, and log files—information absent from static training data but crucial for understanding bug manifestations.
-
-\textbf{Repository-level reasoning}: Real bugs exist within complex codebases where understanding requires tracing dependencies, examining calling contexts, and maintaining consistency across module boundaries.
-The average \ac{SWE-Bench} task involves understanding code spread across 6.3 files with complex interdependencies.
-
-\textbf{Iterative refinement}: Professional debugging rarely produces correct fixes on the first attempt.
-Developers test partial solutions, observe failures, and refine their approach—a fundamentally different process from single-shot generation.
-
-Sequence-to-sequence models, even when scaled to billions of parameters, struggle with these requirements for several reasons:
-
-\textbf{Lack of causal reasoning}: Models trained on correlational patterns in code changes cannot reliably perform the counterfactual reasoning required to understand why code fails and how changes will affect behavior.
-
-\textbf{Limited compositional generalization}: While models can memorize common bug patterns, they struggle to compose learned primitives in novel ways required for previously unseen bugs.
-
-\textbf{Absence of verification mechanisms}: Without the ability to execute code and observe outcomes, models cannot verify their proposed solutions or learn from failed attempts.
-
-This mismatch manifests concretely in evaluation results.
-On \ac{SWE-Bench}, even the most advanced models achieve less than 25\% success rates, while human developers solving the same tasks achieve over 90\% success rates when given appropriate time and tools.
-The gap highlights not just a quantitative difference in performance, but a qualitative difference in problem-solving approach.
-
-Addressing this mismatch requires moving beyond supervised learning on static datasets toward online learning paradigms where models can explore, test, and refine solutions in realistic development environments—precisely the motivation for online reinforcement learning explored in this thesis.
-
-\subsection{Agentic}
-\label{subsec:agentic}
-\todoinline{attains context autonomously, edits files autonomously, via tools}
-Agentic systems plan and execute tool calls autonomously (e.g., running tests, editing files, invoking shells and version control), using repository feedback loops to guide repair.
-Our focus is a single minimalist agent (the Nano agent) that exposes only essential tools and is trained with reinforcement learning to improve adaptation: reducing invalid tool calls, increasing action efficiency, and improving correctness under tests.
-We study whether a single training recipe learned on \ac{SWE-Gym} transfers to evaluations on \ac{SWE-Bench} and \ac{Multi-SWE-Bench} without overfitting, and whether the recipe transfers across base models without bespoke engineering.
-We also examine zero-shot transfer to other agentic coding interfaces and terminal-oriented tasks, framing these as out-of-distribution checks on the learned interaction policy rather than as separate scaffolds.
-
-Practically, these systems materialize via structured tool calling: the model emits well-formed function calls that external executors run, and their outputs are appended to the transcript.
-This closes the loop between hypothesis and verification and makes online \ac{RL} feasible; see Section~\ref{sec:rl-language-models} for the formalization we adopt.
-Throughout, we prioritize reproducibility via fixed tool \acs{API}s, deterministic evaluation harnesses, and explicit reporting of prompts and environment assumptions.
-
-The integration of language models with dynamic programming environments has opened new possibilities for automated software engineering, enabling models to perform complex, multi-step reasoning tasks.
-The predominant approach for creating agentic LLMs is through tool calling—enabling models to interact with external systems, execute commands, and observe results.
-
-% (Former subheading removed; keep content inline to avoid extra subsections.)
-
-The ability for language models to interact with external tools represents a fundamental shift from purely generative models to agentic systems capable of performing complex, multi-step tasks in real environments.
-Modern \acp{LLM} implement tool calling through structured output generation, where models produce specially formatted function calls that can be parsed and executed by external systems:
-
+Operationally, these systems rely on structured tool calls, typically via \acs{JSON}.
+The model emits a well-formed function call with arguments, an external executor runs it, and the resulting output is returned to the model.
 \begin{verbatim}
 {
   "function_name": "apply_patch",
@@ -144,87 +80,31 @@ Modern \acp{LLM} implement tool calling through structured output generation, wh
 }
 \end{verbatim}
 
-This structured approach, typically implemented using \acs{JSON}, transforms language models from passive text generators into systems capable of interacting with their environment by invoking tools and observing their results.
+This approach transforms \acp{LLM} from passive text generators into systems capable of interacting with their environment by invoking tools and observing their results.
 
-Tool calling fundamentally changes the \ac{RL} training dynamics in several ways.
-First, it introduces discrete action spaces where tool invocations have clear semantic meanings, simplifying reward attribution compared to continuous text generation.
-Second, tool execution provides immediate, structured feedback that creates richer training signals than language-based responses alone.
-Third, it requires compositional reasoning where models must learn to combine multiple tool calls into coherent strategies, developing planning capabilities beyond single-step generation.
+As noted at the beginning of this section, frontier deployments increasingly pair model updates with first-party harnesses.
+Open-weight series echo this pattern while disclosing recipes only in part: Qwen3 reports multi-stage post-training with \ac{RL} and releases a matching harness (Qwen Code); Kimi-K2 describes an agentic data pipeline with general \ac{RL}; DeepSeek V3.1 details \ac{SFT}+\ac{RL} with strengthened tool use~\cite{qwen3CoderBlog2025,qwenCodeCLI,kimiK2_2025,deepseek_v31_notes}.
+Alongside these trends, recent research begins to train \emph{within} agentic interfaces: \emph{DeepSWE} reports a fully open source coding agent trained with \ac{RL} in a terminal environment.
 
-For code repair specifically, tool calling enables models to perform the exploratory debugging process that characterizes human problem-solving: forming hypotheses, testing them through code execution, observing failures, and iteratively refining solutions.
-The integration of tool calling with \ac{RL} training enables models to learn not just what tools to use, but when and how to use them effectively—a capability that supervised learning on static datasets cannot provide.
+In practical terms, agentic systems close the loop between hypothesis and verification: the model requests an action, observes the real outcome, and can adjust.
+This makes online \ac{RL} feasible and aligns the learning signal with the deployed behavior.
+By contrast with agentless setups, the model is exposed to the full decision process of repair rather than a curated slice, so the resulting histories are suitable for end-to-end training.
+We defer algorithmic details to \cref{sec:rl-language-models}, which formalizes reinforcement learning for multi-turn tool use and reviews related methods.
 
-% (Former subheading removed; keep content inline or move to related work if needed.)
-
-% Modern coding agents combine language models with tool access, allowing them to navigate codebases, execute commands, and iteratively refine solutions.
-
-% Several sophisticated coding agent frameworks have emerged, each representing different philosophies in agent design and human-\ac{AI} collaboration:
-
-% \textbf{GitHub Copilot Workspace}~\cite{copilotWorkspace2024} extends the original Copilot paradigm beyond code completion to full task planning and execution.
-% It employs a multi-agent architecture where specialized agents handle different aspects of software development—understanding requirements, generating implementations, and managing version control.
-% On proprietary evaluations, it achieves approximately 30\% task completion rates for well-specified programming tasks.
-
-% \textbf{Cursor}~\cite{cursor2024} pioneered the \ac{IDE}-integrated agent approach, providing context-aware code generation within the development environment.
-% Its key innovation lies in automatic context retrieval, using embedding-based search to identify relevant code sections across large codebases.
-% This approach achieves strong performance on code completion tasks but has not been formally evaluated on repair benchmarks.
-
-% \textbf{SWE-Agent}
-% and mini-swe-agent
-
-% \textbf{OpenHands (formerly OpenDevin)}~\cite{openhands2024} and \textbf{SWE-Agent}~\cite{sweAgent2024} represent the state-of-the-art in autonomous software engineering agents. These systems provide:
-% \begin{itemize}
-% 	\item Full shell access within sandboxed environments
-% 	\item Web browsing capabilities for documentation lookup
-% 	\item Persistent workspace management across sessions
-% 	\item Sophisticated error recovery and retry mechanisms
-% \end{itemize}
-%
-% \textbf{Claude Code}
-
-\todoinline{Make this more about: "Hey these agents exist and are obviously impactful." Then explain that those like Aider are not training compliant (modifies rollout histories)}
-
-\textbf{Fitting model to scaffold vs Fitting scaffold to model}
-\todoinline{sloppy}
-\todoinline{Claude Code should illustrate the power of not only making your models good, but making them excel in the environment in which they are deployed (probably trained internally with something highly similar to the Claude Code we use.)}
-\todoinline{This is a recurring theme in the industry, Claude -> Claude Code, o3 -> codex, Gemini -> Gemini \ac{CLI}, Qwen3 coder -> Qwen Coder, etc.}
-
-Most existing systems operate exclusively at inference time—they provide scaffolding and tools to pre-trained language models but do not integrate these capabilities into the training process.
-This creates a fundamental limitation:
-
-\textbf{Static tool usage patterns}: Models must adapt to tools they were never trained to use, leading to suboptimal usage patterns and frequent errors in tool invocation.
-
-\textbf{Lack of co-adaptation}: The model cannot learn to leverage specific tool capabilities or develop strategies tailored to the available action space.
-
-\textbf{No reinforcement of successful patterns}: When an agent successfully completes a task using a particular tool sequence, this success does not improve future performance—each task starts from scratch.
-
-\textbf{Misaligned representations}: Pre-trained models develop representations optimized for text generation, not for planning tool-based interactions in structured environments.
-
-Integrating agent scaffolding directly into the reinforcement learning training loop.
-This enables:
-
-\begin{itemize}
-	\item \textbf{Learned tool usage}: Models develop strategies for when and how to use available tools through trial and error
-	\item \textbf{Co-evolution}: Model parameters and action policies evolve together, creating tight integration
-	\item \textbf{Experience-based improvement}: Successful debugging patterns are reinforced, building expertise over time
-	\item \textbf{Emergent strategies}: Models can discover novel tool combinations and workflows not anticipated by designers
-\end{itemize}
-
-This training-time integration represents the core innovation of our approach, potentially bridging the gap between current agent capabilities and human-level performance on complex software engineering tasks.
-
-\section{Reinforcement Learning for Language Models}
+\section{\acl{RL} for Language Models}
 \label{sec:rl-language-models}
 
-Reinforcement learning has emerged as a powerful technique for improving language model performance beyond what supervised learning alone can achieve, particularly for tasks requiring sequential decision-making and optimization of complex objectives.
+\ac{RL} has emerged as a powerful technique for improving language model performance beyond what supervised learning alone can achieve, particularly for tasks requiring sequential decision-making and optimization of complex objectives.
 Unlike supervised learning, which relies on fixed input-output pairs, \ac{RL} enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
 
-\subsection{History-Based MDP Formulation}
-\label{subsec:mdp-history}
+\subsection{History-Based \ac{MDP}
+Formulation} \label{subsec:mdp-history}
 
-We model interactive code repair as a history-based MDP where time indexes executed tool calls rather than individual tokens.
+We model interactive code repair as a history-based \ac{MDP} where time indexes executed tool calls rather than individual tokens.
 The environment state (repository, filesystem) is never exposed directly; it influences the process only through tool outputs that are appended to the conversation transcript.
 
-\paragraph{MDP tuple}
-Let $\mathcal{M} = (\mathcal{H}, \mathcal{Y}, \mathcal{P}, r, \gamma)$ be the MDP.
+\paragraph{\ac{MDP} tuple}
+Let $\mathcal{M} = (\mathcal{H}, \mathcal{Y}, \mathcal{P}, r, \gamma)$ be the \ac{MDP}.
 Here $\mathcal{H}$ is the set of text histories, and $\mathcal{Y}$ is the set of assistant-authored chunks that contain at least one well-formed tool call.
 The transition kernel $\mathcal{P}$ maps a current history and an assistant chunk to a distribution over next histories after executing the tool call and appending its output.
 We use $\gamma=1$ for finite episodes with terminal returns.
@@ -474,7 +354,7 @@ A practical surrogate for the KL term at the sampled output is \begin{equation}
 
 \subsection{Group Sequence Policy Optimization (GSPO)} \label{subsec:gspo}
 
-While \ac{GRPO} offers computational efficiency over traditional \ac{PPO}, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool-use scenarios~\cite{zheng2025groupsequencepolicyoptimization}.
+While \ac{GRPO} offers computational efficiency over traditional \ac{PPO}, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool use scenarios~\cite{zheng2025groupsequencepolicyoptimization}.
 \ac{GSPO} addresses these fundamental limitations through a theoretically grounded reformulation of the importance sampling mechanism.
 
 \subsubsection{The Stability Problem in GRPO}
@@ -614,7 +494,7 @@ The combination of \ac{LoRA}'s efficiency with online \ac{RL} creates opportunit
 The temperature parameter in language model sampling directly controls the exploration-exploitation trade-off during inference.
 Higher temperatures increase randomness and exploration of diverse solutions, while lower temperatures favor exploitation of high-probability actions.
 Critically, deterministic sampling (temperature=0) prevents any exploration, making it unsuitable for reinforcement learning where the agent must discover new strategies through trial and error.
-During RL training, we typically use temperature values between 0.7 and 1.0 to balance exploration of novel debugging approaches with exploitation of learned patterns (see Appendix~\ref{app:sampling-params} for detailed sampling parameters).
+During \ac{RL} training, we typically use temperature values between 0.7 and 1.0 to balance exploration of novel debugging approaches with exploitation of learned patterns (see \cref{app:sampling-params} for detailed sampling parameters).
 
 \section{Evaluation Benchmarks}
 \label{sec:evaluation-benchmarks}
@@ -724,51 +604,18 @@ The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluat
 
 % These challenges make \ac{SWE-Bench} an ideal testbed for online training, where models can learn through environmental interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
 
-\section{Related Work}
-\label{sec:related-work}
-
-This section synthesizes prior research most directly relevant to our approach, highlighting gaps that this thesis addresses.
-
-This section synthesizes the most directly relevant prior work across three critical dimensions, highlighting the significant gaps our research addresses.
-
-\subsubsection{Reinforcement Learning for Code Tasks}
-
-\textbf{CodeRL}~\cite{le2022coderlmasteringcodegeneration} pioneered applying \ac{RL} to code generation, using unit test execution as rewards.
-However, it focused on single-function synthesis rather than repository-scale debugging.
-
-\textbf{PPOCoder}~\cite{shojaee2023executionbasedcodegenerationusing} extended CodeRL with proximal policy optimization but maintained the limitation of single-file, single-step generation.
-The work demonstrated improved sample efficiency but did not address the fundamental mismatch between training and real-world debugging workflows.
-
-% \textbf{RLTF}~\cite{liu2023rltfreinforcementlearningunit} (Reinforcement Learning from Unit Test Feedback) introduced more sophisticated reward shaping using test coverage and execution traces.
-% While innovative, it still operated on isolated functions without repository context or tool usage.
-
-\textbf{SWE-RL}~\cite{wei2025swerladvancingllmreasoning} introduced a static, single-turn formulation—where a model given full file contexts produces a patch after a reasoning step.
-\todoinline{elaborate}
-
-\textbf{DeepSWE}~\cite{deepswe2025} is highly similar to our work and validates our approach.
-I.e. they do GRPO on multi-turn, terminal using coding agents with an async inference engine setup.
-They use 64 H100s for training, 8 H100s for inference and trained for 6 days on R2EGym, in total ~$10368$ H100 hours.
-In contrast, we train for ~2 days on 6 A100s ~$288$ A100 hours, and by normalizing by throughput between these two we can safely assume that $1\text{H100 hour} \approx 2.2\text{A100 hours}$ so: we use $~80$x less compute.
-They used test based rewards.
-Our novelty is being way more compute efficient and using test-free rewards, meaning we can trivially extend our method to any programming language.
-\todoinline{important to make this much better}
-
-\section{Limitations of existing work}
-\label{sec:limitations-existing}
-\textbf{Focus on generation rather than repair}: Existing approaches predominantly emphasize code generation, yet creating new code differs fundamentally from the process of debugging and repairing existing systems.
-This distinction is crucial, as effective automated program repair requires models to reason about and modify complex, pre-existing codebases rather than synthesizing code from scratch.
-
-\textbf{Isolated task formulation}: Many prior works formulate tasks at the level of single functions, thereby neglecting the intricate interdependencies and architectural complexity inherent in real-world software systems.
-This simplification limits the ability of models to generalize to practical debugging scenarios, where understanding interactions across multiple files and modules is essential.
-
-\textbf{Lack of environmental interaction}: Previous methods typically do not incorporate exploration, tool usage, or iterative refinement into their training regimes.
-As a result, models are deprived of opportunities to learn through active engagement with their environment, which is a key aspect of effective debugging and repair in realistic settings.
-
-\textbf{Dependence on test-based rewards}: While relying on test-based rewards can, in principle, provide robust supervision, this strategy becomes increasingly impractical as the number of supported programming languages expands.
-Constructing and maintaining comprehensive test suites for each language introduces significant operational challenges, thereby limiting the scalability and applicability of these approaches.
-
 \section{Summary and Research Positioning}
 \label{sec:summary-positioning}
+
+\textbf{DeepSWE}~\cite{deepswe2025} is highly similar to our work and validates our approach.
+That is, they apply \ac{GRPO} on multi-turn, terminal-based coding agents with an asynchronous inference engine setup.
+They used 64 H100s for training, 8 H100s for inference, and trained for 6 days on R2EGym, totaling ~$10368$ H100-hours.
+In contrast, we train for ~2 days on 6 A100s (~$288$ A100-hours).
+Normalizing by throughput, we conservatively estimate that $1\text{ H100-hour} \approx 2.2\text{ A100-hours}$; thus, we use ~$80\times$ less compute.
+They used test-based rewards.
+In contrast, we adopt an execution-free, patch-similarity reward, building on the patch-based signal introduced by SWE-RL~\cite{wei2025swerladvancingllmreasoning}.
+This choice reduces engineering friction—avoiding per-repository test harnesses and heavyweight containerization—and enables concurrent training across heterogeneous environments and programming languages.
+Our approach is also significantly more compute-efficient, as noted above; detailed design considerations are deferred to the methods chapter.
 
 This chapter has established the theoretical and empirical foundations for online \ac{RL} applied to \ac{APR}.
 By examining the evolution from rule-based repair systems to modern \ac{LLM}-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and the dynamic nature of debugging.
@@ -781,7 +628,7 @@ By providing only essential tools and relying on learning, we demonstrate that e
 
 This thesis makes three fundamental contributions to the field:
 
-\textbf{One of the First open-source online RL implementation for \acp{LLM}}: We provide the research community with complete infrastructure for training language models through interactive environmental experience.
+\textbf{One of the first open-source online \ac{RL} implementations for \acp{LLM}}: We provide the research community with complete infrastructure for training language models through interactive environmental experience.
 This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary.
 Our implementation enables researchers to explore online learning across diverse domains beyond code repair.
 
@@ -789,5 +636,19 @@ Our implementation enables researchers to explore online learning across diverse
 
 \textbf{Bridge between research and practice}: By demonstrating that models can learn effective debugging strategies through \ac{RL} in realistic environments, we bridge the gap between academic research on program repair and practical tools used by developers.
 Our approach shows that the future of coding assistance lies not in ever-more-sophisticated prompt engineering, but in models that learn from experience.
+
+\subsection{Limitations of existing work}
+\label{sec:limitations-existing}
+\textbf{Focus on generation rather than repair}: Existing approaches predominantly emphasize code generation, yet creating new code differs fundamentally from the process of debugging and repairing existing systems.
+This distinction is crucial, as effective automated program repair requires models to reason about and modify complex, pre-existing codebases rather than synthesizing code from scratch.
+
+\textbf{Isolated task formulation}: Many prior works formulate tasks at the level of single functions, thereby neglecting the intricate interdependencies and architectural complexity inherent in real-world software systems.
+This simplification limits the ability of models to generalize to practical debugging scenarios, where understanding interactions across multiple files and modules is essential.
+
+\textbf{Lack of environmental interaction}: Previous methods typically do not incorporate exploration, tool usage, or iterative refinement into their training regimes.
+As a result, models are deprived of opportunities to learn through active engagement with their environment, which is a key aspect of effective debugging and repair in realistic settings.
+
+\textbf{Dependence on test-based rewards}: While relying on test-based rewards can, in principle, provide robust supervision, this strategy becomes increasingly impractical as the number of supported programming languages expands.
+Constructing and maintaining comprehensive test suites for each language introduces significant operational challenges, thereby limiting the scalability and applicability of these approaches.
 
 As we proceed to describe our method in detail, keep in mind that our goal is not merely to improve performance metrics on benchmarks, but to demonstrate a fundamentally different, nascent training approach that enables \acp{LLM} to learn not from labeled data points, but from experience.

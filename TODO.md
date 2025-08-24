@@ -1,11 +1,15 @@
 Thesis revision checklist (Intro, Background, Method)
 
-# 23.08.2025
+"Our method is parameter efficient and has lower developmental friction making it easier to integrate in training with a large collage of diverse RL environments"
+
 Background
 - [~] Move MDP to background and make it shorter
-- [~] Change APR with LLMs to Agentless / Agentic
-  - What about the basic ones? 
-- [ ] Cite and briefly describe relevant systems (e.g., SWE-Agent, OpenHands/OpenDevin, Aider; use citable sources)
+- [x] Change APR with LLMs to Agentless / Agentic
+  - [x] What about the basic ones? 
+- [x] Merge LLM APR and related work
+- [ ] Add a section to the RL background of how agentic coding has a well posited place
+- [x] Cite and briefly describe relevant systems (e.g., SWE-Agent, OpenHands/OpenDevin, Aider; use citable sources)
+
 - [ ] Discuss and cite Terminal- and TauBench, cite SOTA numbers perhaps, cite
 - [ ] Dr. GRPO write and cite
 - [ ] Dapo write and cite
@@ -39,5 +43,6 @@ Method
 
 Carryover notes (integrated as tasks)
 - [ ] Weave the "environments are the new datasets" motivation into Intro framing and transitions
-- [ ] Highlight novelty vs. DeepSWE: test-free reward signal and lower GPU cost; emphasize low engineering friction enabling broader environments/tasks
+- [~] Highlight novelty vs. DeepSWE: test-free reward signal and lower GPU cost; emphasize low engineering friction enabling broader environments/tasks
+- [~] We use SWE-RL's patch based reward scheme, talk about it in method but credit in background? It ties nicely into the "low friction" angle. It is a nascent trend in the field to train models on many environments concurrently. Having an environment that requires extensive dockerized setups for test-driven / execution driven rewards is hard to get working along with other environments. That is where our execution-free patch similarity comes in nicely. And we can easily support more programming languages.
 - [ ] Consider brief discussion of in-context learning vs. RL for agentic behavior (scope to a short contrast in Intro/Background)
