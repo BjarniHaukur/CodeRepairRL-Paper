@@ -2,6 +2,7 @@
 \label{ch:introduction}
 
 Automated program repair has rapidly transformed from a nascent research area to one of the most promising applications of agentic \ac{AI} systems.
+By ``agentic,'' we refer to systems that can autonomously interact with environments through tool use, make sequential decisions based on observations, and iteratively refine their approach based on feedback, as opposed to single-pass generation models that produce outputs without environmental interaction.
 Recent advances in autonomous software engineering have achieved remarkable performance milestones, with systems like Claude~4 now exceeding 70\% success rates on \ac{SWE-Bench-Verified} \cite{claude4_2025}.
 This rapid progress underscores the critical importance of maintaining open research that can achieve near-parity understanding with frontier capabilities.
 Across diverse perspectives, there emerges a common recognition that researchers must maintain competitive access to the tools and methodologies driving these advances, ensuring that critical insights remain accessible to the broader scientific community rather than concentrated within proprietary systems.
@@ -11,7 +12,9 @@ This reinforces the need for open, reproducible methods and analysis.
 
 An important contemporaneous effort is SWE-RL~\cite{wei2025swerladvancingllmreasoning}, which applies \ac{GRPO} with a rule-based reward based on patch similarity (Python's \texttt{difflib.SequenceMatcher}) to train models in a static, single-turn setting where the full file contexts are provided and the model directly outputs a patch that is compared to ground truth.
 Our work is complementary: we also use \ac{GRPO} and a patch-similarity reward, but in an agentic, multi-step regime where the model must first acquire its own context through tool use before proposing edits.
-This distinction—static one-shot patch generation versus interactive context acquisition and repair—motivates our focus on agent-integrated training rather than purely prompt-time scaffolding.
+This distinction (static one-shot patch generation versus interactive context acquisition and repair) motivates our focus on agent-integrated training rather than purely prompt-time scaffolding.
+
+To understand why this shift to agentic training is both necessary and transformative, we must first examine the historical context and theoretical foundations that have led to this approach.
 
 \section{Background}
 \label{sec:intro-background}
@@ -24,7 +27,7 @@ Moreover, the information needed to fix a bug in real-world repositories is rare
 
 The question becomes: how do we train such agentic systems when the very complexity that necessitates their existence also makes traditional training approaches intractable?
 \ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaZero2018}.
-However, \ac{RL} fundamentally requires that learning systems can meaningfully participate in the task from the beginning—they must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space.
+However, \ac{RL} fundamentally requires that learning systems can meaningfully participate in the task from the beginning. They must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space.
 For complex reasoning tasks like software debugging, this prerequisite participation threshold has historically been insurmountable.
 
 \acp{LLM} have altered this fundamental constraint by providing the world knowledge and reasoning capabilities necessary to attempt tasks of unprecedented complexity.
@@ -37,7 +40,7 @@ They cannot directly perceive environments or execute actions; instead, they req
 
 This critical distinction necessitates a fundamentally different approach to \ac{RL}.
 In this paradigm, a scaffold or harness interprets tool calls from the \ac{LLM}, executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
-The entire system—\ac{LLM} plus scaffold—forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
+The entire system (\ac{LLM} plus scaffold) forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
 
 When equipped with appropriate scaffolds, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
 This capability transformation enables, for the first time, the application of \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
@@ -73,6 +76,37 @@ Models trained for single-shot generation lack the temporal reasoning capabiliti
 These limitations converge to a fundamental research question: How can we develop training methodologies that enable language models to acquire genuine debugging skills through environmental experience, and what architectural choices maximize the effectiveness of such training?
 This question motivates our investigation into \ac{RL} with coding agents as a paradigm for training more capable code repair systems.
 
+To make this investigation concrete, we address the following research questions aligned to our focus on a single minimalist harness (Nano) and practical generalization:
+
+\textbf{RQ1: Does the trained model adapt to the harness (tools and prompts)?}
+\begin{itemize}
+	\item Primary indicators: increasing reward, tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity
+	\item Hypothesis: \ac{RL} improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
+\end{itemize}
+
+\textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?}
+\begin{itemize}
+	\item Goal: validate that our training recipe generalizes beyond the Qwen3 family used for development.
+	\item Design: replicate final experiments on Gemma3 and Llama3.1 to assess portability across different model architectures and tool-calling capabilities. \todoinline{Is this a sensible set of models?}
+	\item This approach tests whether our findings are Qwen-specific or represent broader principles for online \ac{RL} training.
+\end{itemize}
+
+\textbf{RQ3: Does training on \ac{SWE-Gym} overfit? (Train on \ac{SWE-Gym}, evaluate on \ac{SWE-Bench} and Multi-SWE-Bench)}
+\begin{itemize}
+	\item Measure cross-dataset generalization and potential overfitting to training environments.
+	\item \todoinline{Report \ac{SWE-Gym} train curves vs.
+		      \ac{SWE-Bench}(-Verified) / Multi-SWE-Bench evaluation; include delta vs \ac{SFT} baselines.
+	      }
+\end{itemize}
+
+\textbf{RQ4: Does the trained model generalize to other agentic code harnesses and tasks?}
+\begin{itemize}
+	\item Cross-harness: evaluate with MiniAgent (should work) and OpenHands harnesses without.
+	\item Cross-task: evaluate on TauBench and TerminalBench to probe terminal-oriented generalization. \todoinline{TerminalBench is probably too hard}
+\end{itemize}
+
+With these research questions guiding our investigation, we now articulate the specific purpose and contributions of this thesis.
+
 \section{Purpose}
 \label{sec:intro-purpose}
 
@@ -85,7 +119,7 @@ We hypothesize that the ability to explore codebases, execute commands, observe 
 
 Through rigorous empirical evaluation, this research aims to establish this online \ac{RL} approach as a viable and superior alternative to static supervised learning for training code repair systems, demonstrating that experiential training with real environments leads to more capable debugging agents.
 
-% Despite growing evidence that leading \ac{AI} labs employ experiential training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
+% Despite growing evidence that leading \ac{AI} labs employ experiential training (OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training), no open-source implementation has been available to the research community.
 
 % By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into agentic \ac{AI} systems.
 
@@ -118,38 +152,8 @@ Through rigorous empirical evaluation, this research aims to establish this onli
 % This includes the Nano agent implementation and the \ac{RL} training pipeline.
 
 The overarching goal of this thesis is to develop and empirically validate an online \ac{RL} training paradigm for automated program repair.
-To make this goal concrete, we address the following research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
-
-\textbf{RQ1: Does the trained model adapt to the harness (tools and prompts)?
-% This investigation is organized around four research questions aligned to our current focus on a single minimalist harness (Nano) and practical generalization:
-}
-\begin{itemize}
-	\item Primary indicators: increasing reward, tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity
-	\item Hypothesis: \ac{RL} improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
-\end{itemize}
-
-\todoinline{should be how much of the gains can be attributed to the specific model being post-trained.
-Common failure point of recent papers only training Qwen}	\textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?
-}
-\begin{itemize}
-	\item Goal: validate that our training recipe generalizes beyond the Qwen3 family used for development.
-	\item Design: replicate final experiments on Gemma3 and Llama3.1 to assess portability across different model architectures and tool-calling capabilities. \todoinline{Is this a sensible set of models?}
-	\item This approach tests whether our findings are Qwen-specific or represent broader principles for online \ac{RL} training.
-\end{itemize}
-
-\textbf{RQ3: Does training on \ac{SWE-Gym} overfit? (Train on \ac{SWE-Gym}, evaluate on \ac{SWE-Bench} and Multi-SWE-Bench)}
-\begin{itemize}
-	\item Measure cross-dataset generalization and potential overfitting to training environments.
-	\item \todoinline{Report \ac{SWE-Gym} train curves vs.
-		      \ac{SWE-Bench}(-Verified) / Multi-SWE-Bench evaluation; include delta vs \ac{SFT} baselines.
-	      }
-\end{itemize}
-
-\textbf{RQ4: Does the trained model generalize to other agentic code harnesses and tasks?}
-\begin{itemize}
-	\item Cross-harness: evaluate with MiniAgent (should work) and OpenHands harnesses without.
-	\item Cross-task: evaluate on TauBench and TerminalBench to probe terminal-oriented generalization. \todoinline{TerminalBench is probably too hard}
-\end{itemize}
+Through rigorous experimentation with our minimalist Nano agent, we demonstrate that models can learn effective debugging strategies through environmental interaction rather than passive observation of bug-fix pairs.
+Our comprehensive evaluation addresses harness adaptation, cross-model generalization, dataset transfer, and task generalization as outlined in our research questions above.
 
 \section{Benefits, Ethics and Sustainability}
 \label{sec:intro-benefits}
