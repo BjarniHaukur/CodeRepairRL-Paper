@@ -22,7 +22,7 @@ Together, these lines established feasibility and clarified limitations of test 
 \section{Automated Program Repair with LLMs}
 \label{sec:apr-with-llms}
 
-Codex marked an inflection point where large pretrained models on code enabled practical repair and synthesis, shifting \ac{APR} from rules or search to learned edit priors~\cite{chen2021evaluatinglargelanguagemodels2021}.
+Codex marked an inflection point where large pretrained models on code enabled practical repair and synthesis, shifting \ac{APR} from rules or search to learned edit priors~\cite{codex2021}.
 Since then, frontier labs have converged on repository-grounded evaluation (e.g., \ac{SWE-Bench} Verified) and increasingly ship first-party \emph{agent harnesses} such as OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI} that orchestrate tool calls over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
 
 We therefore organize \ac{LLM}-assisted repair by the degree of autonomy at inference: (i) \emph{scaffold-free} models operating without an execution harness, (ii) \emph{agentless} scaffolds that curate repository context without centralized autonomy, and (iii) \emph{agentic} systems that plan and execute tools end-to-end.
@@ -37,7 +37,7 @@ Any tests are run outside the model after the fact.
 Within this regime we focus on post-training methods that adapt an existing \ac{LLM} for repair.
 A representative example is \emph{RepairLLaMA}, which fine-tunes a general code model on curated bug-fix pairs so that it proposes minimal and targeted edits without relying on an execution harness~\cite{repairllama2023}.
 A parallel thread brings \ac{RL} into the same scaffold-free setting at the function or snippet level.
-\emph{CodeRL} optimizes code generation with unit test execution as feedback while operating on localized contexts \cite{le2022coderlmasteringcodegeneration}.
+\emph{CodeRL} optimizes code generation with unit test execution as feedback while operating on localized contexts \cite{codeRL2022}.
 
 These setups are attractive because data and pipelines are simple, adaptation is straightforward, and inference is fast.
 It provides an effective baseline for measuring translation quality in localized contexts.
@@ -290,7 +290,8 @@ This relative ranking approach is particularly powerful for code repair where ab
 
 \subsubsection{Relationship to PPO}
 
-It's crucial to understand that \ac{GRPO} is not a fundamentally different algorithm from \ac{PPO}. Rather, it is \ac{PPO} with a specific choice of advantage estimation.
+It's crucial to understand that \ac{GRPO} is not a fundamentally different algorithm from \ac{PPO}.
+Rather, it is \ac{PPO} with a specific choice of advantage estimation.
 The clipping mechanism, importance sampling, and optimization dynamics remain identical.
 The only change is replacing: \begin{equation}
 \hat{A}_t^{PPO} = R_t - V_\phi(s_t)
@@ -526,18 +527,25 @@ During \ac{RL} training, we typically use temperature values between 0.7 and 1.0
 
 With the theoretical and practical foundations established, we now examine the benchmarks used to evaluate code repair systems in realistic settings.
 
-\section{Evaluation Benchmarks}
-\label{sec:evaluation-benchmarks}
+\section{Training and Evaluation Datasets}
+\label{sec:training-evaluation-datasets}
 
-Rigorous evaluation of automated code repair systems requires diverse, realistic benchmarks that capture the complexity of real-world debugging scenarios.
+Effective training and evaluation of code repair agents requires diverse, realistic datasets that capture the complexity of real-world debugging scenarios across multiple programming languages.
 
-\subsection{SWE-Bench Family}
-\label{subsec:swe-bench}
+\subsection{Training Datasets}
+\label{subsec:training-datasets}
 
-The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluating coding agents on realistic software engineering tasks.
+Our training approach utilizes two complementary datasets to enable multilingual debugging capability.
+SWE-Gym~\cite{sweGym2025} provides approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories, offering a substantial foundation for learning core debugging strategies. SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} contributes approximately 300 debugging tasks across nine programming languages (Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++), enabling cross-language generalization.
+This combination allows for multilingual training while maintaining sufficient data volume for stable convergence.
 
-\subsection{TauBench}
-\label{subsec:taubench}
+\subsection{Evaluation Benchmarks}
+\label{subsec:evaluation-benchmarks}
+
+The SWE-Bench benchmark series~\cite{sweBench2024} serves as the primary evaluation framework for coding agents on realistic software engineering tasks.
+SWE-Bench-Verified~\cite{sweBenchVerified2024} contains approximately 500 carefully validated Python debugging tasks that eliminate ambiguous descriptions and ensure deterministic outcomes, providing reliable performance measurement.
+For cross-language evaluation, we utilize external benchmarks such as GitBug-Java~\cite{gitbugJava2024} to assess transfer capabilities to languages not seen during training.
+TauBench~\cite{taubench2024} and TerminalBench~\cite{tbench_2025} enable broader assessment of whether learned debugging skills transfer to adjacent software engineering tasks beyond code repair.
 
 % \subsubsection{Evolution of SWE-Bench}
 
@@ -634,173 +642,7 @@ The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluat
 
 % These challenges make \ac{SWE-Bench} an ideal testbed for online training, where models can learn through environmental interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
 
-\section{Training Infrastructure for RL with LLMs}
-\label{sec:training-infrastructure}
-
-Training language models with reinforcement learning on interactive coding tasks presents unique infrastructure challenges that fundamentally differ from both traditional supervised learning and classical RL settings.
-The scale of modern LLMs (billions of parameters), the sequential nature of text generation (hundreds to thousands of tokens per action), and the need for real-time environment interaction create a complex engineering problem that has received insufficient attention in the literature.
-
-\subsection{The Dual Computation Problem}
-\label{subsec:dual-computation}
-
-Online RL for LLMs requires maintaining two distinct computational workloads simultaneously: model inference for generating actions and gradient computation for policy updates.
-In traditional RL settings with small networks, these can occur on the same device.
-However, for LLMs, each workload has distinct requirements:
-
-\textbf{Inference workload}: Requires low latency ($<100$ms per token), high throughput (multiple concurrent episodes), optimized memory layouts (KV caching), and specialized kernels (FlashAttention, PagedAttention).
-Modern inference engines like vLLM~\cite{vllm2023} and TensorRT-LLM achieve 10-20$\times$ throughput improvements over naive implementations through these optimizations.
-
-\textbf{Training workload}: Requires gradient accumulation across batches, optimizer state storage (Adam momentum terms), activation checkpointing for memory efficiency, and distributed communication for multi-GPU training.
-These requirements often conflict with inference optimizations, particularly around memory layout and kernel fusion strategies.
-
-The naive approach of alternating between inference and training on the same GPUs suffers from severe inefficiencies.
-Context switching between inference and training configurations can take seconds, while optimal GPU utilization requires different batch sizes for each workload.
-Furthermore, gradient computation requires storing activations that inference can discard, leading to memory conflicts.
-
-\subsection{Asynchronous Training-Inference Architecture}
-\label{subsec:async-architecture}
-
-Our solution, and that adopted by concurrent work~\cite{deepSWE2025}, separates inference and training onto different GPU pools connected via high-speed interconnects.
-This architecture enables several critical optimizations:
-
-\textbf{Specialized configurations}: Inference servers run with maximum batch sizes and aggressive memory optimizations, while training nodes maintain gradient buffers and optimizer states.
-This specialization can improve overall throughput by 3-5$\times$ compared to unified approaches.
-
-\textbf{Continuous generation}: Inference servers generate trajectories continuously without blocking on gradient updates.
-This is particularly important for coding tasks where episode lengths vary dramatically (10-500 actions) and blocking would cause severe underutilization.
-
-\textbf{Weight synchronization}: The key technical challenge becomes synchronizing model weights from training to inference nodes.
-We employ NCCL collective operations for this synchronization, achieving sub-second updates for models up to 32B parameters on modern interconnects (InfiniBand, NVLink).
-
-\subsection{Distributed Training Considerations}
-\label{subsec:distributed-training}
-
-Scaling RL training across multiple GPUs introduces additional complexity beyond standard supervised learning:
-
-\textbf{Experience correlation}: Episodes generated from the same policy version exhibit high correlation, potentially destabilizing training.
-Distributed generation across multiple inference nodes naturally decorrelates experiences, improving training stability.
-
-\textbf{Gradient synchronization}: Policy gradient methods require aggregating gradients across all workers processing experiences from the same policy version.
-With heterogeneous episode lengths, naive synchronization barriers cause significant idle time.
-We adopt asynchronous gradient accumulation with periodic synchronization, balancing convergence speed with hardware utilization.
-
-\textbf{Memory constraints}: Even with LoRA reducing trainable parameters by 99\%, modern LLMs require substantial GPU memory.
-For a 7B parameter model with LoRA rank 64, each GPU requires approximately 20GB for model weights, optimizer states, gradients, and activation checkpoints.
-This necessitates careful batch size tuning and potentially gradient accumulation across multiple forward passes.
-
-With the infrastructure challenges addressed, we now examine an equally critical design choice: how to provide meaningful learning signals through reward design.
-
-\section{Reward Design for Code Repair}
-\label{sec:reward-design}
-
-The choice of reward function fundamentally shapes what behaviors the RL agent learns.
-For code repair, this choice involves balancing computational tractability, signal quality, and alignment with the ultimate goal of producing correct patches.
-
-\subsection{Test-Based vs. Patch-Based Rewards}
-\label{subsec:test-vs-patch}
-
-Two primary reward paradigms have emerged in the literature:
-
-\textbf{Test-based rewards} execute the generated patch against a test suite, providing binary (pass/fail) or graduated (percentage passing) signals.
-This approach offers strong correctness guarantees and aligns directly with how human developers validate fixes.
-However, it requires maintaining executable test environments for each repository, handling diverse testing frameworks (pytest, unittest, nose), and managing computational overhead (some test suites take minutes to run).
-DeepSWE~\cite{deepSWE2025} adopts this approach, investing significant engineering effort in containerized test execution.
-
-\textbf{Patch-based rewards} compare the generated patch to a reference solution using textual similarity metrics.
-This approach, pioneered by SWE-RL~\cite{wei2025swerladvancingllmreasoning} and adopted in our work, computes similarity using sequence matching algorithms.
-While this may miss semantically equivalent but syntactically different solutions, it offers several advantages: language-agnostic operation, minimal computational overhead, no need for repository-specific test harnesses, and consistent, deterministic signals.
-
-\subsection{Similarity Metrics and Normalization}
-\label{subsec:similarity-metrics}
-
-Given patch-based rewards, the specific similarity metric significantly impacts learning dynamics.
-Common approaches include:
-
-\textbf{Token-level edit distance}: Counts minimum insertions, deletions, and substitutions needed to transform generated patch to reference.
-This provides fine-grained credit assignment but can be overly sensitive to formatting differences.
-
-\textbf{Line-level similarity}: Operates on complete lines rather than tokens, providing robustness to minor variations while maintaining semantic alignment.
-Python's \texttt{difflib.SequenceMatcher} implements an efficient algorithm for this computation.
-
-\textbf{Abstract syntax tree (AST) comparison}: Parses both patches and compares structural similarity, ignoring formatting and variable naming.
-While theoretically appealing, this requires language-specific parsers and fails on syntactically invalid intermediate patches.
-
-Critical to any similarity metric is proper normalization.
-Raw similarity scores must be calibrated to provide meaningful learning signals:
-
-\begin{equation}
-r_{\text{norm}} = \frac{s - s_{\text{baseline}}}{s_{\text{max}} - s_{\text{baseline}}}
-\end{equation}
-
-where $s_{\text{baseline}}$ represents similarity without any edits and $s_{\text{max}}$ represents perfect match.
-This normalization ensures that agents receive positive rewards only for improvements over the initial state.
-
-\subsection{Sparse vs. Dense Rewards}
-\label{subsec:sparse-dense}
-
-A fundamental challenge in code repair RL is reward sparsity.
-Most trajectories end in failure, providing zero reward and thus no gradient signal for improvement.
-Several strategies address this:
-
-\textbf{Intermediate rewards}: Providing signals for partial progress, such as successfully locating the buggy file or generating syntactically valid patches.
-However, these shaped rewards risk introducing bias if not carefully designed.
-
-\textbf{Curriculum learning}: Starting with simpler bugs where success is more likely, gradually increasing difficulty as the model improves.
-This requires careful task sequencing and progress monitoring.
-
-\textbf{Hindsight experience replay}: Reinterpreting failed trajectories as successful for different (retrospectively defined) goals.
-While successful in robotics, adapting this to code repair remains an open challenge.
-
-Our approach embraces sparse rewards, relying on the group-relative advantage computation in GRPO to extract learning signals even from predominantly failing trajectories.
-
-Despite these design choices, applying RL to code generation and repair presents unique challenges that distinguish it from both traditional RL domains and standard language modeling tasks.
-
-\section{Challenges in RL for Code}
-\label{sec:rl-challenges}
-
-Applying RL to code generation and repair presents unique challenges that distinguish it from both traditional RL domains and standard language modeling tasks.
-
-\subsection{Compositional Action Spaces}
-\label{subsec:compositional-actions}
-
-Unlike game-playing agents with discrete action sets, code repair agents must compose actions from an essentially infinite space of possible code modifications.
-A single edit might involve changing a function name (billions of possibilities), modifying control flow (exponential combinations), or adjusting data structures (unbounded complexity).
-This compositional explosion makes exploration particularly challenging: random actions almost never produce valid code, let alone correct fixes.
-
-The scaffolding approach partially addresses this by constraining actions to well-formed tool calls.
-However, even within this constrained space, the agent must learn to coordinate multiple tools effectively, determining when to explore versus exploit current knowledge and how to recover from invalid action sequences.
-
-\subsection{Partial Observability and Context Management}
-\label{subsec:partial-observability}
-
-Software repositories represent partially observable environments where the complete state (all code, dependencies, configurations) far exceeds what the agent can process.
-A typical repository contains thousands of files, but LLM context windows accommodate only dozens.
-This creates a critical exploration-exploitation dilemma: the agent must decide whether to examine new files (exploration) or focus on likely candidates (exploitation).
-
-Furthermore, context management becomes a learned skill.
-Agents must develop strategies for information gathering, hypothesis formation based on partial information, and recognizing when additional context is needed versus when to attempt a fix.
-These meta-cognitive skills emerge only through extensive trial-and-error learning, highlighting the importance of online training.
-
-\subsection{Catastrophic Forgetting in Multi-Task Settings}
-\label{subsec:catastrophic-forgetting}
-
-Training on diverse repositories and bug types risks catastrophic forgetting, where learning to fix one category of bugs degrades performance on previously mastered categories.
-This is particularly acute in code repair due to the syntactic and semantic diversity across different codebases, programming paradigms, and bug types.
-
-Standard continual learning techniques (elastic weight consolidation, rehearsal buffers) have seen limited application in LLM-scale RL.
-Our approach of using LoRA adapters provides implicit regularization by constraining the update space, but optimal strategies for multi-task code repair RL remain an open research question.
-
-\subsection{Evaluation and Overfitting}
-\label{subsec:evaluation-overfitting}
-
-A subtle but critical challenge involves evaluation validity.
-Training on bug-fix pairs from open-source repositories risks data contamination if those fixes appear in the LLM's pretraining data.
-Even with held-out test sets, models might memorize dataset-specific patterns rather than learning generalizable debugging strategies.
-
-This motivates our emphasis on cross-benchmark evaluation (SWE-Gym for training, SWE-Bench for testing) and analysis of learned behaviors rather than just success rates.
-Evidence of systematic debugging strategies (hypothesis testing, incremental modification) provides stronger validation than raw performance metrics.
-
-Having examined the theoretical foundations, practical infrastructure, and fundamental challenges, we now position our work within the broader landscape of concurrent research.
+Having examined the theoretical foundations, we now position our work within the broader landscape of concurrent research.
 
 \section{Summary and Research Positioning}
 \label{sec:summary-positioning}

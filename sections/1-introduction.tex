@@ -26,8 +26,9 @@ Moreover, the information needed to fix a bug in real-world repositories is rare
 \todoinline{which traditional paper to cite here}
 
 The question becomes: how do we train such agentic systems when the very complexity that necessitates their existence also makes traditional training approaches intractable?
-\ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaZero2018}.
-However, \ac{RL} fundamentally requires that learning systems can meaningfully participate in the task from the beginning. They must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space.
+\ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaGo2016}.
+However, \ac{RL} fundamentally requires that learning systems can meaningfully participate in the task from the beginning.
+They must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space.
 For complex reasoning tasks like software debugging, this prerequisite participation threshold has historically been insurmountable.
 
 \acp{LLM} have altered this fundamental constraint by providing the world knowledge and reasoning capabilities necessary to attempt tasks of unprecedented complexity.
@@ -56,6 +57,11 @@ The current landscape of automated program repair reflects an artificial fragmen
 This language-specific isolation stems not from fundamental differences in debugging strategies but from the practical constraints of execution-based evaluation.
 Test-based rewards require language-specific test runners, build systems, package managers, and dependency resolution, creating insurmountable engineering barriers to unified training.
 Our execution-free approach dissolves these barriers, enabling the first practical path toward universal debugging agents that operate across language boundaries.
+
+\todoinline{Consider expanding: Our execution-free problem setup has significantly lower engineering friction compared to test-based approaches.
+No need for language-specific test runners, build systems, dependency management, or containerized execution environments.
+This enables seamless multilingual training that would be prohibitively complex with execution-based rewards.
+}
 
 This direction aligns with widely observed advances at the frontier: agentic capabilities are clearly improving, with public reports of stronger coding performance and enhanced interactive capabilities.
 These developments heighten the need for open, reproducible understanding of how agentic training works, rather than reliance on closed systems.
@@ -89,7 +95,8 @@ This question motivates our investigation into \ac{RL} with coding agents as a p
 
 To make this investigation concrete, we address the following research questions aligned to our focus on a single minimalist harness (Nano) and practical generalization:
 
-\textbf{RQ1: Does online RL improve debugging capabilities through agent-harness adaptation?}
+\textbf{RQ1: Does online RL improve debugging capabilities through agent-harness adaptation?
+}
 \begin{itemize}
 	\item Primary indicators: increasing reward, tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity
 	\item Hypothesis: \ac{RL} improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
