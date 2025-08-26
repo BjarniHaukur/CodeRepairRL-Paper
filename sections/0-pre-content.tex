@@ -15,19 +15,19 @@ Bjarni Haukur Bjarnason <bhbj@kth.se>\\ Electrical Engineering and Computer Scie
 \newpage \thispagestyle{plain} \chapter*{Abstract} Software engineering agents have emerged as the dominant approach for automated program repair, with systems like SWE-agent, OpenHands and Claude Code achieving unprecedented success on real-world software engineering tasks.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  The English abstract% Topic
 These agents augment large language models with tools for repository navigation, code execution, and iterative refinement—capabilities essential for solving complex software engineering problems.
+Despite these advances, current approaches remain confined to single programming languages due to their fundamental reliance on execution-based evaluation, creating an artificial fragmentation where separate models and infrastructure are required for each language.
 
 % Motivation
-However, a critical disconnect exists between how these models are trained and deployed: while deployment requires dynamic, multi-step interactions with complex software environments, training typically relies on static datasets of isolated code changes that capture none of this dynamic complexity.
-This train-test distribution mismatch fundamentally limits model performance, as they never learn to leverage the very tools and iterative processes that enable successful debugging.
-Frontier labs have likely addressed this gap—systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting agent-based training—but their methods remain proprietary.
-Similarly, while companies like OpenHands have achieved impressive results, they have not released their training procedures, leaving the open-source community without access to these critical techniques.
+Two critical disconnects limit current approaches. First, a training-deployment mismatch exists: while deployment requires dynamic, multi-step interactions with complex software environments, training typically relies on static datasets of isolated code changes.
+Second, a language isolation barrier prevents unified training: test-based rewards require language-specific infrastructure (test runners, build systems, package managers), making multilingual training prohibitively complex.
+This fragmentation contradicts the reality of modern software development, where polyglot systems are the norm and debugging strategies naturally transfer across languages.
+Frontier labs have likely addressed the training-deployment gap—systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting agent-based training—but their methods remain proprietary and still operate within language silos.
 
 % Contribution
-\todoinline{Easy to make specialists, hard to make generalists, frontier labs probably have a wide range of RL tasks}
-This thesis presents \textit{one of the first fully open training recipes} for coding agents, addressing a fundamental misalignment in current practice: while deployment combines models with agent scaffolds (tools, memory, action spaces), training typically optimizes models in isolation.
-We introduce a \ac{RL} approach that trains the \ac{LLM} within its deployment scaffold, enabling the model to learn optimal tool usage and debugging strategies through environmental interaction.
-By training models within the exact scaffolding they will use at deployment, we enable them to learn debugging strategies through environmental feedback rather than mere pattern matching.
-Our work attempts to bridge the gap between closed-source frontier capabilities and open research, providing complete implementation details, training procedures and infrastructure specifications.
+This thesis presents \textit{one of the first fully open training recipes} for universal multilingual coding agents, addressing both the training-deployment mismatch and language isolation barriers that limit current approaches.
+We introduce an execution-free \ac{RL} approach that trains \ac{LLM}s within their deployment scaffolds using patch-similarity rewards, enabling models to learn debugging strategies that transfer across programming languages without requiring language-specific test infrastructure.
+By removing execution dependencies, we transform multilingual training from an engineering impossibility into a straightforward data mixing problem, demonstrating that 77\% Python and 23\% multilingual data produces agents capable of debugging across language boundaries.
+Our work bridges the gap between closed-source frontier capabilities and open research while uniquely enabling universal debugging agents that transcend the artificial language silos constraining current systems.
 
 % Detail/Nuance
 We implement this through \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical}, where models actively debug real repositories during training.

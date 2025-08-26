@@ -49,7 +49,13 @@ This capability transformation enables, for the first time, the application of \
 The significance of this paradigm shift extends beyond mere technical feasibility.
 Human software developers do not repair bugs through single-shot pattern matching; rather, they engage in sophisticated exploratory processes involving hypothesis formation, incremental information gathering, and iterative solution refinement.
 They navigate complex codebases, examine multiple interconnected components, execute diagnostic commands, and progressively construct mental models of system behavior.
+Crucially, experienced developers apply these debugging skills across programming languages, recognizing that fundamental debugging strategies transcend syntactic differences.
 This active learning process, fundamentally different from passive pattern recognition, suggests that training models through interactive experience could yield qualitatively superior debugging capabilities.
+
+The current landscape of automated program repair reflects an artificial fragmentation: separate models for Python, distinct approaches for Java, isolated systems for JavaScript.
+This language-specific isolation stems not from fundamental differences in debugging strategies but from the practical constraints of execution-based evaluation.
+Test-based rewards require language-specific test runners, build systems, package managers, and dependency resolution, creating insurmountable engineering barriers to unified training.
+Our execution-free approach dissolves these barriers, enabling the first practical path toward universal debugging agents that operate across language boundaries.
 
 This direction aligns with widely observed advances at the frontier: agentic capabilities are clearly improving, with public reports of stronger coding performance and enhanced interactive capabilities.
 These developments heighten the need for open, reproducible understanding of how agentic training works, rather than reliance on closed systems.
@@ -63,7 +69,7 @@ The central challenge addressed in this thesis concerns the fundamental disconne
 Contemporary approaches to automated program repair exhibit a critical limitation: models trained on static datasets of bug-fix pairs are subsequently expected to perform dynamic, multi-step reasoning in complex software environments.
 This paradigm mismatch constrains their effectiveness and generalization capabilities.
 
-We identify two specific limitations that characterize current approaches:
+We identify three critical limitations that characterize current approaches:
 
 \textbf{Exploration Capability Deficit}: Models trained exclusively on static data lack the ability to develop effective exploration strategies.
 Unlike human developers who actively navigate codebases, execute diagnostic commands, and iteratively gather contextual information, these models never experience the exploratory aspects of debugging during training.
@@ -73,36 +79,41 @@ This results in agents that, when deployed, exhibit suboptimal information-gathe
 However, empirical observation of developer workflows reveals that debugging is inherently a multi-step process involving hypothesis formation, incremental testing, and solution refinement.
 Models trained for single-shot generation lack the temporal reasoning capabilities necessary for effective iterative problem-solving.
 
+\textbf{Language Isolation Barrier}: Existing approaches remain confined to single programming languages due to their fundamental dependence on execution-based evaluation.
+Each language requires separate test infrastructure, build systems, dependency management, and environment configuration, making multilingual training prohibitively complex.
+This artificial isolation contradicts the reality of modern software development, where polyglot systems are the norm and debugging skills naturally transfer across languages.
+The reliance on test execution as the primary training signal has created a fragmented landscape where each language community develops isolated solutions, preventing the emergence of universal debugging agents.
+
 These limitations converge to a fundamental research question: How can we develop training methodologies that enable language models to acquire genuine debugging skills through environmental experience, and what architectural choices maximize the effectiveness of such training?
 This question motivates our investigation into \ac{RL} with coding agents as a paradigm for training more capable code repair systems.
 
 To make this investigation concrete, we address the following research questions aligned to our focus on a single minimalist harness (Nano) and practical generalization:
 
-\textbf{RQ1: Does the trained model adapt to the harness (tools and prompts)?}
+\textbf{RQ1: Does online RL improve debugging capabilities through agent-harness adaptation?}
 \begin{itemize}
 	\item Primary indicators: increasing reward, tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity
 	\item Hypothesis: \ac{RL} improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
 \end{itemize}
 
-\textbf{RQ2: Can we train effectively with multiple base models (e.g., SmolLM3) beyond Qwen?}
+\textbf{RQ2: Does execution-free training enable effective multilingual debugging agents?}
 \begin{itemize}
-	\item Goal: validate that our training recipe generalizes beyond the Qwen3 family used for development.
-	\item Design: replicate final experiments on Gemma3 and Llama3.1 to assess portability across different model architectures and tool-calling capabilities. \todoinline{Is this a sensible set of models?}
-	\item This approach tests whether our findings are Qwen-specific or represent broader principles for online \ac{RL} training.
+	\item Core contribution: Compare Python-only versus Python+multilingual training (77\% Python, 23\% other languages)
+	\item Evaluation: Performance on both seen languages (Python, Java, JavaScript) and unseen languages
+	\item Hypothesis: Execution-free rewards enable multilingual capability without the engineering complexity of per-language test infrastructure
 \end{itemize}
 
-\textbf{RQ3: Does training on \ac{SWE-Gym} overfit? (Train on \ac{SWE-Gym}, evaluate on \ac{SWE-Bench} and Multi-SWE-Bench)}
+\textbf{RQ3: How does the training approach generalize across model architectures?}
 \begin{itemize}
-	\item Measure cross-dataset generalization and potential overfitting to training environments.
-	\item \todoinline{Report \ac{SWE-Gym} train curves vs.
-		      \ac{SWE-Bench}(-Verified) / Multi-SWE-Bench evaluation; include delta vs \ac{SFT} baselines.
-	      }
+	\item Goal: validate that our training recipe generalizes beyond the Qwen3 family
+	\item Design: replicate key experiments on Gemma3 and Llama3.1 to assess architectural robustness
+	\item This tests whether our findings represent general principles for online \ac{RL} training
 \end{itemize}
 
-\textbf{RQ4: Does the trained model generalize to other agentic code harnesses and tasks?}
+\textbf{RQ4: Do learned debugging skills transfer to different harnesses and tasks?}
 \begin{itemize}
-	\item Cross-harness: evaluate with MiniAgent (should work) and OpenHands harnesses without.
-	\item Cross-task: evaluate on TauBench and TerminalBench to probe terminal-oriented generalization. \todoinline{TerminalBench is probably too hard}
+	\item Cross-harness: evaluate with MiniAgent and OpenHands to test harness-independence
+	\item Cross-task: evaluate on TauBench for broader software engineering task transfer
+	\item Focus on whether multilingual training improves cross-task generalization
 \end{itemize}
 
 With these research questions guiding our investigation, we now articulate the specific purpose and contributions of this thesis.
@@ -110,14 +121,15 @@ With these research questions guiding our investigation, we now articulate the s
 \section{Purpose}
 \label{sec:intro-purpose}
 
-This thesis investigates a novel training paradigm for automated program repair using \ac{RL} with coding agents.
-The fundamental premise is that language models can acquire more sophisticated debugging capabilities when trained through direct interaction with software environments, rather than passive observation of static bug-fix examples.
-By embedding autonomous coding agents within the \ac{RL} optimization process, we enable models to learn from the consequences of their exploratory actions and develop effective debugging strategies through experience.
+This thesis investigates a novel training paradigm for automated program repair using \ac{RL} with coding agents, demonstrating that execution-free rewards enable the development of universal multilingual debugging capabilities.
+The fundamental premise is that language models can acquire sophisticated debugging skills that transfer across programming languages when trained through direct interaction with software environments using patch-similarity rewards, rather than language-specific test execution.
+By embedding autonomous coding agents within the \ac{RL} optimization process and removing execution dependencies, we enable models to learn from diverse programming languages simultaneously, developing debugging strategies that transcend syntactic boundaries.
 
-The primary objective is to demonstrate that this experiential training approach yields models with superior bug-fixing capabilities compared to those trained through conventional supervised learning.
-We hypothesize that the ability to explore codebases, execute commands, observe error messages, and iteratively refine solutions during training will result in agents that better capture the problem-solving patterns characteristic of human debugging.
+The primary objective is to demonstrate that execution-free training not only matches execution-based approaches on single-language tasks but uniquely enables multilingual capability with minimal engineering overhead.
+We hypothesize that the ability to train on mixed-language datasets will reveal universal debugging principles, as the model learns to identify patterns that generalize across Python, Java, JavaScript, and other languages.
+This approach directly addresses the fragmentation in current automated program repair, where each language community maintains separate tools and models despite the fundamental similarity of debugging strategies.
 
-Through rigorous empirical evaluation, this research aims to establish this online \ac{RL} approach as a viable and superior alternative to static supervised learning for training code repair systems, demonstrating that experiential training with real environments leads to more capable debugging agents.
+Through rigorous empirical evaluation on both monolingual and multilingual benchmarks, this research establishes execution-free \ac{RL} as the first practical approach for training universal debugging agents, demonstrating that removing execution constraints enables capabilities that were previously unattainable due to engineering complexity.
 
 % Despite growing evidence that leading \ac{AI} labs employ experiential training (OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training), no open-source implementation has been available to the research community.
 
