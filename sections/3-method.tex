@@ -20,8 +20,7 @@ This paradigm shift transforms models from passive learners observing fixed exam
 % We retain the same outcome-driven similarity principle as SWE-RL~\cite{wei2025swerladvancingllmreasoning} while embedding it within a multi-step setting that rewards successful end-to-end repair after autonomous context acquisition.
 
 The core innovation lies in our integration of existing coding agent frameworks directly into the \ac{RL} training pipeline.
-Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can:
-\begin{itemize}
+Rather than constraining models to single-pass generation, we enable multi-step interactions where agents can: \begin{itemize}
 	\item Navigate repository structures using terminal commands
 	\item Examine multiple files to understand code context
 	\item Iteratively refine solutions based on environmental feedback
@@ -97,8 +96,7 @@ apply_patch(
 )
 \end{verbatim}
 
-This format is naturally conducive to language model generation because:
-\begin{itemize}
+This format is naturally conducive to language model generation because: \begin{itemize}
 	\item \textbf{Semantic clarity}: The model specifies what to change in natural terms
 	\item \textbf{No numerical coordination}: No line numbers or offsets to calculate
 	\item \textbf{Robust matching}: String matching handles minor formatting variations
@@ -109,22 +107,12 @@ After the model applies changes using this simple interface, the actual diff is 
 
 \subsection{Sidestepping Setup Constraints}
 
-\todoinline{This will always look bad... We can say we attempt "safety" with rbash, readonly access and timeouts}
-
-% Security is paramount when allowing language models to execute arbitrary commands.
-% The Nano agent employs several safety mechanisms:
-
-% \textbf{Restricted Bash (rbash)}: All shell commands execute within a restricted bash environment that prevents:
-% \begin{itemize}
-% 	\item Network access and external communication
-% 	\item File system access outside the designated workspace
-% 	\item Process spawning beyond allowed utilities
-% 	\item Modification of system files or configurations
-% \end{itemize}
+\todoinline{This will always look bad...
+We can say we attempt "safety" with rbash, readonly access and timeouts}
 
 \subsection{Integration with RL Training}
 
-The Nano agent instantiates the history-based MDP formulation from Section~\ref{sec:mdp-history} as follows:
+The Nano agent instantiates the history-based MDP formulation from \cref{subsec:mdp-history} as follows:
 
 \begin{itemize}
 	\item \textbf{History} $h_t$: The conversation transcript containing the issue description and all prior tool interactions
@@ -134,8 +122,7 @@ The Nano agent instantiates the history-based MDP formulation from Section~\ref{
 	\item \textbf{Return} $R(\tau)$: Terminal reward based on patch similarity to ground truth
 \end{itemize}
 
-The agent operates through the following cycle:
-\begin{enumerate}
+The agent operates through the following cycle: \begin{enumerate}
 	\item Receives initial history $h_0$ containing the issue description
 	\item Generates assistant chunk $y_t$ with tool calls to explore the codebase
 	\item Executes first tool call $c_t = \psi(y_t)$ to produce output $o_t$
@@ -145,6 +132,7 @@ The agent operates through the following cycle:
 \end{enumerate}
 
 This cycle allows the model to learn from both successful and unsuccessful repair attempts, gradually improving its ability to navigate codebases and identify correct fixes.
+% Security is paramount when allowing language models to execute arbitrary commands.% The Nano agent employs several safety mechanisms:% \textbf{Restricted Bash (rbash)}: All shell commands execute within a restricted bash environment that prevents:% \begin{itemize}% 	\item Network access and external communication% 	\item File system access outside the designated workspace% 	\item Process spawning beyond allowed utilities% 	\item Modification of system files or configurations% \end{itemize}
 The model applies an arbitrary sequence of apply\_patch operations in simplified search-replace format, then after task completion we compute the final diff instead of requiring the model to generate properly formatted patches directly.
 
 This learning-centric approach avoids overfitting to tooling idiosyncrasies.
@@ -161,8 +149,7 @@ This approach ensures:
 	\item \textbf{Timeout}: Upper limit on total time allotted 
 \end{itemize}
 
-\section{Experimental Setup}
-\label{sec:experimental-setup}
+\section{Experimental Setup} \label{sec:experimental-setup}
 
 \subsection{Datasets and Benchmarks}
 
@@ -170,8 +157,7 @@ Our experimental design carefully separates training and evaluation data to demo
 We employ the following datasets:
 
 \textbf{Training Dataset:} We use \ac{SWE-Gym}, a curated collection of approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories.
-Each task includes:
-\begin{itemize}
+Each task includes: \begin{itemize}
 	\item A containerized repository snapshot at the time of the bug report
 	\item The original issue description
 	\item The ground-truth patch that resolved the issue
@@ -196,8 +182,7 @@ Qwen was selected based on extensive empirical evidence from recent literature d
 
 \subsubsection{Tool Calling Performance}
 
-Qwen models exhibit exceptional structured output generation, critical for reliable agent behavior:
-\begin{itemize}
+Qwen models exhibit exceptional structured output generation, critical for reliable agent behavior: \begin{itemize}
 	\item \textbf{Function call accuracy}: Qwen consistently generates valid \ac{JSON} function calls with correct parameter types
 	\item \textbf{Context retention}: Superior ability to maintain conversation state across multi-step tool interactions
 	\item \textbf{Error recovery}: Robust handling of tool execution failures and adaptive strategy adjustment
@@ -206,8 +191,7 @@ Qwen models exhibit exceptional structured output generation, critical for relia
 
 \subsubsection{Code Understanding Capabilities}
 
-Beyond tool calling, Qwen demonstrates strong foundational coding abilities:
-\begin{itemize}
+Beyond tool calling, Qwen demonstrates strong foundational coding abilities: \begin{itemize}
 	\item State-of-the-art performance on HumanEval, MBPP, and CodeContests benchmarks
 	\item Superior Python code generation and tool-calling capabilities
 	\item Excellent repository-level understanding and cross-file reasoning capabilities
@@ -225,8 +209,7 @@ Unlike conventional \ac{RL} where trajectory collection and policy updates occur
 
 \subsection{The Unified Training-Inference Paradigm}
 
-The \ac{GRPO} process operates as a continuous cycle where:
-\begin{enumerate}
+The \ac{GRPO} process operates as a continuous cycle where: \begin{enumerate}
 	\item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
 	\item \textbf{Trajectory streaming}: Completed agent episodes stream to the training pipeline in real-time
 	\item \textbf{Immediate updates}: \ac{GRPO} computes gradients and updates weights continuously
@@ -341,7 +324,8 @@ Our training follows an iterative process where the agent attempts to solve bugs
 Key hyperparameters for our \ac{GRPO} implementation include:
 
 \todoinline{Cite GSPO, Dr.GRPO, DeepSWE, DAPO?
-	for how hparams are selected. Can also "mine" the trainer/config.py for relevant stuff to add}
+for how hparams are selected.
+Can also "mine" the trainer/config.py for relevant stuff to add}
 
 \begin{itemize}
 	\item \textbf{Group Size:} 8
@@ -377,7 +361,7 @@ Selective activation checkpointing reduces memory usage by 50\% during backward 
 BF16 training.
 
 \textbf{\ac{KL}
-	Divergence Computational Efficiency:} \ac{GRPO} training often requires computing \ac{KL} divergence between the current policy and a reference model to ensure training stability—preventing the model from deviating excessively from its original training objectives while optimizing for the new task.
+Divergence Computational Efficiency:} \ac{GRPO} training often requires computing \ac{KL} divergence between the current policy and a reference model to ensure training stability—preventing the model from deviating excessively from its original training objectives while optimizing for the new task.
 This stability constraint typically necessitates maintaining two complete model instances in memory to compute $D_{\ac{KL}}(\pi_{\theta}(a|s) \| \pi_{\text{ref}}(a|s))$, effectively doubling \ac{GPU} memory requirements.
 \ac{LoRA}'s additive parameter structure provides a natural solution to this computational burden: since base model weights $\mathbf{W}_0$ remain frozen while only low-rank adaptations $\mathbf{W}_0 + \mathbf{BA}$ are trained, the reference policy corresponds exactly to the base model without adapters.
 We can therefore compute reference policy outputs by temporarily disabling the \ac{LoRA} adapters on the same model instance, eliminating the need for a separate reference model.
@@ -387,8 +371,7 @@ This approach reduces memory consumption by approximately 50\% while preserving 
 
 The combination of these optimizations enables training of state-of-the-art agent behaviors while maintaining practical computational budgets:
 
-\todoinline{Make this a table with empirical metrics like: "backprop time", "rollout time"}
-\begin{itemize}
+\todoinline{Make this a table with empirical metrics like: "backprop time", "rollout time"} \begin{itemize}
 	\item \textbf{~8B models:} Trainable on 2-3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA
 	\item \textbf{~14B models:} Trainable on 3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA
 	\item \textbf{~32B models:} Trainable on 6x A100 \acsp{GPU} DeepSpeed ZeRO 3 and LoRA
@@ -531,8 +514,7 @@ This NCCL-based approach represents a significant engineering achievement, enabl
 
 The complete online \ac{RL} system consists of several interconnected components operating in parallel:
 
-\textbf{vLLM Inference Cluster:} 1 $80$GB A100 for $8$B/$14$B models, 2 for $~32$B
-\textbf{TRL Training Cluster:} 2 $80$GB A100 for $8$B/$14$B models, 4 for $~32$B, launches agents, posts weight synchronizations
+\textbf{vLLM Inference Cluster:} 1 $80$GB A100 for $8$B/$14$B models, 2 for $~32$B \textbf{TRL Training Cluster:} 2 $80$GB A100 for $8$B/$14$B models, 4 for $~32$B, launches agents, posts weight synchronizations
 
 \subsection{Implementation Details}
 

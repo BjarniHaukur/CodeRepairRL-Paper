@@ -24,8 +24,7 @@ The benchmark evaluates models' ability to explore codebases and generate fixes 
 
 \subsection{Methodology}
 
-The benchmark follows this protocol:
-\begin{itemize}
+The benchmark follows this protocol: \begin{itemize}
 	\item \textbf{Input}: GitHub repositories containing bugs with known ground truth solutions
 	\item \textbf{Task}: Models use Nano's tools to explore codebases and generate fixes
 	\item \textbf{Output}: Unified git diffs containing all proposed code changes
@@ -33,8 +32,7 @@ The benchmark follows this protocol:
 	      \begin{itemize}
 		      \item Code Similarity: Patch matching with actual bug fix (primary ranking metric)
 		      \item Test Similarity: Test change alignment with ground truth test updates
-	      \end{itemize}
-\end{itemize}
+	      \end{itemize} \end{itemize}
 
 \subsection{Results}
 
@@ -85,8 +83,8 @@ This suggests different exploration strategies and verbosity levels.
 
 \textbf{Test Similarity Gap}: Most models achieve low test similarity scores, suggesting that generating appropriate test changes alongside code fixes remains challenging even for frontier models.
 
-\section{Sampling Parameters}
-\label{app:sampling-params}
+\section{Parameters}
+\label{app:params}
 
 \begin{table}[htbp]
 \centering
@@ -107,7 +105,10 @@ Time limit & & & \\
 \end{tabular}
 \end{table}
 
-\todoinline{Fill in sampling parameters table. All parameters are identical across models except time limit. Include specific values for temperature (e.g., 0.7-1.0), top-k, top-p, min-p, token limit, tool limit, and model-specific time limits.}
+\todoinline{Fill in sampling parameters table.
+All parameters are identical across models except time limit.
+Include specific values for temperature (e.g., 0.7-1.0), top-k, top-p, min-p, token limit, tool limit, and model-specific time limits.
+}
 
 \section{Complete Training Metrics}
 
