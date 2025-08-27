@@ -15,11 +15,14 @@ Bjarni Haukur Bjarnason <bhbj@kth.se>\\ Electrical Engineering and Computer Scie
 \newpage \thispagestyle{plain} \chapter*{Abstract} Software engineering agents have emerged as the dominant approach for automated program repair, with systems like SWE-agent, OpenHands and Claude Code achieving unprecedented success on real-world software engineering tasks.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  The English abstract% Topic
 These agents augment large language models with tools for repository navigation, code execution, and iterative refinement—capabilities essential for solving complex software engineering problems.
+%Despite these advances, current approaches remain confined to single programming languages due to their fundamental reliance on execution-based evaluation, creating an artificial fragmentation where separate models and infrastructure are required for each language.
 
 % Motivation
-However, a critical disconnect exists between how these models are trained and deployed: while deployment requires dynamic, multi-step interactions with complex software environments, training typically relies on static datasets of isolated code changes that capture none of this dynamic complexity.
-This train-test distribution mismatch fundamentally limits model performance, as they never learn to leverage the very tools and iterative processes that enable successful debugging.
-Frontier labs have likely addressed this gap—systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting agent-based training—but their methods remain proprietary.
+Two critical disconnects limit current approaches.
+First, a training-deployment mismatch exists: while deployment requires dynamic, multi-step interactions with complex software environments, training typically relies on static datasets of isolated code changes.
+Second, a language isolation barrier prevents unified training: test-based rewards require language-specific infrastructure (test runners, build systems, package managers), making multilingual training prohibitively complex.
+
+Frontier labs have likely addressed the training-deployment gap—systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting agent-based training—but their methods remain proprietary.
 Similarly, while companies like OpenHands have achieved impressive results, they have not released their training procedures, leaving the open-source community without access to these critical techniques.
 
 % Contribution

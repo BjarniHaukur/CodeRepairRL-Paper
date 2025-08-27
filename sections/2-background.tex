@@ -1,8 +1,10 @@
-\chapter{Theoretical Background and Related Work}\label{ch:background}
+\chapter{Theoretical Background and Related Work}
+\label{ch:background}
+
 This chapter establishes the theoretical and empirical background for online \ac{RL} applied to \ac{APR} with tool-using \acp{LLM}.
-We first situate \ac{APR} historically—from search- and learning-based methods before \acp{LLM} to contemporary, repository-grounded systems—and introduce a simple taxonomy spanning manual, agentless, and agentic workflows.
+We first situate \ac{APR} historically, from search- and learning-based methods before \acp{LLM} to contemporary, repository-grounded systems, and introduce a simple taxonomy spanning manual, agentless, and agentic workflows.
 We then formalize agentic repair as a history-based \ac{MDP} driven by structured tool calls, and review optimization methods for training such policies, including \ac{PPO}, \ac{GRPO}, and \ac{GSPO}, as well as practical issues such as variance collapse.
-Complementary techniques for scalable training—parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation—are summarized alongside evaluation resources such as \ac{SWE-Bench} and \ac{TauBench}.
+Complementary techniques for scalable training (parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation) are summarized alongside evaluation resources such as \ac{SWE-Bench} and \ac{TauBench}.
 We close with related work and limitations that motivate the minimalist agent and online training recipe developed in the following chapters.
 
 \section{Automated Program Repair before \acsp{LLM}}\label{sec:apr-pre-llm}
@@ -18,34 +20,10 @@ Within this setting, three families of approaches dominated.
 These lines collectively established feasibility on test\textendash suite benchmarks while also exposing the limits of test adequacy as a correctness proxy (overfitting, brittle generalization).
 Those constraints, together with the need to reason beyond local contexts, set the stage for the repository\textendash grounded, model\textendash based approaches reviewed next.
 
-\section{Practical \acs{LLM}
-  Foundations for Program Repair} \label{sec:llm-background}
-
-This section provides a concise grounding for three practical ingredients used throughout: how we scope context at inference time (in-context learning), how the model interacts with the repository (tool use), and how we sample during online training (decoding choices).
-Each subsection states what the concept is in our setting, why it matters for \ac{APR}, and what it is not, to minimize ambiguity before the formalism in \cref{sec:rl-language-models}.
-
-\subsection{In-context learning}
-Modern \acp{LLM} condition their predictions on a short, task-specific context rather than modifying weights at inference time.
-
-\subsection{Tool use}
-We use structured tool calls as the sole interface between the model and the repository.
-The model outputs a serialized command; an external harness executes it; the raw textual output is appended to the transcript and becomes the next observation.
-Tool calls are the actions and tool outputs are the observations in our history-based \ac{MDP} (see \cref{sec:rl-language-models}).
-\begin{verbatim}
-{"function_name": "apply_patch", "arguments": {...}}
-\end{verbatim}
-
-\subsection{Sampling}
-During online training decoding is stochastic to enable exploration; we use temperature\,=\,1.0 and do not apply additional nucleus or top-$k$ constraints.
-Greedy decoding (temperature\,=\,0) collapses exploration and is unsuitable for our \ac{RL} setup; full hyperparameters are in \cref{app:params}.
-
-\todoinline{delete?
-I dont like this}
-
-\section{Automated Program Repair with \acsp{LLM}} \label{sec:apr-with-llms}
+\section{Automated Program Repair with LLMs}\label{sec:apr-with-llms}
 
 Codex marked an inflection point where large pretrained models on code enabled practical repair and synthesis, shifting \ac{APR} from rules or search to learned edit priors~\cite{codex2021}.
-Since then, frontier labs have converged on repository-grounded evaluation (e.g., \ac{SWE-Bench} Verified) and increasingly ship first-party \emph{agent harnesses}—OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI}—that orchestrate tool calls over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
+Since then, frontier labs have converged on repository-grounded evaluation (e.g., \ac{SWE-Bench} Verified) and increasingly ship first-party \emph{agent harnesses} such as OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI} that orchestrate tool calls over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
 
 We therefore organize \ac{LLM}-assisted repair by the degree of autonomy at inference: (i) \emph{scaffold-free} models operating without an execution harness, (ii) \emph{agentless} scaffolds that curate repository context without centralized autonomy, and (iii) \emph{agentic} systems that plan and execute tools end-to-end.
 This taxonomy clarifies which capabilities are evaluated and how results transfer across settings.
@@ -78,7 +56,8 @@ Related work begins to introduce reinforcement signals in repository settings wh
 
 The limitation is structural.
 Because execution remains outside the model, the scaffold decides what to surface, when to run tests, and how to apply or revert edits.
-The model does not learn the decision-making that drives repair—what to try next, when to backtrack, when to submit or abandon a patch—because those choices live in the interface rather than in the policy.
+The model does not learn the decision-making that drives repair.
+What to try next, when to backtrack, when to submit or abandon a patch; because those choices live in the interface rather than in the policy.
 The reward signal therefore entangles scaffold choices with model output, and the resulting histories are not suitable for end-to-end training.
 Agentless setups are excellent for reproducible evaluation and for collecting logs, but they are a poor fit when the goal is to train a model to use tools by itself.
 
@@ -91,8 +70,19 @@ The model can open and edit files, run tests and shell commands, read raw output
 Public research harnesses make this concrete: \emph{SWE-Agent} formalizes an agent-computer loop for software tasks, \emph{OpenHands} provides a general terminal-based platform for coding agents, and \emph{mini-swe-agent} shows that a small, disciplined tool set in a tight loop is effective~\cite{sweAgent2024,openhands2024, miniSWEAgentRepo}.
 Our Nano agent (\cref{sec:nano-agent}) adopts a similar minimalist philosophy, providing only essential terminal commands and file patching capabilities, allowing effective debugging behaviors to emerge through \ac{RL}.
 
-Operationally, these systems rely on structured tool calls.
-\todoinline{heal this area after removing tool calling}
+Operationally, these systems rely on structured tool calls, typically via \acs{JSON}.
+The model emits a well-formed function call with arguments, an external executor runs it, and the resulting output is returned to the model.
+\begin{verbatim}
+{
+  "function_name": "apply_patch",
+  "arguments": {
+    "file_path": "src/utils.py",
+    "old_content": "def buggy_function():",
+    "new_content": "def fixed_function():"
+  }
+}
+\end{verbatim}
+
 This approach transforms \acp{LLM} from passive text generators into systems capable of interacting with their environment by invoking tools and observing their results.
 
 This shift has also shaped how models are packaged and evaluated: recent open-weight releases pair model checkpoints with first-party harnesses and report agent-style evaluations, while disclosing only partial training details.
@@ -109,7 +99,7 @@ Kimi-K2 details an \emph{agentic} data synthesis pipeline paired with a joint re
 \cite{kimiK2_2025}
 The stated goal is to shape multi-step decision making—tool selection, iterative trial-and-error, and revision—rather than single-pass text generation.
 The report frames this as necessary for repository-grounded coding and other multi-step tasks.
-As with Qwen3, model artifacts and high-level methodology are public, but \emph{no} training code.
+As with Qwen3, model artifacts and high-level methodology are public, but \emph{no} training recipe.
 
 \paragraph{GLM\textendash 4.5 (Zhipu AI).}
 GLM\textendash 4.5 positions itself as an \emph{agentic, reasoning, and coding} (ARC) family and explicitly reports a comprehensive post-training phase that combines expert iteration with \ac{SFT} and \ac{RL}, aimed at strengthening multi-step agentic tool use.
@@ -124,6 +114,8 @@ In contrast, recent work such as \emph{DeepSWE} publicly reports an RL-trained c
 In practical terms, agentic systems close the loop between hypothesis and verification: the model requests an action, observes the real outcome, and can adjust.
 This makes online \ac{RL} feasible and aligns the learning signal with the deployed behavior.
 By contrast with agentless setups, the model is exposed to the full decision process of repair rather than a curated slice, so the resulting histories are suitable for end-to-end training.
+
+Having established how agentic systems enable end-to-end learning, we now turn to the theoretical foundations of training such systems through reinforcement learning.
 
 \section{\acl{RL} for Language Models}
 \label{sec:rl-language-models}
@@ -300,7 +292,8 @@ This relative ranking approach is particularly powerful for code repair where ab
 
 \subsubsection{Relationship to PPO}
 
-It's crucial to understand that \ac{GRPO} is not a fundamentally different algorithm from \ac{PPO}—it is \ac{PPO} with a specific choice of advantage estimation.
+It's crucial to understand that \ac{GRPO} is not a fundamentally different algorithm from \ac{PPO}.
+Rather, it is \ac{PPO} with a specific choice of advantage estimation.
 The clipping mechanism, importance sampling, and optimization dynamics remain identical.
 The only change is replacing: \begin{equation}
 \hat{A}_t^{PPO} = R_t - V_\phi(s_t)
@@ -348,7 +341,8 @@ The computational benefits of \ac{GRPO} are substantial:
 
 \subsubsection{Variance Collapse: A Fundamental Challenge}
 
-% Despite \ac{GRPO}'s computational advantages, it shares with other policy gradient methods a fundamental challenge known as variance collapse or mode collapse~\cite{varianceCollapse2023}.
+Despite \ac{GRPO}'s computational advantages, it shares with other policy gradient methods a fundamental challenge known as variance collapse or mode collapse.
+\todoinline{write better and cite}
 This phenomenon occurs when the policy gradient optimization inadvertently incentivizes the model to reduce output variance, leading to increasingly deterministic and less exploratory behavior over training iterations.
 
 The mechanism behind variance collapse in \ac{GRPO} can be understood through the optimization dynamics.
@@ -439,6 +433,8 @@ For our coding agent training scenario, \ac{GSPO} provides several crucial benef
 Empirical results from the Qwen3 models show that \ac{GSPO} not only stabilizes training but also achieves superior final performance compared to \ac{GRPO}, validating its theoretical advantages in practice.
 For our work, adopting \ac{GSPO} represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
 
+While the choice of optimization algorithm addresses training stability, the computational demands of fine-tuning billion-parameter models necessitate parameter-efficient approaches.
+
 \section{Low-Rank Adaptation (LoRA)}
 \label{sec:lora}
 
@@ -522,18 +518,38 @@ Higher ranks provide more flexibility but reduce computational savings.
 
 The combination of \ac{LoRA}'s efficiency with online \ac{RL} creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
 
-\section{Evaluation Benchmarks}
-\label{sec:evaluation-benchmarks}
+Beyond parameter-efficient training, the choice of sampling strategy during generation plays a straightforward, yet crucial role in the exploration-exploitation trade-off fundamental to RL.
 
-Rigorous evaluation of automated code repair systems requires diverse, realistic benchmarks that capture the complexity of real-world debugging scenarios.
+\section{Sampling Strategies}
+\label{sec:sampling-strategies}
 
-\subsection{SWE-Bench Family}
-\label{subsec:swe-bench}
+The temperature parameter in language model sampling directly controls the exploration-exploitation trade-off during inference.
+Higher temperatures increase randomness and exploration of diverse solutions, while lower temperatures favor exploitation of high-probability actions.
+Critically, deterministic sampling (temperature=0) prevents any exploration, making it unsuitable for reinforcement learning where the agent must discover new strategies through trial and error.
+During \ac{RL} training, we typically use temperature values between 0.7 and 1.0 to balance exploration of novel debugging approaches with exploitation of learned patterns (see \cref{app:sampling-params} for detailed sampling parameters).
 
-The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluating coding agents on realistic software engineering tasks.
+With the theoretical and practical foundations established, we now examine the benchmarks used to evaluate code repair systems in realistic settings.
 
-\subsection{TauBench}
-\label{subsec:taubench}
+\section{Training and Evaluation Datasets}
+\label{sec:training-evaluation-datasets}
+
+Effective training and evaluation of code repair agents requires diverse, realistic datasets that capture the complexity of real-world debugging scenarios across multiple programming languages.
+
+\subsection{Training Datasets}
+\label{subsec:training-datasets}
+
+Our training approach utilizes two complementary datasets to enable multilingual debugging capability.
+SWE-Gym~\cite{sweGym2025} provides approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories, offering a substantial foundation for learning core debugging strategies.
+SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} contributes approximately 300 debugging tasks across nine programming languages (Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++), enabling cross-language generalization.
+This combination allows for multilingual training while maintaining sufficient data volume for stable convergence.
+
+\subsection{Evaluation Benchmarks}
+\label{subsec:evaluation-benchmarks}
+
+The SWE-Bench benchmark series~\cite{sweBench2024} serves as the primary evaluation framework for coding agents on realistic software engineering tasks.
+SWE-Bench-Verified~\cite{sweBenchVerified2024} contains approximately 500 carefully validated Python debugging tasks that eliminate ambiguous descriptions and ensure deterministic outcomes, providing reliable performance measurement.
+For cross-language evaluation, we utilize external benchmarks such as GitBug-Java~\cite{gitbugJava2024} to assess transfer capabilities to languages not seen during training.
+TauBench~\cite{taubench2024} and TerminalBench~\cite{tbench_2025} enable broader assessment of whether learned debugging skills transfer to adjacent tasks beyond code repair.
 
 % \subsubsection{Evolution of SWE-Bench}
 
@@ -629,6 +645,8 @@ The \ac{SWE-Bench} benchmark series has emerged as the gold standard for evaluat
 % \textbf{Long-tail distribution}: Many bugs involve rare edge cases or unique project-specific patterns absent from training data, testing true generalization rather than memorization.
 
 % These challenges make \ac{SWE-Bench} an ideal testbed for online training, where models can learn through environmental interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
+
+Having examined the theoretical foundations, we now position our work within the broader landscape of concurrent research.
 
 \section{Summary and Research Positioning}
 \label{sec:summary-positioning}
