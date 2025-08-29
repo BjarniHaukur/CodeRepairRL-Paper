@@ -120,313 +120,62 @@ Having established how agentic systems enable end-to-end learning, we now turn t
 \section{\acl{RL} for Language Models}
 \label{sec:rl-language-models}
 
-\ac{RL} has emerged as a powerful technique for improving language model performance beyond what supervised learning alone can achieve, particularly for tasks requiring sequential decision-making and optimization of complex objectives.
-Unlike supervised learning, which relies on fixed input-output pairs, \ac{RL} enables models to learn through interaction with dynamic environments, receiving rewards based on the quality of their generated outputs.
+This section fixes notation and states the \acl{PPO} objective that will serve as our baseline.
+Subsequent sections build on this with \acl{GRPO} and \acl{GSPO}.
+\subsection{Preliminaries}
+\label{subsec:preliminaries}
 
-\subsection{History-Based \ac{MDP}
-Formulation} \label{subsec:mdp-history}
+An autoregressive language model with parameters $\theta$ is treated as a policy $\pi_\theta$ over sequences.
+Let $\mathcal{D}$ denote a set of queries, with $x \in \mathcal{D}$, and let $y = (y_1,\ldots,y_{|y|})$ be a tokenized response.
+The sequence likelihood factorizes as \begin{equation}
+\pi_\theta(y \mid x) \;=\; \prod_{t=1}^{|y|}\, \pi_\theta\!\big(y_t \mid x,\, y_{<t}\big).
+\end{equation} A reward function $r$ assigns a scalar outcome to a completed pair, with $r(x,y) \in [0,1]$.
+Expectations are taken over $x \sim \mathcal{D}$ and over responses sampled from a frozen reference policy $\pi_{\theta_{\text{old}}}$ that generated the data for the current update.
+The operator $\operatorname{clip}(\cdot, 1-\epsilon_1, 1+\epsilon_2)$ denotes elementwise clipping of importance ratios into a range controlled by $\epsilon_1, epsilon_2 \!
+>\! 0$.
+We omit the customary $\mathrm{KL}$ regularizer to a reference model both in practice and for clarity.
 
-We model interactive code repair as a history-based \ac{MDP} where time indexes executed tool calls rather than individual tokens.
-The environment state (repository, filesystem) is never exposed directly; it influences the process only through tool outputs that are appended to the conversation transcript.
-
-\paragraph{\ac{MDP} tuple}
-Let $\mathcal{M} = (\mathcal{H}, \mathcal{Y}, \mathcal{P}, r, \gamma)$ be the \ac{MDP}.
-Here $\mathcal{H}$ is the set of text histories, and $\mathcal{Y}$ is the set of assistant-authored chunks that contain at least one well-formed tool call.
-The transition kernel $\mathcal{P}$ maps a current history and an assistant chunk to a distribution over next histories after executing the tool call and appending its output.
-We use $\gamma=1$ for finite episodes with terminal returns.
-
-\paragraph{State, action, observation}
-At step $t$ the state is the transcript prefix $h_t \in \mathcal{H}$, which contains the initial instruction and all prior assistant messages and tool outputs.
-The policy $\pi_\theta(\cdot \mid h_t)$ produces an assistant chunk $y_t \in \mathcal{Y}$.
-A deterministic parser $\psi:\mathcal{Y}\to\mathcal{C}$ extracts the first tool call $c_t = \psi(y_t)$, where $\mathcal{C}$ is the space of executable tool calls.
-The environment executes $c_t$ and returns textual output $o_t \in \text{Text}$.
-The next state is the history with both the assistant chunk and the tool output appended: $h_{t+1} = \text{append}(h_t, y_t, o_t)$.
-
-\paragraph{Trajectory and termination}
-A trajectory of length $T$ is the finite sequence $\tau = \{(h_t, y_t, c_t, o_t)\}_{t=0}^{T-1}$ with terminal transcript $h_T$.
-Episodes terminate on success or when resource budgets are exhausted.
-
-\paragraph{Return}
-Intermediate rewards are zero.
-A scalar terminal return is computed from the terminal transcript, $R(\tau) \equiv R(h_T) \in \mathbb{R}$, and the objective is to maximize the expected return over trajectories induced by the policy: \begin{equation}
-J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[ R(\tau) ]
-\end{equation}
-
-\begin{table}[ht]
-\centering
-\caption{Notation for history-based MDP formulation}
-\label{tab:mdp-notation}
-\begin{tabular}{ll}
-\toprule
-Symbol & Meaning \\
-\midrule
-$\mathcal{H}$ & Space of text histories (conversation transcripts) \\
-$\mathcal{Y}$ & Space of assistant chunks with at least one tool call \\
-$\mathcal{C}$ & Space of executable tool commands \\
-$h_t$ & Transcript prefix before step $t$ \\
-$y_t$ & Assistant chunk produced at step $t$ \\
-$\psi$ & Parser extracting the first tool call from $y_t$ \\
-$c_t$ & The first extracted tool call, $c_t=\psi(y_t)$ \\
-$o_t$ & Textual output returned by executing $c_t$ \\
-$R(\tau)$ & Terminal return computed from final transcript $h_T$ \\
-$\pi_\theta$ & Policy mapping $h_t$ to distribution over $y_t$ \\
-$G$ & Group size for batched advantage estimation in GRPO \\
-$A_t$ & Advantage at time $t$, measuring relative action quality \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The repository and all workspace details remain part of the hidden environment state.
-They appear only through tool outputs $o_t$ that are appended to the history, so no separate symbol for the repository is required in this formulation.
-This abstraction elegantly captures the partial observability inherent in tool-augmented language models while maintaining mathematical rigor.
-
-\todoinline{Clarify what online learning is, in particular for LLMs}
-
-\subsection{Policy Gradient Foundations}
-\label{subsec:policy-gradient}
-
-Building on the history-based MDP formulation, the policy gradient theorem provides the foundation for optimization:
-
-\begin{equation}
-J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]
-\end{equation}
-
-where the expectation is over trajectories $\tau = \{(h_t, y_t, c_t, o_t)\}_{t=0}^{T-1}$ sampled from the policy $\pi_\theta$.
-Since rewards are terminal, the objective simplifies to maximizing the expected return $R(h_T)$ of the final transcript.
-
-The policy gradient theorem gives: \begin{equation}
-\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(y_t|h_t) R(\tau)]
-\end{equation}
-
-However, this basic REINFORCE estimator suffers from high variance, making training unstable and sample-inefficient.
-This limitation becomes particularly problematic for language models, where sequence lengths can be substantial and reward signals are often sparse.
-
-\subsection{Proximal Policy Optimization (PPO)}
+\subsection{Proximal Policy Optimization}
 \label{subsec:ppo}
 
-Proximal Policy Optimization~\cite{schulman2017proximalpolicyoptimizationalgorithms} has emerged as the dominant algorithm for fine-tuning large language models due to its ability to stabilize training while maintaining sample efficiency.
-\ac{PPO} addresses the fundamental challenge of policy optimization: making meaningful progress without taking overly large steps that destabilize learning.
+\acl{PPO} performs multiple gradient steps on samples drawn from the old policy while constraining update size through clipping \cite{ppo2017}.
+Using per-token importance ratios and averaging across the sequence length, the objective is \begin{equation}
+J_{\mathrm{PPO}}(\theta)
+\;=\;
+\mathbb{E}_{\,x \sim \mathcal{D},\; y \sim \pi_{\theta_{\text{old}}}(\cdot \mid x)}
+\left[
+\frac{1}{|y|}
+\sum_{t=1}^{|y|}
+\min\!\Big(
+w_t(\theta)\,\hat{A}_t,\;
+\operatorname{clip}\!\big(w_t(\theta),\, 1-\epsilon_1,\, 1+\epsilon_2\big)\,\hat{A}_t
+\Big)
+\right],
+\end{equation} where the per-token importance ratio compares next-token probabilities under the current and old policies, \begin{equation}
+w_t(\theta)
+\;=\;
+\frac{\pi_\theta\!\big(y_t \mid x,\, y_{<t}\big)}
+{\pi_{\theta_{\text{old}}}\!\big(y_t \mid x,\, y_{<t}\big)}.
+\end{equation} The averaging by $|y|$ normalizes for length so that long responses do not dominate the minibatch objective.
 
-\subsubsection{The Clipping Mechanism}
+The term $\hat{A}_t$ is an advantage supplied by a learned value model.
+In this thesis we use non-discounted, outcome-based supervision: define per-step rewards $\{r_u\}_{u=1}^{|y|}$ and the return at prefix $t$ by \begin{equation}
+G_t \;=\; \sum_{u=t}^{|y|} \gamma^{\,u-t}\, r_u.
+\end{equation} Under the terminal-outcome convention (no intermediate rewards, discount factor set to one), let $r_u = 0$ for $u < |y|$ and $r_{|y|} = R := r(x,y) \in [0,1]$.
+Then \begin{equation}
+G_t \;=\; R \quad \text{for all } t \in \{1,\ldots,|y|\},
+\end{equation} and the per-token advantage reduces to the exact form \begin{equation}
+\hat{A}_t \;=\; G_t \;-\; V_\phi\!\big(x, y_{<t}\big)
+\;=\; R \;-\; V_\phi\!\big(x, y_{<t}\big).
+\end{equation} Intuitively, the advantage compares the realized outcome to what the model expected at each prefix: positive values increase the probability of the chosen token, negative values decrease it, values near zero leave it largely unchanged.
+In large language model settings, the value model is typically comparable in size to the policy and must remain calibrated on long responses, which adds memory and compute cost and can introduce length-related biases if miscalibrated.
 
-\ac{PPO} introduces a clipped objective function that prevents destructive policy updates: \begin{equation}
-L^{CLIP}(\theta) = \mathbb{E}_t\left[\min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right)\right]
-\end{equation} where: \begin{align}
-r_t(\theta) &= \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)} \\
-\hat{A}_t &= R_t - V(s_t)
-\end{align}
-
-The ratio $r_t(\theta)$ measures how much the current policy differs from the previous policy, while $\hat{A}_t$ represents the advantage estimate computed using a value function $V(s_t)$.
-The clipping parameter $\epsilon$ (typically 0.2) constrains policy updates to prevent catastrophic changes.
-
-\subsubsection{Value Function Training}
-
-\ac{PPO} employs a separate value network $V_\phi(s)$ trained to predict expected returns, enabling more accurate advantage estimation: \begin{equation}
-L^{VF}(\phi) = \mathbb{E}_t\left[(V_\phi(s_t) - R_t)^2\right]
-\end{equation}
-
-The complete \ac{PPO} objective combines policy and value losses: \begin{equation}
-L(\theta, \phi) = L^{CLIP}(\theta) - c_1 L^{VF}(\phi) + c_2 S[\pi_\theta](s_t)
-\end{equation} where $S[\pi_\theta]$ is an entropy bonus encouraging exploration, and $c_1, c_2$ are weighting coefficients.
-
-\subsubsection{Success in Language Model Fine-tuning}
-
-\ac{PPO}'s success in language model applications, particularly in \ac{RLHF}, stems from several key properties:
-
-\textbf{Stable Learning}: The clipping mechanism prevents the policy from changing too rapidly, which is crucial when fine-tuning large pre-trained models where dramatic changes can destroy learned representations.
-
-\textbf{Sample Efficiency}: By reusing data for multiple gradient steps and employing importance sampling correction, \ac{PPO} achieves better sample efficiency than simpler policy gradient methods.
-
-\textbf{Scalability}: \ac{PPO}'s architecture separates policy and value training, enabling distributed training across multiple \acp{GPU} with different computational loads for each component.
-
-However, \ac{PPO} also introduces significant computational overhead through the separate value network training and the need for multiple gradient updates per batch of experience.
-
-\subsection{Group Relative Policy Optimization (GRPO)}
-\label{subsec:grpo}
-
-\ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical} is fundamentally \ac{PPO} with a crucial simplification: instead of training a separate value network to estimate advantages, \ac{GRPO} computes advantages directly from relative performance within sampled action groups.
-This elegant modification preserves \ac{PPO}'s theoretical guarantees while dramatically reducing computational overhead.
-
-\subsubsection{The Core Simplification}
-
-The key insight behind \ac{GRPO} is that for each history $h$, rather than estimating $V(h)$ with a separate network, we can sample multiple assistant responses $y_1, \ldots, y_G$ from the current policy $\pi_{\theta_{\text{old}}}$ and use their reward distribution to compute relative advantages.
-
-For a given history $h$, \ac{GRPO} samples $G$ responses from the policy and computes the group-relative advantage as: \begin{equation}
-A_j = \frac{r_j - \mu}{\sigma}
-\end{equation} where $\mu$ and $\sigma$ are the mean and standard deviation of the rewards $r_1, \ldots, r_G$ obtained by executing each response.
-This is simply the standard score (z-score) of the rewards, providing a normalized measure of relative performance.
-
-Mathematically, this can be expressed as: \begin{align}
-\mu &= \frac{1}{G}\sum_{i=1}^G r_i \\
-\sigma &= \sqrt{\frac{1}{G}\sum_{i=1}^G (r_i - \mu)^2} \\
-A_j &= \frac{r_j - \mu}{\sigma}
-\end{align}
-
-\subsubsection{PPO Objective with Group-Relative Advantages}
-
-\ac{GRPO} then maximizes the standard \ac{PPO} objective, but using these group-relative advantages instead of value-network-based estimates.
-The objective becomes: \begin{equation}
-\max_\theta \frac{1}{G}\sum_{i=1}^G \mathbb{E}_{h \sim \mathcal{H}, \{y_1,\ldots,y_G\} \sim \pi_{\theta_{\text{old}}}(\cdot|h)}\left[
-\begin{cases}
-\min\left(\frac{\pi_\theta(y_i|h)}{\pi_{\theta_{\text{old}}}(y_i|h)}, 1+\epsilon\right) A_i & \text{if } A_i > 0 \\
-\max\left(\frac{\pi_\theta(y_i|h)}{\pi_{\theta_{\text{old}}}(y_i|h)}, 1-\epsilon\right) A_i & \text{if } A_i < 0
-\end{cases}
-\right]
-\end{equation}
-
-This formulation preserves \ac{PPO}'s asymmetric clipping behavior: when advantages are positive (indicating good actions), we clip the importance ratio from above at $(1+\epsilon)$ to prevent over-optimization.
-When advantages are negative (indicating poor actions), we clip from below at $(1-\epsilon)$ to avoid excessive penalization.
-
-\subsubsection{Intuitive Understanding}
-
-The intuition behind \ac{GRPO} is elegantly simple: each policy update makes the model more likely to produce actions that performed relatively better than other actions tried at the same state, and less likely to produce actions that performed relatively worse.
-This creates a natural competitive dynamic where actions are evaluated against their peers rather than against an absolute baseline.
-
-Consider a concrete example: if for a given coding problem, the model generates five different debugging approaches with rewards $[0.1, 0.8, 0.3, 0.9, 0.2]$, \ac{GRPO} will: \begin{itemize}
-	\item Strongly reinforce the action with reward $0.9$ (highest z-score)
-	\item Moderately reinforce the action with reward $0.8$ (second highest z-score)
-	\item Slightly penalize actions with rewards $0.3, 0.2, 0.1$ (below-average performance)
-\end{itemize}
-
-This relative ranking approach is particularly powerful for code repair where absolute reward values may vary significantly across different types of bugs, but relative solution quality within each problem remains meaningful.
-
-\subsubsection{Relationship to PPO}
-
-It's crucial to understand that \ac{GRPO} is not a fundamentally different algorithm from \ac{PPO}.
-Rather, it is \ac{PPO} with a specific choice of advantage estimation.
-The clipping mechanism, importance sampling, and optimization dynamics remain identical.
-The only change is replacing: \begin{equation}
-\hat{A}_t^{PPO} = R_t - V_\phi(s_t)
-\end{equation} with: \begin{equation}
-\hat{A}_t^{GRPO} = \frac{r_t - \mu_{\text{group}}}{\sigma_{\text{group}}}
-\end{equation}
-
-This substitution eliminates the need for: \begin{itemize}
-	\item Training a separate value network $V_\phi$
-	\item Computing value loss $L^{VF}(\phi)$
-	\item Managing value network hyperparameters
-	\item Coordinating policy and value network training schedules
-\end{itemize}
-
-\subsubsection{Computational and Practical Advantages}
-
-The computational benefits of \ac{GRPO} are substantial:
-
-\textbf{Memory Efficiency}: Eliminating the value network reduces GPU memory requirements by approximately 50\%, enabling larger batch sizes or model sizes within the same hardware constraints.
-
-% \textbf{Training Simplicity}: The training loop becomes significantly simpler, reducing implementation complexity and potential sources of bugs.
-% There are no value network updates to coordinate or balance against policy updates.
-% 
-% \textbf{Hyperparameter Robustness}: With fewer moving parts, \ac{GRPO} exhibits reduced sensitivity to hyperparameter choices, making it more reliable across different tasks and model architectures.
-
-% \textbf{Batch Processing Efficiency}: \ac{GRPO} can naturally handle variable batch sizes and sequence lengths without the complications introduced by value network training, which often requires careful batch construction.
-
-\subsubsection{Advantages for Code Repair}
-
-% \ac{GRPO}'s design makes it particularly well-suited for code repair applications:
-
-% \textbf{Natural Handling of Sparse Rewards}: Code repair often produces binary success/failure outcomes or sparse quality metrics.
-% \ac{GRPO}'s relative comparison approach handles this naturally, as the standard score normalization adapts to the reward distribution within each group.
-
-% \textbf{Problem Diversity}: Different coding problems require vastly different solution approaches and have different inherent difficulty levels.
-% \ac{GRPO}'s group-relative baseline automatically adjusts to each problem's context, whereas a global value function would struggle to capture this diversity.
-
-% \textbf{Exploration Encouragement}: By comparing actions against their immediate peers rather than a global baseline, \ac{GRPO} encourages exploration of diverse solution strategies, which is crucial for learning robust debugging skills.
-
-\textbf{Computational Scaling}: Code repair training requires processing thousands of agent interactions across diverse repositories and bug types.
-\ac{GRPO}'s computational efficiency makes this scale of training practically feasible.
-
-% The mathematical elegance of \ac{GRPO} lies in its ability to preserve all of \ac{PPO}'s theoretical guarantees while dramatically simplifying the implementation.
-% For code repair, where relative solution quality matters more than absolute reward prediction, this approach provides an optimal balance of performance, simplicity, and computational efficiency.
-
-\subsubsection{Variance Collapse: A Fundamental Challenge}
-
-Despite \ac{GRPO}'s computational advantages, it shares with other policy gradient methods a fundamental challenge known as variance collapse or mode collapse.
-\todoinline{write better and cite}
-This phenomenon occurs when the policy gradient optimization inadvertently incentivizes the model to reduce output variance, leading to increasingly deterministic and less exploratory behavior over training iterations.
-
-The mechanism behind variance collapse in \ac{GRPO} can be understood through the optimization dynamics.
-When computing group-relative advantages, actions with consistently high rewards relative to their peers receive positive reinforcement, while those with lower relative rewards are penalized.
-Over time, this creates a positive feedback loop:
-
-\begin{enumerate}
-	\item High-performing actions become increasingly likely
-	\item The policy concentrates probability mass on these "safe" actions
-	\item Exploration of alternative strategies diminishes
-	\item The standard deviation $\sigma$ in the group decreases
-	\item Smaller $\sigma$ amplifies advantage magnitudes, accelerating concentration
-\end{enumerate}
-
-This collapse is particularly problematic for code repair applications where:
-
-\textbf{Multiple valid solutions exist}: Most bugs can be fixed through various approaches—refactoring the logic, adding error handling, or modifying data structures.
-Variance collapse biases the model toward a single approach, potentially missing simpler or more elegant solutions.
-
-\textbf{Exploration enables learning}: Discovering effective debugging strategies requires experimenting with different investigation paths, tool usage patterns, and fix attempts.
-Premature convergence prevents the model from discovering these diverse strategies.
-
-\textbf{Robustness requires diversity}: Models that learn only narrow solution patterns fail when encountering bugs requiring different approaches, leading to brittleness in deployment.
-
-Several mitigation strategies have been proposed in the literature:
-
-\textbf{\ac{KL} Divergence Constraints}: A standard stabilization augments the clipped objective with a penalty that constrains divergence from a \emph{frozen} reference policy $\pi_{\text{ref}}$.
-In the \ac{GRPO} setting, the optimization can be written as \begin{equation}
-    J_{\text{GRPO}}(\theta) = \mathbb{E}_{h \sim \mathcal{H},\; \{y_i\}_{i=1}^{G} \sim \pi_{\theta_{\text{old}}}(\cdot|h)}\left[ \frac{1}{G} \sum_{i=1}^{G} \min\!\left( \frac{\pi_{\theta}(y_i|h)}{\pi_{\theta_{\text{old}}}(y_i|h)} A_i,\; \text{clip}\!\left(\frac{\pi_{\theta}(y_i|h)}{\pi_{\theta_{\text{old}}}(y_i|h)}, 1-\epsilon, 1+\epsilon\right) A_i \right) \right]
-    - \beta\, \text{KL}(\pi_{\theta}\,\|\,\pi_{\text{ref}}),
-\end{equation} where $\epsilon$ and $\beta$ are hyperparameters and $A_i$ is the group-relative advantage computed from group rewards.
-A practical surrogate for the KL term at the sampled output is \begin{equation}
-    \text{KL}(\pi_{\theta}\,\|\,\pi_{\text{ref}}) \approx \frac{\pi_{\text{ref}}(y_i|h)}{\pi_{\theta}(y_i|h)} - \log\!\left( \frac{\pi_{\text{ref}}(y_i|h)}{\pi_{\theta}(y_i|h)} \right) - 1,
-\end{equation} and, for token-level implementation from logits, with pre-softmax logits $z_{\theta}(h_t)$ and $z_{\text{ref}}(h_t)$, \begin{equation}
-    \text{KL}(\pi_{\theta}\,\|\,\pi_{\text{ref}}) = \mathbb{E}_t\left[\text{KL}\left(\sigma(z_{\theta}(h_t))\,\|\,\sigma(z_{\text{ref}}(h_t))\right)\right].
-\end{equation}
-
-\subsection{Group Sequence Policy Optimization (GSPO)} \label{subsec:gspo}
-
-While \ac{GRPO} offers computational efficiency over traditional \ac{PPO}, recent work from the Qwen team has identified critical stability issues that become particularly pronounced in multi-turn tool use scenarios~\cite{zheng2025groupsequencepolicyoptimization}.
-\ac{GSPO} addresses these fundamental limitations through a theoretically grounded reformulation of the importance sampling mechanism.
-
-\subsubsection{The Stability Problem in GRPO}
-
-The core instability in \ac{GRPO} stems from its token-level importance ratios.
-When training models for multi-turn interactions with coding agents, this becomes especially problematic due to numerical discrepancies between logits generated during fast inference (using engines like vLLM) and those computed during training.
-These discrepancies compound across long sequences, creating high-variance training noise that progressively destabilizes the model.
-
-For our specific use case—training models to use tools iteratively across multiple turns—this instability manifests as: \begin{itemize}
-	\item Catastrophic forgetting of tool-use patterns mid-training
-	\item Divergence between inference and training behavior
-	\item Irreversible model collapse when sequences exceed typical lengths
-\end{itemize}
-
-\subsubsection{Sequence-Level Importance Sampling}
-
-\ac{GSPO}'s key innovation lies in defining importance ratios at the sequence level rather than token level.
-For a response $y$ to query $x$, the sequence-level importance ratio is: \begin{equation}
-w(y|x; \theta) = \frac{\pi_\theta(y|x)}{\pi_{\theta_{\text{old}}}(y|x)} = \prod_{t=1}^{|y|} \frac{\pi_\theta(y_t|x, y_{<t})}{\pi_{\theta_{\text{old}}}(y_t|x, y_{<t})}
-\end{equation}
-
-This aligns with the fundamental principle of importance sampling and provides more stable gradient estimates, particularly crucial when responses involve multiple tool invocations with complex dependencies.
-
-\subsubsection{The GSPO Objective}
-
-\ac{GSPO} optimizes the following objective: \begin{equation}
-J_{\text{GSPO}}(\theta) = \mathbb{E}_{x \sim D, \{y_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(\cdot|x)} \left[ \frac{1}{G} \sum_{i=1}^G \min\left( w(y_i|x; \theta) A_i, \text{clip}(w(y_i|x; \theta), 1-\epsilon, 1+\epsilon) A_i \right) \right]
-\end{equation}
-
-where advantages $A_i$ are computed as normalized rewards across the group: \begin{equation}
-A_i = \frac{r(x, y_i) - \mu_r}{\sigma_r}
-\end{equation}
-
-The critical difference is that clipping, rewarding, and optimization all operate at the sequence level, maintaining consistency throughout the learning process.
-
-\subsubsection{Advantages for Multi-Turn Tool Use}
+\subsection{Advantages for Multi-Turn Tool Use}
+\label{subsec:gspo-advantages}
 
 For our coding agent training scenario, \ac{GSPO} provides several crucial benefits:
 
 \textbf{Numerical Stability}: Sequence-level operations are more robust to the logit discrepancies between vLLM inference and training computation, preventing the accumulation of numerical errors that plague token-level methods.
-
-\textbf{Coherent Tool Sequences}: By treating entire tool-use sequences as atomic units, \ac{GSPO} better preserves the logical flow of multi-step debugging processes, avoiding the fragmentation that can occur with token-level optimization.
-
-\textbf{Simplified Infrastructure}: \ac{GSPO}'s design eliminates several complex stabilization strategies required by \ac{GRPO}, reducing the engineering overhead of our training pipeline.
 
 \textbf{MoE Compatibility}: The Qwen team demonstrated that \ac{GSPO} inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.
 
