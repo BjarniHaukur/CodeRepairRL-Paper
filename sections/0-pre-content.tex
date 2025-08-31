@@ -33,7 +33,7 @@ By training models within the exact scaffolding they will use at deployment, we 
 Our work attempts to bridge the gap between closed-source frontier capabilities and open research, providing complete implementation details, training procedures and infrastructure specifications.
 
 % Detail/Nuance
-We implement this through \ac{GRPO}~\cite{shao2024deepseekmathpushinglimitsmathematical}, where models actively debug real repositories during training.
+We implement this through \ac{GRPO}~\cite{grpo2024}, where models actively debug real repositories during training.
 The key technical innovation lies in our training-inference duality: a custom integration layer enables simultaneous model training and serving, with \ac{NCCL} facilitating live weight synchronization across distributed \acsp{GPU} [expand: specific throughput numbers, latency implications].
 Our \textit{Nano-agent} architecture provides essential bash and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
 

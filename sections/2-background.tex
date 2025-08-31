@@ -3,8 +3,8 @@
 
 This chapter establishes the theoretical and empirical background for online \ac{RL} applied to \ac{APR} with tool-using \acp{LLM}.
 We first situate \ac{APR} historically, from search- and learning-based methods before \acp{LLM} to contemporary, repository-grounded systems, and introduce a simple taxonomy spanning manual, agentless, and agentic workflows.
-We then formalize agentic repair as a history-based \ac{MDP} driven by structured tool calls, and review optimization methods for training such policies, including \ac{PPO}, \ac{GRPO}, and \ac{GSPO}, as well as practical issues such as variance collapse.
-Complementary techniques for scalable training (parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation) are summarized alongside evaluation resources such as \ac{SWE-Bench} and \ac{TauBench}.
+We then review optimization methods for training such policies, including \ac{PPO}, \ac{GRPO}, and \acs{GSPO}, as well as practical issues such as variance collapse.
+Complementary techniques for scalable training (parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation) are summarized alongside evaluation resources such as \ac{SWE-Bench} and TauBench.
 We close with related work and limitations that motivate the minimalist agent and online training recipe developed in the following chapters.
 
 \section{Automated Program Repair before \acsp{LLM}}\label{sec:apr-pre-llm}
@@ -26,7 +26,7 @@ Codex marked an inflection point where large pretrained models on code enabled p
 Since then, frontier labs have converged on repository-grounded evaluation (e.g., \ac{SWE-Bench} Verified) and increasingly ship first-party \emph{agent harnesses} such as OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI} that orchestrate tool calls over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
 
 We therefore organize \ac{LLM}-assisted repair by the degree of autonomy at inference: (i) \emph{scaffold-free} models operating without an execution harness, (ii) \emph{agentless} scaffolds that curate repository context without centralized autonomy, and (iii) \emph{agentic} systems that plan and execute tools end-to-end.
-This taxonomy clarifies which capabilities are evaluated and how results transfer across settings.
+% This taxonomy clarifies which capabilities are evaluated and how results transfer across settings.
 
 \subsection{Scaffold-free}\label{subsec:scaffold-free}
 Scaffold-free approaches frame repair as translation from buggy code to fixed code.
@@ -119,8 +119,8 @@ Having established how agentic systems enable end-to-end learning, we now turn t
 
 \section{\acl{RL} for Language Models}
 \label{sec:rl-language-models}
-
-This section fixes notation and states the \acl{PPO} objective that will serve as our baseline.
+\todoinline{the goal with this section is to incrementally showcase unqiue changes to PPO which culminates in the final version we use (in methods we will say GRPO with GSPO importance, with DAPO clipping, with Dr.
+GRPO bias aversions)} This section fixes notation and states the \acl{PPO} objective that will serve as our baseline.
 Subsequent sections build on this with \acl{GRPO} and \acl{GSPO}.
 \subsection{Preliminaries}
 \label{subsec:preliminaries}
@@ -131,7 +131,7 @@ The sequence likelihood factorizes as \begin{equation}
 \pi_\theta(y \mid x) \;=\; \prod_{t=1}^{|y|}\, \pi_\theta\!\big(y_t \mid x,\, y_{<t}\big).
 \end{equation} A reward function $r$ assigns a scalar outcome to a completed pair, with $r(x,y) \in [0,1]$.
 Expectations are taken over $x \sim \mathcal{D}$ and over responses sampled from a frozen reference policy $\pi_{\theta_{\text{old}}}$ that generated the data for the current update.
-The operator $\operatorname{clip}(\cdot, 1-\epsilon_1, 1+\epsilon_2)$ denotes elementwise clipping of importance ratios into a range controlled by $\epsilon_1, \epsilon_2 \!
+The operator $\operatorname{clip}(\cdot, 1-\epsilon, 1+\epsilon)$ denotes elementwise clipping of importance ratios into a range controlled by $\epsilon \!
 >\! 0$.
 We omit the customary $\mathrm{KL}$ regularizer to a reference model both in practice and for clarity.
 
@@ -148,7 +148,7 @@ J_{\mathrm{PPO}}(\theta)
 \sum_{t=1}^{|y|}
 \min\!\Big(
 w_t(\theta)\,\hat{A}_t,\;
-\operatorname{clip}\!\big(w_t(\theta),\, 1-\epsilon_1,\, 1+\epsilon_2\big)\,\hat{A}_t
+\operatorname{clip}\!\big(w_t(\theta),\, 1-\epsilon,\, 1+\epsilon\big)\,\hat{A}_t
 \Big)
 \right],
 \end{equation} where the per token importance ratio compares next token probabilities under the current and old policies, \begin{equation}
@@ -170,120 +170,142 @@ This elevated memory demand becomes especially pronounced for long responses, as
 \subsection{\acl{GRPO}}
 \label{subsec:grpo}
 
-Good algorithm,
+\acl{GRPO} replaces the learned value baseline with a group relative baseline computed from multiple responses to the same query \cite{grpo2024}.
+For each $x \in \mathcal{D}$, the old policy $\pi_{\theta_{\text{old}}}$ samples a group $\{y_i\}_{i=1}^G$ and each response receives an outcome $r(x,y_i) \in [0,1]$.
+Define the group mean and standard deviation \begin{equation}
+\mu \;=\; \frac{1}{G}\sum_{i=1}^{G} r(x,y_i),
+\qquad
+\sigma \;=\; \sqrt{\frac{1}{G}\sum_{i=1}^{G}\big(r(x,y_i)-\mu\big)^{2}},
+\end{equation} and the standardized group relative advantage for response $y_i$ \begin{equation}
+A_i \;=\; \frac{r(x,y_i)-\mu}{\sigma + \varepsilon}.
+\end{equation} All tokens in $y_i$ share the same scalar $A_i$.
+With per token importance ratios \begin{equation}
+w_{i,t}(\theta) \;=\; \frac{\pi_\theta\!\big(y_{i,t}\mid x,\,y_{i,<t}\big)}{\pi_{\theta_{\text{old}}}\!\big(y_{i,t}\mid x,\,y_{i,<t}\big)},
+\end{equation} the surrogate mirrors PPO’s clipped form while averaging first within a sequence and then across the group: \begin{equation}
+J_{\mathrm{GRPO}}(\theta)
+\;=\;
+\mathbb{E}_{\,x \sim \mathcal{D},\; \{y_i\}_{i=1}^{G} \sim \pi_{\theta_{\text{old}}}(\cdot \mid x)}
+\left[
+\frac{1}{G}\sum_{i=1}^{G}
+\frac{1}{|y_i|}\sum_{t=1}^{|y_i|}
+\min\!\Big(
+w_{i,t}(\theta)\,A_i,\;
+\operatorname{clip}\!\big(w_{i,t}(\theta),\, 1-\epsilon,\, 1+\epsilon\big)\,A_i
+\Big)
+\right].
+\end{equation} The appeal is direct.
+GRPO preserves the PPO update logic but substitutes a per query group baseline for the value model, which removes the critic, lowers memory, and simplifies training while keeping the clipped ratio safeguard and on policy sampling \cite{grpo2024}.
 
-but the following changes have been proposed to mitigate some downfalls.
-% The following is from DeepSWE and I want the discussion on these papers to be condition on this% Clip High (DAPO): Increasing the upper bound of GRPO/PPO’s surrogate loss encourages exploration and stabilizes entropy.% No KL Loss (DAPO): Eliminating KL loss prevents the LLM from being constrained to the trust region of the original SFT model.% No Reward Standard Deviation (Dr.GRPO): Removing reward standard deviation removes difficulty bias in GRPO’s loss, ensuring hard and easy problems are better differentiated.% Length Normalization (Dr.GRPO): Dividing surrogate loss by max context length removes length bias present in GRPO, which increases the length of incorrect responses.% Compact Filtering (Us): Inspired by DAPO, we mask the loss for trajectories that reach max context length, timeout during generation (20 minutes), or reach maximum steps. Described further below.
+\subsubsection{Dr.\,GRPO}
+\label{subsubsec:drgrpo}
 
-\subsubsection{Dr.
-GRPO} \label{subsubsec:drgrpo}
-
-length norm, no reward scaling
-
-\subsubsection{DAPO} \label{subsubsec:dapo} clip high, no KL, etc.
-
-length normalization?
-
-\subsubsection{GSPO}
-
-% \subsection{Advantages for Multi-Turn Tool Use}
-% \label{subsec:gspo-advantages}
-
-% For our coding agent training scenario, \ac{GSPO} provides several crucial benefits:
-
-% \textbf{Numerical Stability}: Sequence-level operations are more robust to the logit discrepancies between vLLM inference and training computation, preventing the accumulation of numerical errors that plague token-level methods.
-
-% \textbf{MoE Compatibility}: The Qwen team demonstrated that \ac{GSPO} inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.
-
-% Empirical results from the Qwen3 models show that \ac{GSPO} not only stabilizes training but also achieves superior final performance compared to \ac{GRPO}, validating its theoretical advantages in practice.
-% For our work, adopting \ac{GSPO} represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
-
-% While the choice of optimization algorithm addresses training stability, the computational demands of fine-tuning billion-parameter models necessitate parameter-efficient approaches.
-
-\section{Low-Rank Adaptation (LoRA)}
-\label{sec:lora}
-
-Parameter-efficient fine-tuning has become essential for adapting large language models to specific tasks without the computational overhead of full fine-tuning.
-Low-Rank Adaptation (\ac{LoRA}) represents one of the most successful approaches in this domain.
-
-\subsection{Mathematical Foundation}
-\label{subsec:lora-math}
-
-\ac{LoRA} is based on the hypothesis that weight updates during fine-tuning have low intrinsic rank.
-For a pre-trained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, \ac{LoRA} represents the update $\Delta W$ as:
-
+Dr.
+\,GRPO identifies two biases in the GRPO objective and removes the corresponding normalization terms \cite{drGRPO2025}.
+First, dividing each sample's loss by $|y_i|$ introduces a response level length bias.
+Second, dividing by the group standard deviation $\sigma$ couples update magnitude to the within group difficulty spread.
+Dr.
+\,GRPO therefore uses an unnormalized, unbiased group advantage and removes response level length averaging:
 \begin{equation}
-\Delta W = BA
+A_i^{\text{Dr}} \;=\; r(x,y_i) \;-\; \frac{1}{G}\sum_{j=1}^{G} r(x,y_j),
 \end{equation}
-
-where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$ with rank $r \ll \min(d,k)$.
-The adapted weight becomes:
-
 \begin{equation}
-W = W_0 + \Delta W = W_0 + BA
+J_{\mathrm{DrGRPO}}(\theta)
+\;=\;
+\mathbb{E}\!
+\left[
+\frac{1}{G}\sum_{i=1}^{G}
+\sum_{t=1}^{|y_i|}
+\min\!\Big(
+w_{i,t}(\theta)\,A_i^{\text{Dr}},\;
+\operatorname{clip}\!\big(w_{i,t}(\theta),\, 1-\epsilon,\, 1+\epsilon\big)\,A_i^{\text{Dr}}
+\Big)
+\right].
 \end{equation}
+In practice the inner sum is implemented as a masked mean over all tokens in the batch with a constant denominator rather than $|y_i|$ per sample.
+Removing the two normalizations improves token efficiency and reduces the tendency to inflate the length of incorrect responses \cite{drGRPO2025}.
 
-During training, $W_0$ remains frozen while only $A$ and $B$ are updated.
-This dramatically reduces the number of trainable parameters from $dk$ to $r(d+k)$.
+\subsubsection{\acl{DAPO}}
+\label{subsubsec:dapo}
 
-\subsection{Implementation Details}
-\label{subsec:lora-implementation}
+\ac{DAPO} is a large scale recipe that builds on \ac{GRPO} with four concrete changes that target entropy collapse, reward noise, and instability \cite{dapo2025}.
+The objective decouples clipping and aggregates at token level across the whole group: \begin{equation}
+J_{\mathrm{DAPO}}(\theta)
+\;=\;
+\mathbb{E}
+\left[
+\frac{1}{\sum_{i=1}^{G} |y_i|}
+\sum_{i=1}^{G}
+\sum_{t=1}^{|y_i|}
+\min\!\Big(
+w_{i,t}(\theta)\,A_i,\;
+\operatorname{clip}\!\big(w_{i,t}(\theta),\, 1-\epsilon_{\text{low}},\, 1+\epsilon_{\text{high}}\big)\,A_i
+\Big)
+\right],
+\end{equation} with $A_i$ the group standardized advantage as in GRPO and asymmetric clipping $(\epsilon_{\text{low}},\epsilon_{\text{high}})$.
+The algorithm removes the KL penalty, uses token level loss, and adds two stabilizers: \emph{dynamic sampling} with a buffer that enforces a balanced mix of correct and incorrect samples for each query group, and \emph{overlong filtering and shaping} that masks loss on truncated or timed out generations and downweights overlong failures.
+The higher upper clip encourages exploration and prevents early entropy collapse; the dynamic buffer reduces variance and improves data efficiency; token level aggregation and overlong filtering make training robust for very long reasoning traces.
 
-\subsubsection{Initialization Strategy}
+\subsubsection{\acl{GSPO}}
+\label{subsubsec:gspo}
 
-\ac{LoRA} uses a specific initialization scheme to ensure training stability:
-\begin{itemize}
-	\item Matrix $A$ is initialized using random Gaussian values
-	\item Matrix $B$ is initialized to zero, ensuring $\Delta W = BA = 0$ at the start
-	\item This guarantees that the adapted model initially behaves identically to the pre-trained model
-\end{itemize}
+Token-level importance weighting in GRPO is fragile at scale.
+Small logit discrepancies between training and inference engines accumulate across long sequences, and in sparse Mixture-of-Experts models the set of activated experts can change between $\pi_{\theta_{\text{old}}}$ and $\pi_\theta$, making token-level ratios volatile and invalid as off-policy corrections.
+These effects amplify under clipping and have been observed to trigger irreversible collapse; prior MoE work required routing-replay to stabilize GRPO.
+\cite{gspo2025}
 
-\subsubsection{Scaling Factor}
+\emph{\ac{GSPO}} restores a coherent importance sampler by matching the optimization unit to the reward unit: entire responses.
+With the same group-relative advantage as GRPO, \begin{equation}
+A_i \;=\; \frac{r(x,y_i)\;-\;\frac{1}{G}\sum_{j=1}^{G} r(x,y_j)}{\sqrt{\frac{1}{G}\sum_{j=1}^{G}\big(r(x,y_j) - \frac{1}{G}\sum_{k=1}^{G} r(x,y_k)\big)^2} \;+\; \varepsilon},
+\end{equation} GSPO defines a \emph{length-normalized sequence-level} importance ratio \begin{equation}
+s_i(\theta)
+\;=\;
+\left(\frac{\pi_\theta(y_i \mid x)}{\pi_{\theta_{\text{old}}}(y_i \mid x)}\right)^{\!1/|y_i|}
+\;=\;
+\exp\!\left(
+\frac{1}{|y_i|}\sum_{t=1}^{|y_i|}
+\log\frac{\pi_\theta(y_{i,t}\mid x, y_{i,<t})}{\pi_{\theta_{\text{old}}}(y_{i,t}\mid x, y_{i,<t})}
+\right),
+\end{equation} and optimizes a clipped sequence-level surrogate \begin{equation}
+J_{\mathrm{GSPO}}(\theta)
+\;=\;
+\mathbb{E}_{\,x \sim \mathcal{D},\;\{y_i\}_{i=1}^{G}\sim \pi_{\theta_{\text{old}}}(\cdot\mid x)}
+\left[
+\frac{1}{G}\sum_{i=1}^{G}
+\min\!\Big(
+s_i(\theta)\,A_i,\;
+\operatorname{clip}\!\big(s_i(\theta),\,1-\epsilon_1,\,1+\epsilon_2\big)\,A_i
+\Big)
+\right].
+\end{equation} Length normalization in $s_i(\theta)$ keeps ratios numerically comparable across response lengths and prevents a few token-level logit differences from exploding the sequence weight; the resulting clipping ranges are therefore orders of magnitude smaller than in token-level schemes.
+\cite{gspo2025}
 
-The \ac{LoRA} update is typically scaled by a factor $\alpha/r$ where $\alpha$ is a hyperparameter:
+The gradient makes the stability contrast explicit (omitting clipping for brevity): \begin{equation}
+\nabla_\theta J_{\mathrm{GSPO}}(\theta)
+\;=\;
+\mathbb{E}\!\left[
+\frac{1}{G}\sum_{i=1}^{G}
+s_i(\theta)\,A_i\;\cdot\;
+\frac{1}{|y_i|}\sum_{t=1}^{|y_i|}
+\nabla_\theta \log \pi_\theta(y_{i,t}\mid x, y_{i,<t})
+\right],
+\end{equation} so all tokens in a response are weighted equally by the same sequence factor $s_i(\theta)$.
+In GRPO, by contrast, each token carries its own noisy ratio $w_{i,t}$, and those unequal weights accumulate unpredictably along the sequence.
+GSPO's sequence weighting eliminates that instability, removes the need for routing-replay in \acs{MoE} \ac{RL}, and is tolerant to training-vs-inference log-probprecision differences—often allowing direct use of inference-engine likelihoods without recomputation.
+\cite{gspo2025}
 
+\section{Low-Rank Adaptation (LoRA)} \label{sec:lora}
+
+Parameter-efficient adaptation is essential for training large models without the overhead of full fine-tuning.
+\acl{LoRA} learns a low-rank update to frozen weights \cite{lora2021}:
 \begin{equation}
-W = W_0 + \frac{\alpha}{r}BA
+\Delta W = BA,\qquad W = W_0 + \frac{\alpha}{r}\,BA,
 \end{equation}
+with $B \in \mathbb{R}^{d\times r}$, $A \in \mathbb{R}^{r\times k}$, and rank $r \ll \min(d,k)$.
+Initializing $B{=}0$ preserves the base model at the start ($W{=}W_0$), which stabilizes optimization.
+For online \acl{RL} with coding agents, \ac{LoRA} reduces trainable state, supports clean policy-reference separation (adapters differ, base is shared), and accelerates iteration.
+Adapter placement is flexible—practitioners select which modules to adapt based on capacity/efficiency goals; rank $r$ and scale $\alpha$ set the capacity-efficiency trade-off.
 
-This scaling allows for consistent learning rates across different rank values and provides a simple way to control adaptation strength.
-
-\subsection{Computational Advantages}
-\label{subsec:lora-advantages}
-
-\ac{LoRA} offers substantial practical benefits for \ac{RL} training:
-
-\textbf{Memory Efficiency}: With typical rank values $r = 8$ to $64$, \ac{LoRA} reduces trainable parameters by 99\%+ for large models, dramatically lowering \ac{GPU} memory requirements.
-
-\textbf{Training Speed}: Fewer parameters mean faster gradient computation and reduced communication overhead in distributed training setups.
-
-\textbf{Storage Efficiency}: \ac{LoRA} adapters are small (typically <100MB vs multi-GB full models), enabling efficient storage and distribution of task-specific adaptations.
-
-\textbf{Modularity}: Multiple \ac{LoRA} adapters can be trained for different tasks and dynamically loaded, enabling flexible model deployment.
-
-\subsection{Integration with Reinforcement Learning}
-\label{subsec:lora-rl}
-
-\ac{LoRA}'s benefits become particularly pronounced in \ac{RL} settings where multiple model instances must be maintained:
-
-\textbf{Policy-Reference Separation}: \ac{RL} algorithms like \ac{PPO} require keeping both current and reference policies.
-With \ac{LoRA}, the reference policy can share the frozen base weights while only the adapter differs.
-
-\subsection{Theoretical Considerations}
-\label{subsec:lora-theory}
-
-Recent research has examined \ac{LoRA}'s representational capacity and limitations:
-
-\textbf{Expressiveness}: While \ac{LoRA} cannot represent arbitrary weight updates, empirical evidence suggests that many fine-tuning scenarios do indeed have low-rank structure, making \ac{LoRA}'s constraints reasonable.
-
-\textbf{Task Transfer}: \ac{LoRA} adapters learned for related tasks can serve as initialization for new tasks, potentially accelerating learning through transfer.
-
-\textbf{Rank Selection}: Choosing appropriate rank values requires balancing expressiveness against efficiency.
-Higher ranks provide more flexibility but reduce computational savings.
-
-The combination of \ac{LoRA}'s efficiency with online \ac{RL} creates opportunities for more extensive experimentation and deployment of coding agents across diverse software engineering contexts.
-
-Beyond parameter-efficient training, the choice of sampling strategy during generation plays a straightforward, yet crucial role in the exploration-exploitation trade-off fundamental to RL.
+% (Older contextual lead-ins removed to avoid redundancy.)
 
 \section{Sampling Strategies}
 \label{sec:sampling-strategies}

@@ -118,7 +118,7 @@ We prioritize methodological clarity and reproducibility: all configurations and
 
 % \textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient \ac{RL} with coding agents.
 % This includes a custom integration layer between vLLM inference servers and \ac{RL} trainers, real-time weight synchronization via \ac{NCCL} for live policy updates, and optimizations enabling training of models up to 32B parameters with limited computational resources.
-% The infrastructure supports both Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical} and can be extended to other policy gradient methods.
+% The infrastructure supports both Group Relative Policy Optimization (\ac{GRPO})~\cite{grpo2024} and can be extended to other policy gradient methods.
 
 % \textbf{Empirical Validation}: Through extensive experiments on the \ac{SWE-Gym} training environment and \ac{SWE-Bench-Verified} evaluation benchmark, we demonstrate that this \ac{RL} approach produces monotonic improvements in bug-fixing performance.
 % This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of experiential training approaches.
@@ -183,7 +183,7 @@ We adopt efficiency practices such as mixed-precision training, reuse of checkpo
 This research employs a rigorous experimental methodology designed to systematically evaluate \ac{RL} for repository-level bug fixing.
 % Our approach combines theoretical insights from \ac{RL} with practical engineering solutions to create a comprehensive experimental framework.
 
-We employ \ac{GRPO}, a variant of \ac{PPO}~\cite{schulman2017proximalpolicyoptimizationalgorithms} that forgoes value function estimation in favor of group-relative reward baselines.
+We employ \ac{GRPO}, a variant of \ac{PPO}~\cite{ppo2017} that forgoes value function estimation in favor of group-relative reward baselines.
 During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch quality.
 
 Our experimental design implements careful controls to ensure valid comparisons between different training paradigms.

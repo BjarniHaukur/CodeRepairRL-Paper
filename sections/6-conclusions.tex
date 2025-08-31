@@ -9,18 +9,19 @@ We present comprehensive infrastructure for online \ac{RL} training of code repa
 
 Our work makes several methodological and infrastructure contributions to the emerging field of experiential learning for coding agents:
 
-\subsection{Methodological Innovation}
-\label{subsec:methodological-innovation}
+\subsection{Methodological Innovation} \label{subsec:methodological-innovation}
 
 \textbf{Training-Inference Duality}: Our implementation collapses the conventional boundary between training and inference phases through continuous serving and real-time weight updates.
 This unified approach makes large-scale agent training practically feasible within academic research budgets by eliminating the need for separate training and deployment phases.
 
-\textbf{\ac{GRPO} Optimization for Agents}: We adapt Group Relative Policy Optimization~\cite{shao2024deepseekmathpushinglimitsmathematical} for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training.
+\textbf{\ac{GRPO}
+Optimization for Agents}: We adapt Group Relative Policy Optimization~\cite{grpo2024} for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training.
 
 \subsection{Methodological Validation}
 \label{subsec:methodological-validation}
 
-\textbf{Nano Agent Architecture}: Our minimalist Nano agent implementation demonstrates that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}. The agent operates with only basic terminal commands and file operations, proving the viability of experiential learning approaches.
+\textbf{Nano Agent Architecture}: Our minimalist Nano agent implementation demonstrates that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
+The agent operates with only basic terminal commands and file operations, proving the viability of experiential learning approaches.
 
 \textbf{Hill-Climbing Framework}: We establish the conceptual framework of "hill-climbing the coding agent gradient," providing a systematic approach to iterative improvement of coding agents through environmental interaction.
 
@@ -40,8 +41,7 @@ This unified approach makes large-scale agent training practically feasible with
 
 Our methodology development and preliminary investigations provide insights into the research questions, with comprehensive experimental validation ongoing:
 
-\subsection{RQ1: Adaptation to the Harness}
-\label{subsec:rq1-answer}
+\subsection{RQ1: Adaptation to the Harness} \label{subsec:rq1-answer}
 
 \textbf{Theoretical Foundation}: Interactive \ac{RL} should improve adaptation to the Nano harness through reinforcement of effective tool-usage patterns and reduction of invalid actions.
 
@@ -79,8 +79,8 @@ Our methodology development and preliminary investigations provide insights into
 \section{Broader Implications}
 \label{sec:broader-implications}
 
-\subsection{Paradigm Shift in \ac{AI} Training}
-\label{subsec:paradigm-shift}
+\subsection{Paradigm Shift in \ac{AI}
+Training} \label{subsec:paradigm-shift}
 
 Our methodological framework suggests potential for a fundamental shift from static dataset-based training to experiential environment-based learning for complex reasoning tasks.
 The viability of online \ac{RL} infrastructure indicates that many \ac{AI} capabilities may be better acquired through direct interaction rather than passive observation, particularly for domains requiring multi-step reasoning and strategic planning.
@@ -97,7 +97,6 @@ The methodological foundation supports future development toward practical deplo
 
 By providing complete open-source implementations, we enable broader academic investigation of online RL techniques for coding agents.
 This open approach facilitates reproducible research and community-driven development of advanced agent training methods, reducing barriers to entry in this emerging field.
-
 
 \section{Limitations and Constraints} \label{sec:limitations}
 
@@ -194,8 +193,8 @@ Future agent designs could incorporate hierarchical planning with high-level str
 
 Agents that rapidly adapt to new environments represent an important frontier, including few-shot adaptation to new programming environments, continual learning without catastrophic forgetting, systematic transfer learning approaches, and self-improvement through reflection on debugging experiences.
 
-\subsection{Human-\ac{AI} Collaboration}
-\label{subsec:human-ai-collab}
+\subsection{Human-\ac{AI}
+Collaboration} \label{subsec:human-ai-collab}
 
 Rather than fully autonomous agents, future systems could focus on human-\ac{AI} partnerships through explanatory debugging that shares reasoning, incremental assistance adapting to developer preferences, learning from natural human feedback, and preference learning for individual coding styles.
 

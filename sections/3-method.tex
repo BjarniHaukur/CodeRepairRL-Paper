@@ -107,8 +107,6 @@ We can say we attempt "safety" with rbash, readonly access and timeouts}
 
 \subsection{Integration with RL Training}
 
-The Nano agent instantiates the history-based MDP formulation from Section~\ref{sec:mdp-history} as follows:
-
 \begin{itemize}
 	\item \textbf{History} $h_t$: The conversation transcript containing the issue description and all prior tool interactions
 	\item \textbf{Assistant chunk} $y_t$: Model output containing \texttt{shell} commands or \texttt{apply\_patch} operations
@@ -253,7 +251,6 @@ We extend this framework with custom components specifically designed for multi-
 
 \subsection{Group Relative Policy Optimization (GRPO)}
 
-We employ Group Relative Policy Optimization (\ac{GRPO})~\cite{shao2024deepseekmathpushinglimitsmathematical} as our primary \ac{RL} algorithm.
 \ac{GRPO} offers several key advantages over traditional actor-critic methods.
 Unlike conventional approaches, \ac{GRPO} estimates advantages using relative performance within a batch, eliminating the need for a separate value network.
 This design choice reduces variance by normalizing rewards across groups of trajectories, providing more stable training signals.
@@ -350,6 +347,9 @@ Training and serving 8B to 32B parameter models for online \ac{RL} requires soph
 
 \textbf{LoRA:}
 \todoinline{Move discussions on what LoRA buys us efficiency-wise here, discuss them tersely}
+
+\paragraph{Note on LoRA in KL-controlled training.}
+When KL control to a reference policy is used, sharing the frozen $W_0$ and differing only in adapters avoids duplicating full parameters and simplifies bookkeeping; we do not employ an explicit KL term in this work but note the general advantage.
 
 \textbf{FlashAttention 2:} \cite{dao2023flashattention2fasterattentionbetter}
 3 only available on >H100
