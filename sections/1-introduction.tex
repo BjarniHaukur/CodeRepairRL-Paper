@@ -47,8 +47,13 @@ In this paradigm, a scaffold or harness interprets tool calls from the \ac{LLM},
 The entire system (\ac{LLM} plus scaffold) forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
 
 When equipped with appropriate scaffolds, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
-This capability transformation enables, for the first time, the application of \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
-\todoinline{Tie explicitly to terminal-oriented agency; add references to public statements/benchmarks on terminal skills (e.g., TerminalBench/TauBench  ).}
+This capability transformation makes it practical to apply \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
+\todoinline{Tie explicitly to terminal-oriented agency; add references to public statements/benchmarks on terminal skills (e.g., TerminalBench/TauBench).}
+
+In this thesis, training adopts an execution-free agentic setup: the agent does not run builds or tests during training.
+Instead it receives static, repository-local feedback (e.g., patch similarity and other non-executed diagnostics) that is sparse and delayed at the episode level.
+This trades direct functional signals for infrastructure simplicity and determinism, enabling scale and multilingual coverage while keeping optimization aligned with interaction quality (valid tool use, efficiency) and end-task success.
+Concrete observation, action, and reward definitions are specified in \cref{ch:method}.
 
 The significance of this paradigm shift extends beyond mere technical feasibility.
 Human software developers do not repair bugs through single-shot pattern matching; rather, they engage in sophisticated exploratory processes involving hypothesis formation, incremental information gathering, and iterative solution refinement.
@@ -73,40 +78,21 @@ Our work addresses this need by studying \ac{RL} with interactive coding agents 
 \section{Problem}
 \label{sec:intro-problem}
 
-The central challenge addressed in this thesis concerns the fundamental disconnect between the training methodologies employed for code repair models and the interactive, exploratory nature of real-world debugging.
-Contemporary approaches to automated program repair exhibit a critical limitation: models trained on static datasets of bug-fix pairs are subsequently expected to perform dynamic, multi-step reasoning in complex software environments.
-This paradigm mismatch constrains their effectiveness and generalization capabilities.
+Tool-using coding agents already exist; what is largely missing in the open scientific community is an open, reproducible training pipeline for such agents.
+Concretely, we target a minimalist, execution-free \ac{RL} recipe for repository-level \ac{APR} that (i) optimizes terminal interaction quality in live repositories using static, execution-free feedback, (ii) scales beyond a single language without bespoke test infrastructure or heavy dataset engineering, and (iii) demonstrates generalization from training suites to external evaluations and across base models.
 
-We identify three critical limitations that characterize current approaches:
-
-\textbf{Exploration Capability Deficit}: Models trained exclusively on static data lack the ability to develop effective exploration strategies.
-Unlike human developers who actively navigate codebases, execute diagnostic commands, and iteratively gather contextual information, these models never experience the exploratory aspects of debugging during training.
-This results in agents that, when deployed, exhibit suboptimal information-gathering behaviors and fail to leverage available tools effectively.
-
-\textbf{Temporal Abstraction Mismatch}: The predominant training paradigm assumes bug repair can be modeled as a single-step transformation from buggy code to correct code.
-However, empirical observation of developer workflows reveals that debugging is inherently a multi-step process involving hypothesis formation, incremental testing, and solution refinement.
-Models trained for single-shot generation lack the temporal reasoning capabilities necessary for effective iterative problem-solving.
-
-\textbf{Language Isolation Barrier}: Existing approaches remain confined to single programming languages due to their fundamental dependence on execution-based evaluation.
-Each language requires separate test infrastructure, build systems, dependency management, and environment configuration, making multilingual training prohibitively complex.
-This artificial isolation contradicts the reality of modern software development, where polyglot systems are the norm and debugging skills naturally transfer across languages.
-The reliance on test execution as the primary training signal has created a fragmented landscape where each language community develops isolated solutions, preventing the emergence of universal debugging agents.
-
-These limitations converge to a fundamental research question: How can we develop training methodologies that enable language models to acquire genuine debugging skills through environmental experience, and what architectural choices maximize the effectiveness of such training?
-This question motivates our investigation into \ac{RL} with coding agents as a paradigm for training more capable code repair systems.
+We therefore frame execution-free \ac{RL} as a pragmatic compromise: by trading direct functional signals for deterministic, static feedback, it becomes feasible to run large-scale and multilingual experiments with tight control over variance and reproducibility.
+The scientific question is whether such a recipe can adapt a single minimalist agent to repositories, reduce invalid actions, and improve action efficiency while transferring across datasets and model families.
 
 \section{Purpose}
 \label{sec:intro-purpose}
 
-This thesis investigates a novel training paradigm for automated program repair using \ac{RL} with coding agents, demonstrating that execution-free rewards enable the development of universal multilingual debugging capabilities.
-The fundamental premise is that language models can acquire sophisticated debugging skills that transfer across programming languages when trained through direct interaction with software environments using patch-similarity rewards, rather than language-specific test execution.
-By embedding autonomous coding agents within the \ac{RL} optimization process and removing execution dependencies, we enable models to learn from diverse programming languages simultaneously, developing debugging strategies that transcend syntactic boundaries.
+This thesis develops and evaluates an open, execution-free \ac{RL} training recipe for a single minimalist coding agent (Nano).
+Our emphasis is on training practice and evidence, not on introducing a new scaffold or algorithm: we document a transparent procedure and analyze its effects on interaction behavior.
+We show that static, repository-local rewards can improve agent interaction without executing tests or builds, and that the same recipe transfers across base models and from training suites to external benchmarks.
+We prioritize methodological clarity and reproducibility: all configurations and harness interfaces are specified, and the approach is designed to scale to multilingual settings without bespoke per-language engineering.
 
-\todoinline{unslopify}
-The primary objective is to demonstrate that execution-free training not only matches execution-based approaches on single-language tasks but uniquely enables multilingual capability with minimal engineering overhead.
-This approach directly addresses the fragmentation in current automated program repair, where each language community maintains separate tools and models despite the fundamental similarity of debugging strategies.
-
-Through rigorous empirical evaluation on both monolingual and multilingual benchmarks, this research establishes execution-free \ac{RL} as the first practical approach for training universal debugging agents, demonstrating that removing execution constraints enables capabilities that were previously unattainable due to engineering complexity.
+\todoinline{Tighten scope/claims to match finalized results; add pointers to Sections/Figures once numbers are fixed.}
 
 % Despite growing evidence that leading \ac{AI} labs employ experiential training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
 

@@ -158,6 +158,7 @@ w_t(\theta)
 {\pi_{\theta_{\text{old}}}\!\big(y_t \mid x,\, y_{<t}\big)}.
 \end{equation} The averaging by $|y|$ normalizes for length so that long responses do not dominate the minibatch objective.
 
+\todoinline{I want this, but not as detailed perhaps, if presented elegantly, it illustrates perfectly WHY GRPO is a game-changer}
 The term $\hat{A}_t$ is an advantage supplied by a learned value model.
 In this thesis we use non-discounted, outcome-based supervision: define per-step rewards $\{r_u\}_{u=1}^{|y|}$ and the return at prefix $t$ by \begin{equation}
 G_t \;=\; \sum_{u=t}^{|y|} \gamma^{\,u-t}\, r_u.
@@ -173,19 +174,40 @@ In large language model settings, the value model is typically comparable in siz
 \subsection{\acl{GRPO}}
 \label{subsec:grpo}
 
-Good algorithm, but the following changes have been proposed to mitigate some downfalls.
+Good algorithm,
+
+but the following changes have been proposed to mitigate some downfalls.
+% The following is from DeepSWE and I want the discussion on these papers to be condition on this% Clip High (DAPO): Increasing the upper bound of GRPO/PPO’s surrogate loss encourages exploration and stabilizes entropy.% No KL Loss (DAPO): Eliminating KL loss prevents the LLM from being constrained to the trust region of the original SFT model.% No Reward Standard Deviation (Dr.GRPO): Removing reward standard deviation removes difficulty bias in GRPO’s loss, ensuring hard and easy problems are better differentiated.% Length Normalization (Dr.GRPO): Dividing surrogate loss by max context length removes length bias present in GRPO, which increases the length of incorrect responses.% Compact Filtering (Us): Inspired by DAPO, we mask the loss for trajectories that reach max context length, timeout during generation (20 minutes), or reach maximum steps. Described further below.
 
 \subsubsection{Dr.
 GRPO} \label{subsubsec:drgrpo}
 
+length norm, no reward scaling
+
 \subsubsection{DAPO} \label{subsubsec:dapo} clip high, no KL, etc.
+
+length normalization?
 
 \subsubsection{GSPO}
 
-\section{Low-Rank Adaptation (LoRA)} \label{sec:lora}
+% \subsection{Advantages for Multi-Turn Tool Use}
+% \label{subsec:gspo-advantages}
+
+% For our coding agent training scenario, \ac{GSPO} provides several crucial benefits:
+
+% \textbf{Numerical Stability}: Sequence-level operations are more robust to the logit discrepancies between vLLM inference and training computation, preventing the accumulation of numerical errors that plague token-level methods.
+
+% \textbf{MoE Compatibility}: The Qwen team demonstrated that \ac{GSPO} inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.
+
+% Empirical results from the Qwen3 models show that \ac{GSPO} not only stabilizes training but also achieves superior final performance compared to \ac{GRPO}, validating its theoretical advantages in practice.
+% For our work, adopting \ac{GSPO} represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
+
+% While the choice of optimization algorithm addresses training stability, the computational demands of fine-tuning billion-parameter models necessitate parameter-efficient approaches.
+
+\section{Low-Rank Adaptation (LoRA)}
+\label{sec:lora}
 
 Parameter-efficient fine-tuning has become essential for adapting large language models to specific tasks without the computational overhead of full fine-tuning.
-% The following is from DeepSWE and % Clip High (DAPO): Increasing the upper bound of GRPO/PPO’s surrogate loss encourages exploration and stabilizes entropy.% No KL Loss (DAPO): Eliminating KL loss prevents the LLM from being constrained to the trust region of the original SFT model.% No Reward Standard Deviation (Dr.GRPO): Removing reward standard deviation removes difficulty bias in GRPO’s loss, ensuring hard and easy problems are better differentiated.% Length Normalization (Dr.GRPO): Dividing surrogate loss by max context length removes length bias present in GRPO, which increases the length of incorrect responses.% Compact Filtering (Us): Inspired by DAPO, we mask the loss for trajectories that reach max context length, timeout during generation (20 minutes), or reach maximum steps. Described further below.% No Entropy Loss (Us): Entropy loss introduces higher instability and eventually leads to exponentially increasing entropy, which collapses training. Provided that the base model’s token-level entropy is within 0.3-1, entropy loss is not needed.% \subsection{Advantages for Multi-Turn Tool Use}% \label{subsec:gspo-advantages}% For our coding agent training scenario, \ac{GSPO} provides several crucial benefits:% \textbf{Numerical Stability}: Sequence-level operations are more robust to the logit discrepancies between vLLM inference and training computation, preventing the accumulation of numerical errors that plague token-level methods.% \textbf{MoE Compatibility}: The Qwen team demonstrated that \ac{GSPO} inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.% Empirical results from the Qwen3 models show that \ac{GSPO} not only stabilizes training but also achieves superior final performance compared to \ac{GRPO}, validating its theoretical advantages in practice.% For our work, adopting \ac{GSPO} represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.% While the choice of optimization algorithm addresses training stability, the computational demands of fine-tuning billion-parameter models necessitate parameter-efficient approaches.
 Low-Rank Adaptation (\ac{LoRA}) represents one of the most successful approaches in this domain.
 
 \subsection{Mathematical Foundation}
