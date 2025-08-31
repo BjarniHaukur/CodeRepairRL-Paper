@@ -67,7 +67,7 @@ Agentless setups are excellent for reproducible evaluation and for collecting lo
 
 Agentic systems operate directly over a live repository and let the model initiate actions.
 The model can open and edit files, run tests and shell commands, read raw outputs, and iterate until a patch is ready.
-Public research harnesses make this concrete: \emph{SWE-Agent} formalizes an agent-computer loop for software tasks, \emph{OpenHands} provides a general terminal-based platform for coding agents, and \emph{mini-swe-agent} shows that a small, disciplined tool set in a tight loop is effective~\cite{sweAgent2024,openhands2024, miniSWEAgentRepo}.
+Public research harnesses make this concrete: \emph{SWE-Agent} formalizes an agent-computer loop for software tasks, \emph{OpenHands} provides a general terminal-based platform for coding agents, and \emph{mini-swe-agent} shows that a small, disciplined tool set in a tight loop is effective~\cite{sweAgent2024,openHands2024, miniSWEAgentRepo}.
 Our Nano agent (\cref{sec:nano-agent}) adopts a similar minimalist philosophy, providing only essential terminal commands and file patching capabilities, allowing effective debugging behaviors to emerge through \ac{RL}.
 
 Operationally, these systems rely on structured tool calls, typically via \acs{JSON}.
@@ -135,7 +135,7 @@ The operator $\operatorname{clip}(\cdot, 1-\epsilon_1, 1+\epsilon_2)$ denotes el
 >\! 0$.
 We omit the customary $\mathrm{KL}$ regularizer to a reference model both in practice and for clarity.
 
-\subsection{Proximal Policy Optimization}
+\subsection{\acl{PPO}}
 \label{subsec:ppo}
 
 \acl{PPO} performs multiple gradient steps on samples drawn from the old policy while constraining update size through clipping \cite{ppo2017}.
@@ -170,24 +170,22 @@ G_t \;=\; R \quad \text{for all } t \in \{1,\ldots,|y|\},
 \end{equation} Intuitively, the advantage compares the realized outcome to what the model expected at each prefix: positive values increase the probability of the chosen token, negative values decrease it, values near zero leave it largely unchanged.
 In large language model settings, the value model is typically comparable in size to the policy and must remain calibrated on long responses, which adds memory and compute cost and can introduce length-related biases if miscalibrated.
 
-\subsection{Advantages for Multi-Turn Tool Use}
-\label{subsec:gspo-advantages}
+\subsection{\acl{GRPO}}
+\label{subsec:grpo}
 
-For our coding agent training scenario, \ac{GSPO} provides several crucial benefits:
+Good algorithm, but the following changes have been proposed to mitigate some downfalls.
 
-\textbf{Numerical Stability}: Sequence-level operations are more robust to the logit discrepancies between vLLM inference and training computation, preventing the accumulation of numerical errors that plague token-level methods.
+\subsubsection{Dr.
+GRPO} \label{subsubsec:drgrpo}
 
-\textbf{MoE Compatibility}: The Qwen team demonstrated that \ac{GSPO} inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.
+\subsubsection{DAPO} \label{subsubsec:dapo} clip high, no KL, etc.
 
-Empirical results from the Qwen3 models show that \ac{GSPO} not only stabilizes training but also achieves superior final performance compared to \ac{GRPO}, validating its theoretical advantages in practice.
-For our work, adopting \ac{GSPO} represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.
+\subsubsection{GSPO}
 
-While the choice of optimization algorithm addresses training stability, the computational demands of fine-tuning billion-parameter models necessitate parameter-efficient approaches.
-
-\section{Low-Rank Adaptation (LoRA)}
-\label{sec:lora}
+\section{Low-Rank Adaptation (LoRA)} \label{sec:lora}
 
 Parameter-efficient fine-tuning has become essential for adapting large language models to specific tasks without the computational overhead of full fine-tuning.
+% The following is from DeepSWE and % Clip High (DAPO): Increasing the upper bound of GRPO/PPO’s surrogate loss encourages exploration and stabilizes entropy.% No KL Loss (DAPO): Eliminating KL loss prevents the LLM from being constrained to the trust region of the original SFT model.% No Reward Standard Deviation (Dr.GRPO): Removing reward standard deviation removes difficulty bias in GRPO’s loss, ensuring hard and easy problems are better differentiated.% Length Normalization (Dr.GRPO): Dividing surrogate loss by max context length removes length bias present in GRPO, which increases the length of incorrect responses.% Compact Filtering (Us): Inspired by DAPO, we mask the loss for trajectories that reach max context length, timeout during generation (20 minutes), or reach maximum steps. Described further below.% No Entropy Loss (Us): Entropy loss introduces higher instability and eventually leads to exponentially increasing entropy, which collapses training. Provided that the base model’s token-level entropy is within 0.3-1, entropy loss is not needed.% \subsection{Advantages for Multi-Turn Tool Use}% \label{subsec:gspo-advantages}% For our coding agent training scenario, \ac{GSPO} provides several crucial benefits:% \textbf{Numerical Stability}: Sequence-level operations are more robust to the logit discrepancies between vLLM inference and training computation, preventing the accumulation of numerical errors that plague token-level methods.% \textbf{MoE Compatibility}: The Qwen team demonstrated that \ac{GSPO} inherently stabilizes Mixture-of-Experts training without additional interventions, opening possibilities for scaling to larger, more efficient architectures.% Empirical results from the Qwen3 models show that \ac{GSPO} not only stabilizes training but also achieves superior final performance compared to \ac{GRPO}, validating its theoretical advantages in practice.% For our work, adopting \ac{GSPO} represents a critical engineering decision that enables stable, long-duration training of coding agents through thousands of multi-turn interactions.% While the choice of optimization algorithm addresses training stability, the computational demands of fine-tuning billion-parameter models necessitate parameter-efficient approaches.
 Low-Rank Adaptation (\ac{LoRA}) represents one of the most successful approaches in this domain.
 
 \subsection{Mathematical Foundation}
