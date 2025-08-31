@@ -131,7 +131,7 @@ The sequence likelihood factorizes as \begin{equation}
 \pi_\theta(y \mid x) \;=\; \prod_{t=1}^{|y|}\, \pi_\theta\!\big(y_t \mid x,\, y_{<t}\big).
 \end{equation} A reward function $r$ assigns a scalar outcome to a completed pair, with $r(x,y) \in [0,1]$.
 Expectations are taken over $x \sim \mathcal{D}$ and over responses sampled from a frozen reference policy $\pi_{\theta_{\text{old}}}$ that generated the data for the current update.
-The operator $\operatorname{clip}(\cdot, 1-\epsilon_1, 1+\epsilon_2)$ denotes elementwise clipping of importance ratios into a range controlled by $\epsilon_1, epsilon_2 \!
+The operator $\operatorname{clip}(\cdot, 1-\epsilon_1, 1+\epsilon_2)$ denotes elementwise clipping of importance ratios into a range controlled by $\epsilon_1, \epsilon_2 \!
 >\! 0$.
 We omit the customary $\mathrm{KL}$ regularizer to a reference model both in practice and for clarity.
 
@@ -139,7 +139,7 @@ We omit the customary $\mathrm{KL}$ regularizer to a reference model both in pra
 \label{subsec:ppo}
 
 \acl{PPO} performs multiple gradient steps on samples drawn from the old policy while constraining update size through clipping \cite{ppo2017}.
-Using per-token importance ratios and averaging across the sequence length, the objective is \begin{equation}
+Using per token importance ratios and averaging across the sequence length, the objective is \begin{equation}
 J_{\mathrm{PPO}}(\theta)
 \;=\;
 \mathbb{E}_{\,x \sim \mathcal{D},\; y \sim \pi_{\theta_{\text{old}}}(\cdot \mid x)}
@@ -151,25 +151,21 @@ w_t(\theta)\,\hat{A}_t,\;
 \operatorname{clip}\!\big(w_t(\theta),\, 1-\epsilon_1,\, 1+\epsilon_2\big)\,\hat{A}_t
 \Big)
 \right],
-\end{equation} where the per-token importance ratio compares next-token probabilities under the current and old policies, \begin{equation}
+\end{equation} where the per token importance ratio compares next token probabilities under the current and old policies, \begin{equation}
 w_t(\theta)
 \;=\;
 \frac{\pi_\theta\!\big(y_t \mid x,\, y_{<t}\big)}
 {\pi_{\theta_{\text{old}}}\!\big(y_t \mid x,\, y_{<t}\big)}.
 \end{equation} The averaging by $|y|$ normalizes for length so that long responses do not dominate the minibatch objective.
-
-\todoinline{I want this, but not as detailed perhaps, if presented elegantly, it illustrates perfectly WHY GRPO is a game-changer}
 The term $\hat{A}_t$ is an advantage supplied by a learned value model.
-In this thesis we use non-discounted, outcome-based supervision: define per-step rewards $\{r_u\}_{u=1}^{|y|}$ and the return at prefix $t$ by \begin{equation}
-G_t \;=\; \sum_{u=t}^{|y|} \gamma^{\,u-t}\, r_u.
-\end{equation} Under the terminal-outcome convention (no intermediate rewards, discount factor set to one), let $r_u = 0$ for $u < |y|$ and $r_{|y|} = R := r(x,y) \in [0,1]$.
-Then \begin{equation}
-G_t \;=\; R \quad \text{for all } t \in \{1,\ldots,|y|\},
-\end{equation} and the per-token advantage reduces to the exact form \begin{equation}
+This thesis uses terminal outcome supervision with no discounting, so the return at every prefix equals the final outcome $R := r(x,y) \in [0,1]$: \begin{equation}
+G_t \;=\; R \quad \text{for all } t \in \{1,\ldots,|y|\}.
+\end{equation} Accordingly, the per token advantage takes the exact form \begin{equation}
 \hat{A}_t \;=\; G_t \;-\; V_\phi\!\big(x, y_{<t}\big)
 \;=\; R \;-\; V_\phi\!\big(x, y_{<t}\big).
-\end{equation} Intuitively, the advantage compares the realized outcome to what the model expected at each prefix: positive values increase the probability of the chosen token, negative values decrease it, values near zero leave it largely unchanged.
-In large language model settings, the value model is typically comparable in size to the policy and must remain calibrated on long responses, which adds memory and compute cost and can introduce length-related biases if miscalibrated.
+\end{equation} Intuitively, the advantage contrasts the realized outcome with what the model expected at each prefix: positive values increase the probability of $y_t$, negative values decrease it, and values near zero leave it largely unchanged.
+In \ac{LLM} settings, maintaining a separate value model that is comparable in size to the policy substantially increases the overall memory footprint during training.
+This elevated memory demand becomes especially pronounced for long responses, as both the policy and value models must process extended sequences in parallel, leading to significant resource consumption.
 
 \subsection{\acl{GRPO}}
 \label{subsec:grpo}

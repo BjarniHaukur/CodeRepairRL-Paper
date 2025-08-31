@@ -110,9 +110,29 @@ All parameters are identical across models except time limit.
 Include specific values for temperature (e.g., 0.7-1.0), top-k, top-p, min-p, token limit, tool limit, and model-specific time limits.
 }
 
+\section{LoRA Configuration}
+\label{app:lora-config}
+
+Unless otherwise stated, we use the following \acl{LoRA} settings:
+
+\begin{verbatim}
+lora: true
+r: 32
+lora_alpha: 64   # ~2x the rank per \cite{lora2021}
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+\end{verbatim}
+
+These choices balance adapter capacity and efficiency and allow adaptation of both attention and MLP projections when needed.
+
 \section{Complete Training Metrics}
 
 This section would contain complete training logs and additional metrics that supplement the main results in Chapter~\ref{ch:results}.
 
 \todoinline{Include additional data tables, extended statistical analyses, and supplementary experimental results once available.}
-
