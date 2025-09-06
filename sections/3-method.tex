@@ -143,7 +143,7 @@ Rather than engineering away the difficulty of code repair through sophisticated
 
 Nano is designed to be compute-aware and operates within well-defined token, tool and time budgets.
 This compute-aware design ensures predictable resource utilization across multiple dimensions.
-Token limits guarantee that conversation histories remain within GPU memory constraints during both training and inference, while tool call limits prevent runaway episodes that could consume excessive computational resources.
+Token limits guarantee that conversation histories remain within \ac{GPU} memory constraints during both training and inference, while tool call limits prevent runaway episodes that could consume excessive computational resources.
 Additionally, timeout mechanisms provide an upper bound on total time allocation per episode.
 
 With the agent architecture established, we now turn to the experimental framework that enables systematic evaluation of our approach.
@@ -155,13 +155,13 @@ With the agent architecture established, we now turn to the experimental framewo
 Our experimental design carefully separates training and evaluation data to demonstrate true generalization rather than memorization.
 We employ the following datasets:
 
-\textbf{Training Dataset:} We use \ac{SWE-Gym}, a curated collection of approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories.
+\textbf{Training Dataset:} We use SWE-Gym, a curated collection of approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories.
 Each task provides a snapshot of the repository at the time of the bug report, a problem statement describing the bug, and the ground-truth patch that resolved the issue.
 
-\ac{SWE-Gym}'s containerized design makes it ideal for \ac{RL} training, as agents can freely explore and modify code without risk while receiving deterministic feedback based on their actions.
+SWE-Gym's containerized design makes it ideal for \ac{RL} training, as agents can freely explore and modify code without risk while receiving deterministic feedback based on their actions.
 
 \textbf{Primary Evaluation:}
-\ac{SWE-Bench-Verified} serves as our main evaluation benchmark, containing approximately 500 carefully validated Python bugs from popular open-source projects.
+SWE-Bench-Verified serves as our main evaluation benchmark, containing approximately 500 carefully validated Python bugs from popular open-source projects.
 These bugs are notably more challenging than the training set, often requiring multi-file modifications and deep understanding of project structure.
 This dataset tests whether our agent-trained models can generalize beyond their training distribution.
 
@@ -203,7 +203,7 @@ Our evaluation protocol assesses both within-language and cross-language general
 	\item \textbf{Zero-shot evaluation}: Testing on GitBug-Java and other monolingual benchmarks not seen during training
 \end{itemize}
 
-\todoinline{Write about evaluations on GitBug-Java, SWE-Bench, and TerminalBench (possibly etc.)
+\todoinline{Write about evaluations on GitBug-Java, SWE-Bench, and \ac{TerminalBench} (possibly etc.)
 }
 
 \todoinline{Consider adding: Partial observability challenge - repositories have thousands of files but LLM context windows are limited.
@@ -231,7 +231,7 @@ Qwen was selected based on extensive empirical evidence from recent literature d
 \subsubsection{Tool Calling Performance}
 
 Qwen models exhibit exceptional structured output generation, which proves critical for reliable agent behavior.
-These models consistently generate valid JSON function calls with correct parameter types while maintaining superior context retention across multi-step tool interactions.
+These models consistently generate valid \ac{JSON} function calls with correct parameter types while maintaining superior context retention across multi-step tool interactions.
 They demonstrate robust error recovery through effective handling of tool execution failures and adaptive strategy adjustment, coupled with reliable adherence to function signatures and parameter constraints.
 
 \subsubsection{Code Understanding Capabilities}
@@ -267,7 +267,7 @@ This unified paradigm enables true online learning where the policy improves con
 Our trainer implementation builds upon the Transformers Reinforcement Learning (TRL) library~\cite{vonwerra2022trl}, which provides foundational infrastructure for applying reinforcement learning to language models.
 We extend this framework with custom components specifically designed for multi-turn agent interactions and online training dynamics.
 
-\subsection{Group Relative Policy Optimization (GRPO)}
+\subsection{\ac{GRPO}}
 
 \ac{GRPO} offers several key advantages over traditional actor-critic methods.
 Unlike conventional approaches, \ac{GRPO} estimates advantages using relative performance within a batch, eliminating the need for a separate value network.
@@ -335,7 +335,7 @@ Building on these foundational training principles, we now detail the complete t
 
 \subsection{Training Process}
 
-Our training follows an iterative process where the agent attempts to solve bugs from the \ac{SWE-Gym} dataset through four key stages.
+Our training follows an iterative process where the agent attempts to solve bugs from the SWE-Gym dataset through four key stages.
 Initially, trajectory generation occurs where the agent produces complete repair attempts from initial exploration through final patch submission for each bug in a training batch.
 Subsequently, reward computation assigns each trajectory a score based on the similarity between the generated patch and the ground-truth solution.
 The advantage estimation phase then employs \ac{GRPO} to compute advantages by comparing each trajectory's reward to the mean reward within its group.
@@ -345,9 +345,9 @@ Finally, policy updates modify model parameters to increase the likelihood of hi
 
 Our \ac{GRPO} implementation employs carefully selected hyperparameters optimized for coding agent training.
 We utilize a group size of 8 trajectories with gradients accumulated over 4 groups for an effective batch size that balances training stability with computational efficiency.
-The learning rate is set to $1 \times 10^{-4}$, which is elevated due to LoRA's parameter efficiency, and maintained constant without decay to preserve the online nature of our training approach.
+The learning rate is set to $1 \times 10^{-4}$, which is elevated due to \ac{LoRA}'s parameter efficiency, and maintained constant without decay to preserve the online nature of our training approach.
 Stability is ensured through a KL coefficient of $\beta = 0.2$, as omitting KL divergence constraints often leads to model collapse in our experiments.
-The maximum trajectory length is constrained to 12,288 tokens, representing an optimal balance that maximizes GPU throughput while accommodating the multi-turn nature of debugging interactions.
+The maximum trajectory length is constrained to 12,288 tokens, representing an optimal balance that maximizes \ac{GPU} throughput while accommodating the multi-turn nature of debugging interactions.
 Training spans 5,000 episodes, providing comprehensive coverage of the SWE-Gym dataset.
 
 \todoinline{Consider adding: Reward normalization equation for proper credit assignment.
@@ -394,9 +394,9 @@ This approach reduces memory consumption by approximately 50\% while preserving 
 The combination of these optimizations enables training of state-of-the-art agent behaviors while maintaining practical computational budgets:
 
 \todoinline{Make this a table with empirical metrics like: "backprop time", "rollout time"} \begin{itemize}
-	\item \textbf{~8B models:} Trainable on 2-3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA
-	\item \textbf{~14B models:} Trainable on 3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and LoRA
-	\item \textbf{~32B models:} Trainable on 6x A100 \acsp{GPU} DeepSpeed ZeRO 3 and LoRA
+	\item \textbf{~8B models:} Trainable on 2-3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and \ac{LoRA}
+	\item \textbf{~14B models:} Trainable on 3x A100 \acsp{GPU} with DeepSpeed ZeRO 2 and \ac{LoRA}
+	\item \textbf{~32B models:} Trainable on 6x A100 \acsp{GPU} DeepSpeed ZeRO 3 and \ac{LoRA}
 \end{itemize}
 
 Stacking these optimizations make \ac{RL} practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
@@ -485,50 +485,50 @@ Each training step involves multiple model calls, often ranging from 10-30 per t
 
 \todoinline{Write short explanation of vLLM choice: why vLLM over SGLang, key features that matter for online RL (batching, memory optimization), extensibility for our NCCL modifications}
 
-Our inference layer leverages \ac{vLLM}'s powerful inference engine to handle the demanding requirements of online \ac{RL} workloads.
-\ac{vLLM}'s KV-cache management, continuous batching, and PagedAttention~\cite{kwon2023efficientmemorymanagementlarge} collectively enable fast, efficient serving of asynchronous multi-turn agents.
+Our inference layer leverages vLLM's powerful inference engine to handle the demanding requirements of online \ac{RL} workloads.
+vLLM's KV-cache management, continuous batching, and PagedAttention~\cite{kwon2023efficientmemorymanagementlarge} collectively enable fast, efficient serving of asynchronous multi-turn agents.
 Crucially, between model weight updates, prefix caches deterministically hit, providing substantial performance boosts during the intervals when agents operate with stable model parameters.
 
-To support online training requirements, we extended \ac{vLLM}'s OpenAI-compatible \ac{API} server with live weight synchronization capabilities, enabling seamless model updates without service interruption through our NCCL-based synchronization system.
+To support online training requirements, we extended vLLM's OpenAI-compatible \ac{API} server with live weight synchronization capabilities, enabling seamless model updates without service interruption through our \ac{NCCL}-based synchronization system.
 
 \subsection{Logit divergence problem}
 A critical technical challenge in our online training approach involves logit divergence between inference and training computations, which can destabilize learning and degrade model performance.
 This phenomenon, where logits computed during fast inference differ from those generated during training, becomes particularly problematic in multi-turn agent interactions.
-This challenge motivates our adoption of Group Sequence Policy Optimization (GSPO), which addresses these stability issues through improved sequence-level importance sampling mechanisms.
+This challenge motivates our adoption of \ac{GSPO}, which addresses these stability issues through improved sequence-level importance sampling mechanisms.
 
-\subsection{NCCL-Based Live Weight Synchronization} \label{sec:nccl-sync}
+\subsection{\ac{NCCL}-Based Live Weight Synchronization} \label{sec:nccl-sync}
 
-A critical technical breakthrough enabling our training-inference duality is real-time weight synchronization between the training pipeline and inference servers using NVIDIA Collective Communications Library (NCCL).
+A critical technical breakthrough enabling our training-inference duality is real-time weight synchronization between the training pipeline and inference servers using NVIDIA Collective Communications Library (\ac{NCCL}).
 
 \subsection{Technical Architecture}
 
 The weight synchronization system operates through several components:
 
-Training nodes broadcast updated weights to inference servers using optimized NCCL collective communication primitives, ensuring minimal latency and maximum bandwidth utilization across the distributed system.
+Training nodes broadcast updated weights to inference servers using optimized \ac{NCCL} collective communication primitives, ensuring minimal latency and maximum bandwidth utilization across the distributed system.
 
 The system implements differential updates through sequential parameter gathering, which selectively broadcasts only modified parameters (specifically, the LoRA adapter weights) rather than entire model states.
-This approach dramatically reduces network traffic and update latency while minimizing peak GPU memory requirements by approximately 500-fold compared to full model synchronization, making the system practical even with limited hardware resources.
+This approach dramatically reduces network traffic and update latency while minimizing peak \ac{GPU} memory requirements by approximately 500-fold compared to full model synchronization, making the system practical even with limited hardware resources.
 
 \subsubsection{Performance Characteristics}
 
-The performance characteristics of our NCCL-based weight synchronization system demonstrate significant engineering achievements in distributed training infrastructure.
+The performance characteristics of our \ac{NCCL}-based weight synchronization system demonstrate significant engineering achievements in distributed training infrastructure.
 Weight broadcasts complete in 150-300ms for LoRA adapters with ranks between 8 and 64, enabling near real-time policy improvements throughout the training process.
 Differential updates reduce communication overhead by 95\% compared to full weight synchronization, utilizing only 100-500MB per update versus the 50GB+ required for complete model transfers.
 
 Several technical challenges required careful engineering solutions to achieve these performance levels.
-Custom CUDA memory management through coordinated memory pools prevents out-of-memory conditions during concurrent training and inference operations.
+Custom \ac{CUDA} memory management through coordinated memory pools prevents out-of-memory conditions during concurrent training and inference operations.
 The system demonstrates linear scalability to multiple inference nodes through optimized broadcast tree architectures that minimize update latency as cluster size increases, with production deployments achieving stable operation across up to 8 inference nodes receiving synchronized updates.
 
 This infrastructure represents a significant advance in making online RL practical for large language models, reducing the traditional barrier between training and deployment while maintaining production-grade reliability and performance.
 
-This NCCL-based approach represents a significant engineering achievement, enabling truly continuous learning where model improvements benefit ongoing inference within seconds of gradient computation.
+This \ac{NCCL}-based approach represents a significant engineering achievement, enabling truly continuous learning where model improvements benefit ongoing inference within seconds of gradient computation.
 
 \subsection{Integrated System Architecture}
 
 The complete online \ac{RL} system consists of several interconnected components operating in parallel:
 
 The complete system architecture comprises distinct computational clusters optimized for their respective workloads.
-The vLLM inference cluster employs a single 80GB A100 GPU for 8B and 14B parameter models, scaling to two GPUs for 32B parameter models.
+The vLLM inference cluster employs a single 80GB A100 \ac{GPU} for 8B and 14B parameter models, scaling to two \acp{GPU} for 32B parameter models.
 The TRL training cluster utilizes two 80GB A100 GPUs for smaller models and four GPUs for 32B parameter models, managing both agent trajectory generation and weight synchronization across the distributed system.
 
 \subsection{Implementation Details}
@@ -538,7 +538,7 @@ Collective RPC facilitates efficient weight sharing across distributed processes
 Each agent runs in an isolated Docker container for safety, and request batching processes multiple agent requests concurrently to maximize system efficiency.
 
 Figure~\ref{fig:system-architecture} presents the complete system architecture, illustrating data flow between the vLLM inference cluster, distributed agent worker pool, and GRPO training pipeline.
-The diagram highlights the NCCL communication layer that enables real-time weight synchronization, supporting the training-inference duality that distinguishes our approach from conventional RL systems.
+The diagram highlights the \ac{NCCL} communication layer that enables real-time weight synchronization, supporting the training-inference duality that distinguishes our approach from conventional RL systems.
 
 \section{Evaluation Methodology}
 \label{sec:evaluation}
@@ -557,7 +557,7 @@ Additionally, we compare against contemporary frontier coding assistants to esta
 
 \subsection{Generalization Testing}
 
-Beyond in-domain performance on SWE-Bench, we evaluate generalization through cross-dataset evaluation on Multi-SWE-Bench, which tests transfer to different programming languages and problem domains, and cross-task evaluation on TauBench, which assesses whether debugging skills learned in our training regime transfer to broader software engineering tasks.
+Beyond in-domain performance on SWE-Bench, we evaluate generalization through cross-dataset evaluation on Multi-SWE-Bench, which tests transfer to different programming languages and problem domains, and cross-task evaluation on \ac{TauBench}, which assesses whether debugging skills learned in our training regime transfer to broader software engineering tasks.
 
 \subsection{Statistical Significance}
 \todoinline{Should we have something like this?}

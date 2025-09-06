@@ -4,7 +4,7 @@
 This chapter establishes the theoretical and empirical background for online \ac{RL} applied to \ac{APR} with tool-using \acp{LLM}.
 We first situate \ac{APR} historically, from search- and learning-based methods before \acp{LLM} to contemporary, repository-grounded systems, and introduce a simple taxonomy spanning manual, agentless, and agentic workflows.
 We then review optimization methods for training such policies, including \ac{PPO}, \ac{GRPO}, and \acs{GSPO}, as well as practical issues such as variance collapse.
-Complementary techniques for scalable training (parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation) are summarized alongside evaluation resources such as \ac{SWE-Bench} and TauBench.
+Complementary techniques for scalable training (parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation) are summarized alongside evaluation resources such as \ac{SWE-Bench} and \ac{TauBench}.
 We close with related work and limitations that motivate the minimalist agent and online training recipe developed in the following chapters.
 
 \section{Automated Program Repair before \acsp{LLM}}\label{sec:apr-pre-llm}
@@ -119,7 +119,7 @@ Having established how agentic systems enable end-to-end learning, we now turn t
 
 \section{\acl{RL} for Language Models}
 \label{sec:rl-language-models}
-\todoinline{the goal with this section is to incrementally showcase unqiue changes to PPO which culminates in the final version we use (in methods we will say GRPO with GSPO importance, with DAPO clipping, with Dr.
+\todoinline{the goal with this section is to incrementally showcase unqiue changes to \ac{PPO} which culminates in the final version we use (in methods we will say \ac{GRPO} with \ac{GSPO} importance, with \ac{DAPO} clipping, with Dr.
 GRPO bias aversions)} This section fixes notation and states the \acl{PPO} objective that will serve as our baseline.
 Subsequent sections build on this with \acl{GRPO} and \acl{GSPO}.
 \subsection{Preliminaries}
@@ -242,7 +242,7 @@ w_{i,t}(\theta)\,A_i,\;
 \Big)
 \right],
 \end{equation} with $A_i$ the group standardized advantage as in GRPO and asymmetric clipping $(\epsilon_{\text{low}},\epsilon_{\text{high}})$.
-The algorithm removes the KL penalty, uses token level loss, and adds two stabilizers: \emph{dynamic sampling} with a buffer that enforces a balanced mix of correct and incorrect samples for each query group, and \emph{overlong filtering and shaping} that masks loss on truncated or timed out generations and downweights overlong failures.
+The algorithm removes the \ac{KL} penalty, uses token level loss, and adds two stabilizers: \emph{dynamic sampling} with a buffer that enforces a balanced mix of correct and incorrect samples for each query group, and \emph{overlong filtering and shaping} that masks loss on truncated or timed out generations and downweights overlong failures.
 The higher upper clip encourages exploration and prevents early entropy collapse; the dynamic buffer reduces variance and improves data efficiency; token level aggregation and overlong filtering make training robust for very long reasoning traces.
 
 \subsubsection{\acl{GSPO}}
@@ -250,7 +250,7 @@ The higher upper clip encourages exploration and prevents early entropy collapse
 
 Token-level importance weighting in GRPO is fragile at scale.
 Small logit discrepancies between training and inference engines accumulate across long sequences, and in sparse Mixture-of-Experts models the set of activated experts can change between $\pi_{\theta_{\text{old}}}$ and $\pi_\theta$, making token-level ratios volatile and invalid as off-policy corrections.
-These effects amplify under clipping and have been observed to trigger irreversible collapse; prior MoE work required routing-replay to stabilize GRPO.
+These effects amplify under clipping and have been observed to trigger irreversible collapse; prior \ac{MoE} work required routing-replay to stabilize GRPO.
 \cite{gspo2025}
 
 \emph{\ac{GSPO}} restores a coherent importance sampler by matching the optimization unit to the reward unit: entire responses.
@@ -293,7 +293,7 @@ In GRPO, by contrast, each token carries its own noisy ratio $w_{i,t}$, and thos
 GSPO's sequence weighting eliminates that instability, removes the need for routing-replay in \acs{MoE} \ac{RL}, and is tolerant to training-vs-inference log-probprecision differences—often allowing direct use of inference-engine likelihoods without recomputation.
 \cite{gspo2025}
 
-\section{Low-Rank Adaptation (LoRA)} \label{sec:lora}
+\section{\acl{LoRA} (\acs{LoRA})} \label{sec:lora}
 
 Parameter-efficient adaptation is essential for training large models without the overhead of full fine-tuning.
 \acl{LoRA} learns a low-rank update to frozen weights \cite{lora2021}:
@@ -326,7 +326,7 @@ This combination allows for multilingual training while maintaining sufficient d
 The SWE-Bench benchmark series~\cite{sweBench2024} serves as the primary evaluation framework for coding agents on realistic software engineering tasks.
 SWE-Bench-Verified~\cite{sweBenchVerified2024} contains approximately 500 carefully validated Python debugging tasks that eliminate ambiguous descriptions and ensure deterministic outcomes, providing reliable performance measurement.
 For cross-language evaluation, we utilize external benchmarks such as GitBug-Java~\cite{gitbugJava2024} to assess transfer capabilities to languages not seen during training.
-TauBench~\cite{taubench2024} enables broader assessment of how tool-usage skills transfer to adjacent tasks beyond code repair.
+\ac{TauBench}~\cite{taubench2024} enables broader assessment of how tool-usage skills transfer to adjacent tasks beyond code repair.
 
 % \subsubsection{Evolution of SWE-Bench}
 

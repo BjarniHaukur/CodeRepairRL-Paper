@@ -41,11 +41,11 @@ Include analysis of: \begin{itemize}
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1.0\textwidth]{plotting/figures/plots/comparison/training_dynamics_c8qr1evt_vs_tfk08zx2.png}
-	\caption{Comprehensive comparison of training dynamics between GSPO (c8qr1evt) and GRPO (tfk08zx2) approaches. The comparison shows training loss, mean reward, KL divergence, and learning progress across training steps. GRPO demonstrates significantly more stable training with faster convergence and better final performance.}
+\caption{Comprehensive comparison of training dynamics between \ac{GSPO} (c8qr1evt) and \ac{GRPO} (tfk08zx2) approaches. The comparison shows training loss, mean reward, \ac{KL} divergence, and learning progress across training steps. \ac{GRPO} demonstrates significantly more stable training with faster convergence and better final performance.}
 	\label{fig:training-comparison}
 \end{figure}
 
-\todoinline{Analyze GRPO training stability compared to traditional PPO implementations.
+\todoinline{Analyze \ac{GRPO} training stability compared to traditional \ac{PPO} implementations.
 Report gradient variance reduction, convergence smoothness, and standard deviation metrics across training runs.
 }
 
@@ -55,24 +55,24 @@ Report gradient variance reduction, convergence smoothness, and standard deviati
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/kl_divergence_ema0.05_tfk08zx2.png}
-	\caption{KL divergence between policy and reference model throughout training, showing the degree of policy shift during online learning.}
+\caption{\ac{KL} divergence between policy and reference model throughout training, showing the degree of policy shift during online learning.}
 	\label{fig:kl-divergence}
 \end{figure}
 
 \todoinline{Report computational efficiency improvements from training-inference duality architecture:
 \begin{itemize}
 \item Wall-clock training time reduction vs traditional approaches
-\item GPU utilization metrics across training and inference hardware
+\item \acp{GPU} utilization metrics across training and inference hardware
 \item Sample efficiency improvements in episodes to target performance
 \end{itemize}
-Analyze NCCL-based weight synchronization overhead and contribution to efficiency gains.}
+Analyze \ac{NCCL}-based weight synchronization overhead and contribution to efficiency gains.}
 
 \section{Main Results: RL vs.
   Baselines} \label{sec:main-results}
 
 \subsection{SWE-Bench-Verified Performance} \label{subsec:swe-bench-performance}
 
-Table~\cref{tab:main-results} presents our primary experimental results on \ac{SWE-Bench-Verified}, comparing online \ac{RL} training against multiple baseline approaches.
+Table~\cref{tab:main-results} presents our primary experimental results on SWE-Bench-Verified, comparing online \ac{RL} training against multiple baseline approaches.
 
 \todoinline{Add table here}
 
@@ -162,18 +162,18 @@ We evaluate training recipe transferability by applying identical training proce
 \subsection{Analysis} \label{subsec:rq2-analysis} \todoinline{Analyze training recipe portability, identify model-specific adaptations required, and discuss implications for scaling to new architectures.
 }
 
-\section{RQ3: \ac{SWE-Gym}
+\section{RQ3: SWE-Gym
   Training vs.
-  \ac{SWE-Bench}/\ac{Multi-SWE-Bench}
+  SWE-Bench/Multi-SWE-Bench
   Evaluation} \label{sec:rq3-overfit}
 
-\textbf{Research Question 3}: Does training on \ac{SWE-Gym} lead to overfitting, or do learned debugging strategies generalize to unseen evaluation datasets?
+\textbf{Research Question 3}: Does training on SWE-Gym lead to overfitting, or do learned debugging strategies generalize to unseen evaluation datasets?
 
 \subsection{Experimental Design}
 \label{subsec:rq3-design}
-We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating on held-out datasets: \begin{itemize}
-	\item Training dataset: \ac{SWE-Gym} repository instances
-	\item Evaluation datasets: \ac{SWE-Bench} and \ac{Multi-SWE-Bench}
+We assess generalization by training exclusively on SWE-Gym and evaluating on held-out datasets: \begin{itemize}
+	\item Training dataset: SWE-Gym repository instances
+	\item Evaluation datasets: SWE-Bench and Multi-SWE-Bench
 	\item Comparison baselines: Models trained with \ac{SFT} on same data splits
 	\item Overfitting indicators: Performance gap analysis between training and evaluation
 \end{itemize}
@@ -198,7 +198,7 @@ We assess generalization by training exclusively on \ac{SWE-Gym} and evaluating 
 \label{subsec:rq4-domains}
 We assess out-of-domain generalization across multiple dimensions: \begin{itemize}
 	\item \textbf{Cross-Harness}: Aider and OpenHands-style interaction paradigms
-	\item \textbf{Cross-Task}: Terminal-centric tasks (TauBench, TerminalBench)
+\item \textbf{Cross-Task}: Terminal-centric tasks (\ac{TauBench}, \ac{TerminalBench})
 	\item \textbf{Adaptation Requirements}: Minimal prompt modifications vs. fine-tuning needs
 \end{itemize}
 
@@ -280,7 +280,7 @@ To understand the contribution of different system components, we conducted syst
 \item Impact of removing \ac{RL} training (\ac{SFT} only)
 \item Effect of agent scaffold removal
 \item Multi-step interaction contribution
-\item GRPO vs. traditional PPO comparison
+\item \ac{GRPO} vs. traditional \ac{PPO} comparison
 \item Real-time updates impact analysis
 \item Statistical significance of each component
 \end{itemize}}
@@ -293,7 +293,7 @@ The ablation results highlight several critical system components:
 \item Multi-step interaction impact and validation of experiential learning hypothesis
 \item Agent scaffold integration benefits over direct generation
 \item RL training advantages over supervised fine-tuning
-\item GRPO improvements over traditional PPO methods
+\item \ac{GRPO} improvements over traditional \ac{PPO} methods
 \item Real-time updates contribution to sample efficiency
 \item Ranking of component importance and implications
 \end{itemize}}
@@ -412,14 +412,14 @@ Our infrastructure achievements enable practical large-scale agent training:
 \item Memory usage across model sizes
 \item Update latency measurements
 \item Training throughput analysis
-\item GPU utilization efficiency
+\item \acp{GPU} utilization efficiency
 \item Scalability characteristics
 \end{itemize}}
 
 \subsubsection{Scalability Achievements}
 
 \todoinline{Analyze scalability characteristics including: \begin{itemize}
-\item GPU scaling linearity up to tested limits
+\item \acp{GPU} scaling linearity up to tested limits
 \item Memory utilization efficiency achievements
 \item Network bandwidth consumption for NCCL updates
 \item Fault tolerance and graceful degradation capabilities
@@ -430,13 +430,13 @@ Our infrastructure achievements enable practical large-scale agent training:
 
 \todoinline{Analyze computational cost-effectiveness including: \begin{itemize}
 \item Total training costs for different model sizes
-\item Per-episode cost comparisons with commercial APIs
+\item Per-episode cost comparisons with commercial \acp{API}
 \item Development cost implications for academic research
 \item Infrastructure maintenance requirements
 \item Budget accessibility and democratization implications
 \end{itemize}}
 
-\todoinline{Table of A100 GPU hours per run?
+\todoinline{Table of A100 \ac{GPU} hours per run?
 }
 
 \section{Summary of Key Findings}

@@ -15,7 +15,7 @@ Our work makes several methodological and infrastructure contributions to the em
 This unified approach makes large-scale agent training practically feasible within academic research budgets by eliminating the need for separate training and deployment phases.
 
 \textbf{\ac{GRPO}
-Optimization for Agents}: We adapt Group Relative Policy Optimization~\cite{grpo2024} for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training.
+Optimization for Agents}: We adapt \ac{GRPO}~\cite{grpo2024} for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training.
 
 \subsection{Methodological Validation}
 \label{subsec:methodological-validation}
@@ -61,9 +61,9 @@ Our methodology development and preliminary investigations provide insights into
 \subsection{RQ3: Cross-Dataset Generalization}
 \label{subsec:rq3-answer}
 
-\textbf{Theoretical Foundation}: Models trained through experiential learning on \ac{SWE-Gym} should demonstrate generalization to related debugging tasks without severe overfitting.
+\textbf{Theoretical Foundation}: Models trained through experiential learning on SWE-Gym should demonstrate generalization to related debugging tasks without severe overfitting.
 
-\textbf{Evidence}: \todoinline{Experimental validation pending: measure cross-dataset performance on \ac{SWE-Bench} and \ac{Multi-SWE-Bench}, compare against \ac{SFT} baselines with confidence intervals.}
+\textbf{Evidence}: \todoinline{Experimental validation pending: measure cross-dataset performance on SWE-Bench and Multi-SWE-Bench, compare against \ac{SFT} baselines with confidence intervals.}
 
 \textbf{Significance}: Cross-dataset generalization would support the thesis that experiential training yields broadly applicable debugging skills rather than narrow task-specific behaviors.
 
@@ -72,7 +72,7 @@ Our methodology development and preliminary investigations provide insights into
 
 \textbf{Theoretical Foundation}: Models trained through experiential learning should exhibit transfer to alternative interfaces and task contexts, demonstrating that learned skills generalize beyond specific harness implementations.
 
-\textbf{Evidence}: \todoinline{Experimental validation pending: evaluate zero-shot transfer to alternative harnesses (Aider/OpenHands-style) and terminal-oriented tasks (TauBench/TerminalBench).}
+\textbf{Evidence}: \todoinline{Experimental validation pending: evaluate zero-shot transfer to alternative harnesses (Aider/OpenHands-style) and terminal-oriented tasks (\ac{TauBench}/\ac{TerminalBench}).}
 
 \textbf{Significance}: Cross-harness generalization would indicate that the approach develops fundamental interaction skills rather than harness-specific behaviors.
 
