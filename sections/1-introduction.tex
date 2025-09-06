@@ -3,7 +3,7 @@
 
 Automated program repair has rapidly transformed from a nascent research area to one of the most promising applications of agentic \ac{AI} systems.
 By ``agentic,'' we refer to systems that can autonomously interact with environments through tool use, make sequential decisions based on observations, and iteratively refine their approach based on feedback, as opposed to single-pass generation models that produce outputs without environmental interaction.
-Recent advances in autonomous software engineering have achieved remarkable performance milestones, with systems like Claude~4 now exceeding 70\% success rates on \ac{SWE-Bench-Verified} \cite{claude4_2025}.
+Recent advances in autonomous software engineering have achieved remarkable performance milestones, with systems like Claude~4 now exceeding 70\% success rates on SWE-Bench-Verified \cite{claude4_2025}.
 This rapid progress underscores the critical importance of maintaining open research that can achieve near-parity understanding with frontier capabilities.
 Across diverse perspectives, there emerges a common recognition that researchers must maintain competitive access to the tools and methodologies driving these advances, ensuring that critical insights remain accessible to the broader scientific community rather than concentrated within proprietary systems.
 Recent open weight releases such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\cite{qwen3CoderBlog2025} follow closely behind frontier performance, but do not include full training recipes.
@@ -192,7 +192,7 @@ The primary independent variable is the training methodology (supervised learnin
 Dependent variables include repair success rates, patch quality metrics, and generalization performance.
 
 Data collection encompasses multiple complementary sources: detailed logs of agent-environment interactions capturing exploration patterns and decision-making processes, reward signals computed through automated comparison with ground-truth patches, and comprehensive evaluation metrics across diverse benchmarks.
-We employ both the \ac{SWE-Gym} environment for training, which provides thousands of real-world Python bug-fixing tasks, and \ac{SWE-Bench} for evaluation, ensuring robust assessment on human-verified bug fixes.
+We employ both the SWE-Gym environment for training, which provides thousands of real-world Python bug-fixing tasks, and SWE-Bench for evaluation, ensuring robust assessment on human-verified bug fixes.
 
 \todoinline{SWE-Bench?
 Verified?
@@ -257,7 +257,7 @@ We analyze prior work on \ac{RL} for programming tasks, agent-based software eng
 This chapter highlights how our approach synthesizes insights from multiple research threads while addressing limitations in existing methods.
 
 \textbf{Chapter 5: Experimental Results and Analysis} presents comprehensive empirical evaluation addressing our research questions.
-We report performance metrics on \ac{SWE-Bench-Verified}, analyze learning curves and training dynamics, and examine the effectiveness of our approach.
+We report performance metrics on SWE-Bench-Verified, analyze learning curves and training dynamics, and examine the effectiveness of our approach.
 The chapter includes detailed ablation studies, error analysis, and investigation of transfer to general code generation tasks.
 Statistical significance testing and qualitative analysis of agent behaviors provide deeper insights into the mechanisms driving performance improvements.
 
