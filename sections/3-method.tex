@@ -42,6 +42,14 @@ Unlike previous approaches that relied on synchronous batched generation, our im
 Our Nano coding agent adopts a minimalist design: rather than engineering sophisticated tools and guided workflows, we provide only essential capabilities and allow effective behaviors to emerge through \ac{RL}.
 This isolates the contribution of learning under a simple action space and avoids confounds introduced by heavyweight scaffolding.
 
+\subsection{Decoding and Exploration Policy}
+\label{subsec:decoding-exploration}
+
+The temperature parameter in language model sampling directly controls the exploration-exploitation trade-off during inference.
+Higher temperatures increase randomness and exploration of diverse solutions, while lower temperatures favor exploitation of high-probability actions.
+Critically, deterministic sampling (temperature=0) prevents any exploration, making it unsuitable for reinforcement learning where the agent must discover new strategies through trial and error.
+During \ac{RL} training, we typically use temperature values between 0.7 and 1.0 to balance exploration of novel debugging approaches with exploitation of learned patterns (see \cref{app:sampling-params} for detailed sampling parameters).
+
 \subsection{Tool Interface}
 
 Nano agent has access to two streamlined tools for terminal based repository interaction:
@@ -207,6 +215,16 @@ This comprehensive evaluation enables us to determine whether execution-free mul
 
 \subsection{Pretrained Model Selection: Qwen for Tool Calling Excellence}
 
+\section{Pretrained Language Models}
+\label{sec:pretrained-llms}
+
+% We treat instruction-tuned code \acp{LLM} as pretrained policies that already exhibit reliable structured output (e.g., tool-call formatting), long-context handling, and baseline repository reasoning.
+% Two efficiency profiles are particularly relevant for online \ac{RL} with coding agents: dense Transformers activate all parameters per token (simple and stable), whereas sparse Mixture-of-Experts (MoE) models route each token to a small subset of experts, decoupling total parameter count from per-token compute and memory.
+% This makes MoE attractive for multi-turn, long-context training and evaluation.
+% Parameter-efficient adaptation (e.g., \ac{LoRA}) complements both families by keeping trainable state small and enabling clean policy-reference separation.
+% These properties matter for agent training dynamics without requiring architectural specificity in this thesis.
+
+\todoinline{rework, integrate MoE, the 2-3 different models we are targetting etc.}
 We base our experiments on the Qwen2.5-Coder family, specifically targeting both 7B and 32B parameter variants.
 Qwen was selected based on extensive empirical evidence from recent literature demonstrating its superior tool-calling capabilities compared to other open-source alternatives.
 

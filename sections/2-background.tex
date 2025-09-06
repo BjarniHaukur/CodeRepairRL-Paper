@@ -305,16 +305,6 @@ Initializing $B{=}0$ preserves the base model at the start ($W{=}W_0$), which st
 For online \acl{RL} with coding agents, \ac{LoRA} reduces trainable state, supports clean policy-reference separation (adapters differ, base is shared), and accelerates iteration.
 Adapter placement is flexible—practitioners select which modules to adapt based on capacity/efficiency goals; rank $r$ and scale $\alpha$ set the capacity-efficiency trade-off.
 
-% (Older contextual lead-ins removed to avoid redundancy.)
-
-\section{Sampling Strategies}
-\label{sec:sampling-strategies}
-
-The temperature parameter in language model sampling directly controls the exploration-exploitation trade-off during inference.
-Higher temperatures increase randomness and exploration of diverse solutions, while lower temperatures favor exploitation of high-probability actions.
-Critically, deterministic sampling (temperature=0) prevents any exploration, making it unsuitable for reinforcement learning where the agent must discover new strategies through trial and error.
-During \ac{RL} training, we typically use temperature values between 0.7 and 1.0 to balance exploration of novel debugging approaches with exploitation of learned patterns (see \cref{app:sampling-params} for detailed sampling parameters).
-
 With the theoretical and practical foundations established, we now examine the benchmarks used to evaluate code repair systems in realistic settings.
 
 \section{Training and Evaluation Datasets}
@@ -336,7 +326,7 @@ This combination allows for multilingual training while maintaining sufficient d
 The SWE-Bench benchmark series~\cite{sweBench2024} serves as the primary evaluation framework for coding agents on realistic software engineering tasks.
 SWE-Bench-Verified~\cite{sweBenchVerified2024} contains approximately 500 carefully validated Python debugging tasks that eliminate ambiguous descriptions and ensure deterministic outcomes, providing reliable performance measurement.
 For cross-language evaluation, we utilize external benchmarks such as GitBug-Java~\cite{gitbugJava2024} to assess transfer capabilities to languages not seen during training.
-TauBench~\cite{taubench2024} and TerminalBench~\cite{tbench_2025} enable broader assessment of whether learned debugging skills transfer to adjacent tasks beyond code repair.
+TauBench~\cite{taubench2024} enables broader assessment of how tool-usage skills transfer to adjacent tasks beyond code repair.
 
 % \subsubsection{Evolution of SWE-Bench}
 
