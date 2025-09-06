@@ -1,12 +1,7 @@
 \chapter{Method}
 \label{ch:method}
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=1.0\textwidth]{plotting/figures/diagram.png}
-	\caption{Simultaneously too busy and too simplified, I'll make another version}
-	\label{fig:method-diagram}
-\end{figure}
+% Removed placeholder figure that previously pointed to plotting/figures/diagram.png
 
 This chapter presents our novel approach to training large language models for automated code repair through online \ac{RL}.
 We detail the experimental design, technical implementation, and evaluation methodology used to investigate whether embedding coding agents directly into the \ac{RL} training loop improves bug-fixing performance.
@@ -60,6 +55,17 @@ Nano agent has access to two streamlined tools for terminal based repository int
 The agent specifies the target file path where changes should be made, the exact text that needs to be replaced (old\_content), the new replacement text (new\_content).
 
 This minimal toolset encourages models to develop their own strategies for code understanding and modification.
+
+\subsection{Illustrative Rollout}
+
+To ground the interface in practice, Figure~\ref{fig:nano-rollout} shows a representative Nano episode captured from the command-line interface during training. The rollout illustrates repository exploration via shell commands, targeted file inspection, and a single, atomic patch application. Episode length adapts to task complexity, and request–response handling remains asynchronous throughout, so multiple episodes can progress concurrently without blocking.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{plotting/figures/nano_cli.png}
+    \caption{Illustrative rollout of the Nano agent during training. The agent performs repository navigation (e.g., directory listings and ripgrep searches), inspects candidate files, and submits a minimal patch when sufficient evidence accumulates. Interactions are served asynchronously and episode length is adaptive, matching the multi-turn nature of repository-level repair.}
+    \label{fig:nano-rollout}
+\end{figure}
 
 \subsection{Sidestepping the Diff Generation Problem}
 
@@ -247,6 +253,15 @@ This approach maintains Qwen's robust tool-calling foundation while enabling lea
 
 A fundamental innovation in our approach is the collapse of the traditional training-inference boundary.
 Unlike conventional \ac{RL} where trajectory collection and policy updates occur in separate phases, our system performs both simultaneously through continuous serving and real-time weight updates.
+
+Figure~\ref{fig:training-sequence-diagram} summarizes the end-to-end dataflow for the Nano agent during online training, highlighting how variable-length agent episodes interface with asynchronous serving and continuous optimization.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{plotting/figures/training_sequence_diagram.png}
+    \caption{Sequence of interactions in our online training loop for the Nano agent. The depicted configuration uses single-step gradient accumulation (i.e., updates are computed per collected batch without additional accumulation). Each agent episode can expand to an arbitrary number of API/tool calls, and request–response handling is fully asynchronous: agent requests are issued without blocking, and completions stream back independently, allowing episodes of different lengths to proceed concurrently.}
+    \label{fig:training-sequence-diagram}
+\end{figure}
 
 \subsection{The Unified Training-Inference Paradigm}
 
