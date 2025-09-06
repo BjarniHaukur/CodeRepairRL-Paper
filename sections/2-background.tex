@@ -4,7 +4,7 @@
 This chapter establishes the theoretical and empirical background for online \ac{RL} applied to \ac{APR} with tool-using \acp{LLM}.
 We first situate \ac{APR} historically, from search- and learning-based methods before \acp{LLM} to contemporary, repository-grounded systems, and introduce a simple taxonomy spanning manual, agentless, and agentic workflows.
 We then review optimization methods for training such policies, including \ac{PPO}, \ac{GRPO}, and \acs{GSPO}, as well as practical issues such as variance collapse.
-Complementary techniques for scalable training (parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation) are summarized alongside evaluation resources such as \ac{SWE-Bench} and \ac{TauBench}.
+Complementary techniques for scalable training (parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation) are summarized alongside evaluation resources such as SWE-Bench and TauBench.
 We close with related work and limitations that motivate the minimalist agent and online training recipe developed in the following chapters.
 
 \section{Automated Program Repair before \acsp{LLM}}\label{sec:apr-pre-llm}
@@ -326,7 +326,7 @@ This combination allows for multilingual training while maintaining sufficient d
 The SWE-Bench benchmark series~\cite{sweBench2024} serves as the primary evaluation framework for coding agents on realistic software engineering tasks.
 SWE-Bench-Verified~\cite{sweBenchVerified2024} contains approximately 500 carefully validated Python debugging tasks that eliminate ambiguous descriptions and ensure deterministic outcomes, providing reliable performance measurement.
 For cross-language evaluation, we utilize external benchmarks such as GitBug-Java~\cite{gitbugJava2024} to assess transfer capabilities to languages not seen during training.
-\ac{TauBench}~\cite{taubench2024} enables broader assessment of how tool-usage skills transfer to adjacent tasks beyond code repair.
+TauBench~\cite{taubench2024} enables broader assessment of how tool-usage skills transfer to adjacent tasks beyond code repair.
 
 % \subsubsection{Evolution of SWE-Bench}
 
