@@ -1,0 +1,213 @@
+\chapter{Methodology and System Design}
+\label{ch:method-new}
+
+This chapter presents a single-agent, execution-free methodology for repository-level \ac{APR}.
+The approach embeds a minimalist terminal agent (Nano) directly into training and uses patch similarity as an outcome reward, enabling language-agnostic learning without executable test harnesses.
+We first formalize the Nano interface (observations, actions, termination, reward), then specify data, optimization, and infrastructure choices.
+Evaluation details are summarized briefly here and expanded in the Evaluation chapter.
+
+\section{Overview and Scope}
+
+We study whether online \ac{RL} improves a single minimalist coding agent when grounded in real repositories.
+The methodology is programming-language agnostic by design: reward depends only on diffs between the agent's final patch and a ground-truth patch.
+This removes the need for language-specific runners during training and permits controlled data mixing across languages when ground-truth patches exist.
+All results and ablations assume a single-agent paradigm.
+
+\section{Nano Agent}
+\label{sec:nano-agent-new}
+
+\subsection*{Observations}
+
+All interaction occurs through a terminal transcript.
+The agent observes system input/output/error as they appear in the dialogue.
+Each tool invocation (including repository reads and search) returns at most 2{,}000 characters, followed by a clear ``\ldots{} output truncated \ldots{}'' marker if longer.
+No additional out-of-band metadata is required for learning beyond what is visible in the transcript.
+
+\subsection*{Action Space}
+
+The agent has two tools: (i) \texttt{shell(cmd)} executes within a restricted bash (rbash) with a per-call timeout; and (ii) \texttt{apply\_patch(path, old\_content, new\_content)} performs a literal substring replacement (no regex).
+Patches must target files within the current repository; the specified \texttt{old\_content} must match uniquely in the file at the time of application.
+
+In addition, a ``null action'' is defined: if the agent emits no further tool call while the git repository contains changes, the episode terminates.
+
+\subsection*{Termination and Limits}
+
+Episodes terminate when any of the following holds: the agent triggers the null action; 30 tool calls have been issued; 12{,}288 generated tokens have been produced in the episode; or wall-clock exceeds 60 seconds (with a tolerance of approximately \textpm{}20 seconds for models smaller or larger than the 14B reference).
+Reaching any cap implies immediate termination.
+
+\subsection*{Safety and Sandbox}
+
+Every episode runs in an ephemeral working copy of a git repository; the shell is restricted via rbash and file operations are confined to the workspace.
+This ensures reproducible inputs and isolates side effects to the per-episode checkout.
+
+\subsection*{Sidestepping the Diff Generation Problem}
+
+Generating valid unified diffs is a brittle output-formatting task for language models: line numbers must reflect current file state, context lines must exactly match existing content, and headers must carry correct paths and chunk sizes.
+Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers or incorrect context that prevent patch application.
+
+The Nano agent sidesteps this failure mode by exposing a simple search-and-replace interface.
+Instead of emitting unified diffs, the agent calls:
+
+\begin{verbatim}
+apply_patch(
+    file_path="src/utils.py",
+    old_content="return data.strip().lower()",
+    new_content="return data.strip().lower().replace(' ', '_')"
+)
+\end{verbatim}
+
+This format matches \ac{LLM} strengths: the model specifies edits in clear semantic terms without coordinating line numbers or offsets.
+After interaction terminates, the canonical diff is computed with git, ensuring deterministic reward computation while eliminating a major class of formatting errors.
+
+\subsection*{Illustrative Rollout}
+
+Figure~\ref{fig:nano-rollout} shows a representative Nano episode captured from the command-line interface during training.
+The agent performs repository navigation (directory listings and ripgrep searches), inspects candidate files, and submits a minimal patch when sufficient evidence accumulates.
+Interactions are served asynchronously and episode length is adaptive, matching the multi-turn nature of repository-level repair.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{plotting/figures/nano_cli.png}
+    \caption{Illustrative rollout of the Nano agent during training. The agent navigates the repository via shell, inspects files, and applies a minimal patch. The serving stack remains asynchronous across turns, aligning with multi-turn \ac{APR}.}
+    \label{fig:nano-rollout}
+\end{figure}
+
+\subsection*{Canonical Diff and Patch Collection}
+
+Upon termination, the agent's modifications are captured via a canonical diff string computed by: \begin{verbatim}
+subprocess.check_output(["git", "-C", str(repo_root), "diff"], text=True, errors="ignore")
+\end{verbatim} This diff is deterministic under a fixed repository state and constitutes the basis for reward computation.
+
+\section{Training Data and Environment}
+\label{sec:data-env-new}
+
+The training methodology is execution-free and relies on ground-truth patches as supervision signals.
+
+\paragraph{Python-only regime.}
+For a Python-only setting, we use the full SWE-Gym dataset (approximately 2{,}400 tasks).
+
+\paragraph{Mixed 1k curriculum.}
+To balance diversity and efficiency, we also train on a compact 1{,}000-example curriculum, repeating epochs over the same set: 750 Python tasks sampled from SWE-Gym and 250 tasks from SWE-Bench-Multilingual spanning nine languages.
+An additional 50 multilingual tasks are reserved for validation sanity checks of reward and learning curves.
+This curriculum exploits the language-agnostic reward to incorporate non-Python patches without maintaining multi-language executors.
+
+\todoinline{Insert precise dataset versions and any repository filtering used (e.g., exclude tasks with non-reproducible file histories).}
+
+\section{Reward Design}
+\label{sec:reward-new}
+
+Training uses an execution-free, outcome-based reward on the canonical diff.
+For each affected file, we compute the similarity between the agent's and ground-truth diffs using Python's \texttt{difflib.SequenceMatcher.ratio}, and aggregate across files with a normalization factor of \(\max(\text{\#agent files},\, \text{\#ground-truth files})\), yielding a reward in \([0,1]\).
+Exact match is defined by a score of 1.0; a partial match label is reported for scores at or above 0.3 (a non-guaranteed signal of similarity).
+
+We experimented with additional shaping signals (e.g., similarity on test-suite changes and a breadcrumb reward for modifying the correct files with incorrect edits), but ultimately retained only the primary patch-similarity reward.
+
+To focus optimization on agent-authored content, we apply a dual-mask objective: tool outputs and all non-assistant tokens are excluded from the loss while remaining available to attention; assistant tokens, including \ac{JSON} tool calls, are optimized.
+No \ac{KL} regularization term is used in the final recipe.
+
+\subsection*{Outcome-Based Patch Similarity (Rationale)}
+
+Following SWE-RL~\cite{wei2025swerladvancingllmreasoning}, we treat the final patch as the outcome and compare it against ground truth with a deterministic string similarity.
+Evaluating the terminal patch keeps training simple and avoids brittle intermediate shaping, while allowing diverse problem-solving strategies that converge to the same end state.
+Most importantly, the reward targets what we ultimately care about: correct bug fixes.
+
+This approach also separates semantic intent from syntactic formatting.
+During interaction, the agent issues any number of \texttt{apply\_patch} calls; only after termination do we compute the unified diff for evaluation.
+Models therefore cannot fail on diff formatting, focusing learning on identifying and fixing bugs rather than producing syntactically valid diffs.
+Git ensures patches are properly formatted and applicable, and every intended modification is captured for reward computation.
+
+\todoinline{Add a small table or equation box summarizing the per-file aggregation once finalized.}
+
+\section{\ac{RL}
+  Algorithm} \label{sec:rl-new}
+
+We present \ac{GRPO} as \ac{PPO} with a group-relative baseline and adopt \ac{GSPO} as a refinement that improves sequence-level importance weighting.
+Our final trainer uses \ac{GSPO} with modifications inspired by Dr.
+\,GRPO and \ac{DAPO}: remove response-length bias, avoid reward normalization, no \ac{KL} term in the objective, and retain clipped importance ratios.
+
+Unless noted otherwise, we use a group size of eight responses per prompt, temperature 1.0 (no top-p/top-k), and ratio clipping with \(\varepsilon=0.2\).
+Optimization uses AdamW (learning rate \(10^{-4}\) on \ac{LoRA} parameters; weight decay 0.0; \(\beta=(0.9,0.95)\)); gradient clipping at 1.0; a 5\% warmup; single epoch per batch; and gradient accumulation to reach an effective batch size of roughly 16--32 responses post-masking.
+We enable gradient checkpointing and use DeepSpeed ZeRO-2 for models up to 14B parameters and ZeRO-3 beyond that.
+Sampling is purely on-policy; no replay buffer or EMA policy is used.
+
+This section states algorithmic choices and their rationale; implementation details appear in Chapter~\cref{ch:work-new}.
+
+\todoinline{Insert exact effective batch size and total update count for the main runs.}
+
+\section{Training Environment}
+\label{sec:train-env-new}
+
+Online training operates as a coupled system of serving and optimization.
+The inference side uses an OpenAI-compatible vLLM \ac{API} server with continuous batching and KV-cache reuse to execute multi-turn episodes, while the trainer collects trajectories, computes execution-free rewards on canonical diffs, and applies \ac{GSPO} updates under the dual-mask objective.
+Conceptually, the system advances through cycles of interaction, reward computation, and policy improvement; concrete mechanisms are detailed in Chapter~\cref{ch:work-new}.
+
+The trainer builds on TRL but required substantial extensions to support multi-turn, tool-augmented \ac{GSPO} at scale: we added dual-masked loss over assistant-authored tokens, sequence-level importance ratios computed after masking, and rollout collection that preserves turn boundaries while remaining stream- and batch-friendly under variable-length episodes.
+We further reconciled optimizer state partitioning with \ac{LoRA}-only updates under ZeRO and ensured compatibility with gradient checkpointing and accumulation.
+These changes allow the agentic \ac{RL} loop to run with the same stability and throughput as single-turn recipes while honoring tool I/O semantics.
+\todoinline{Cite code modules changed in TRL and summarize \ac{API} extensions once finalized.}
+
+Figure~\ref{fig:training-sequence-diagram} depicts the end-to-end control and data flow: requests enter the vLLM scheduler; episodes interleave tool calls and model generations; diffs are computed upon termination; rewards are produced without execution; and adapter updates are broadcast back to servers with bounded memory.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{plotting/figures/training_sequence_diagram.png}
+\caption{Conceptual training environment integrating asynchronous serving (vLLM) with \ac{GSPO} optimization. Episodes proceed as multi-turn interactions; on termination, canonical diffs yield rewards that drive updates.
+Implementation details appear in Chapter~\cref{ch:work-new}.}
+    \label{fig:training-sequence-diagram}
+\end{figure}
+
+Two engineering contributions are central: (i) an \ac{NCCL}-based live adapter sync and distributed gathering strategy that transmits only adapter deltas with tight memory bounds, reducing peak VRAM during weight collection by orders of magnitude while lowering latency; and (ii) a reconciled execution schedule in which continuous batching, KV-cache reuse, gradient accumulation, gradient checkpointing, \ac{LoRA} adaptation, and ZeRO partitioning operate concurrently.
+Full configuration fragments and measured latencies are provided in the Appendix.
+\todoinline{Insert exact VRAM reduction factor and latency figures; add Appendix references.}
+
+\section{Model Choice and Adaptation}
+\label{sec:models-new}
+
+We primarily train Qwen3-14B and include limited ablations with Qwen3-8B and Qwen3-30B-A3B by transferring the best 14B setup.
+Reasoning modes (e.g., chain-of-thought) are disabled to control token expenditure in a multi-turn tool-augmented loop.
+Parameter-efficient adaptation uses \ac{LoRA} (rank 32, \(\alpha=64\)) on attention and MLP projections with base weights frozen.
+We operate within a 12k-token context window.
+Tool-calling uses an OpenAI-compatible function-calling schema with strict \ac{JSON} validation; malformed calls return deterministic errors.
+
+\section{Infrastructure Summary}
+\label{sec:infrastructure-new}
+
+Complementing \S\ref{sec:train-env-new}, we summarize the principal infrastructure choices and their rationale; complete details reside in the Appendix.
+During rollouts, models are served with vLLM for high throughput via continuous batching and KV-cache reuse; an OpenAI-compatible \ac{API} server exposes the function-calling interface.
+Live weight synchronization employs an \ac{NCCL}-based mechanism that transmits \ac{LoRA} adapters without interrupting service.
+Jobs are scheduled under SLURM; isolation uses per-job user accounts, cgroups, rbash, and workspace-scoped filesystems, with optional Apptainer/Singularity images for pinning dependencies.
+Each episode runs in an ephemeral working copy that is reset between attempts.
+Determinism is promoted via fixed seeds and pinned library versions (PyTorch/\ac{CUDA}/\ac{NCCL}/vLLM), while acknowledging minor variation from fused \ac{CUDA} kernels.
+
+We made extensive engineering modifications to the serving stack.
+First, we extended the \ac{NCCL} weight synchronization and redesigned the distributed parameter gathering strategy inside vLLM so that only adapter deltas are collected and broadcast with tight memory bounds.
+\vspace{0.25em}
+Implementation-specific engineering choices and measurements (e.g., adapter synchronization and serving optimizations) are summarized in Chapter~\cref{ch:work-new} and detailed in the Appendix.
+
+\section{Decoding and Exploration Policy}
+\label{sec:decoding-new}
+
+During training, we decode with temperature 1.0 (no top-p/top-k) under the episode budgets stated in \S\ref{sec:nano-agent-new}.
+During evaluation, we use temperature 0.2 with top-p 0.9 and retain deterministic tool-call formatting.
+The harness surfaces command errors verbatim (subject to truncation) to encourage robust error recovery; no explicit constraint such as ``read-before-write'' is imposed.
+Compute-aware design choices implicitly encourage efficient behavior: tight per-call truncation, tool and token budgets, and short wall-clock limits shape exploration toward faster problem resolution without adding reward shaping terms.
+
+\section{Evaluation Protocol (brief)}
+\label{sec:eval-brief-new}
+
+We report test-verified success rates on SWE-Bench-Lite as the primary metric.
+Secondary analysis includes patch-similarity rates on SWE-Bench-Lite and SWE-Bench-Multilingual, with correlation between similarity and test pass rate examined on the primary.
+Tertiary metrics quantify exploration efficiency (tool-call success rate, steps-to-solution) and time-to-solution.
+Baselines include the base Qwen3 models with Nano (no \ac{RL}), and optionally a minimal SWE-agent-style harness for tangential comparison.
+We use one attempt per bug subject to the stated budgets and report bootstrap 95\% confidence intervals.
+
+\todoinline{Add dataset versions, seeds, and bug subsets used for the primary evaluation once finalized.}
+
+\section{Reproducibility}
+\label{sec:repro-new}
+
+We will release the Nano tool schema, system prompts, trainer configurations, \ac{LoRA} hyperparameters, data selection and deduplication scripts, pinned package manifests, and SLURM submission templates.
+Per-episode logs include tool traces (with truncation markers), token counts per turn, wall-clock timings, canonical diffs, rewards, and RNG seeds.
+Figures include an agent loop diagram, a concise system architecture, and an annotated rollout.
+
+\todoinline{Insert figure references when generated (agent loop; system architecture; example rollout).}

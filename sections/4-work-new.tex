@@ -1,0 +1,90 @@
+\chapter{The Work}
+\label{ch:work-new}
+
+This chapter provides a practical account of the work performed.
+Where Chapter~\cref{ch:method-new} formalizes the methodology, here we describe concretely what was implemented, how components were integrated, and which engineering choices enabled a stable, scalable training environment for a single minimalist agent.
+
+\section{Scope and Objectives}
+
+Our objective was to realize an online, repository-grounded training environment in which a single terminal-based agent learns via execution-free, outcome rewards.
+Achieving this required cohesive changes across serving, training, and orchestration so that multi-turn \ac{RL}, tool I/O, and live policy updates operate concurrently and reliably.
+
+\section{Implementation Overview}
+
+We implemented an end-to-end training environment that couples a minimalist terminal agent with an OpenAI-compatible serving layer and a scalable trainer.
+The Nano harness exposes only two tools (\texttt{shell}, \texttt{apply\_patch}) and enforces strict truncation (2{,}000 characters per tool call) and episode budgets over tools, tokens, and time.
+The serving layer is a vLLM-based \ac{API} server with function-calling extensions and deterministic \ac{JSON} error handling.
+Live adapter synchronization propagates \ac{LoRA} updates to inference without downtime, while the trainer realizes \ac{GSPO} with a dual-masked loss and on-policy collection for variable-turn episodes.
+Experiments are orchestrated by SLURM with per-episode ephemeral repositories and workspace isolation; comprehensive logging stores tool traces, canonical diffs, rewards, token counts, timings, and RNG seeds.
+
+\todoinline{Insert repository layout diagram or concise bullet map of major packages/modules.}
+
+\section{Training Environment Implementation}
+
+\subsection*{Serving and Function Calling}
+
+We extended the vLLM \ac{API} server with strict function-calling enforcement and deterministic error messages for invalid \ac{JSON} tool calls.
+Continuous batching and KV-cache reuse are configured for multi-turn episodes.
+\todoinline{List relevant server flags, batching settings, and any scheduler adjustments.}
+
+\subsection*{Live Adapter Synchronization}
+
+We redesigned distributed parameter gathering to send only \ac{LoRA} deltas and broadcast them with \ac{NCCL}, bounding memory during synchronization and eliminating service interruptions.
+\todoinline{Insert before/after peak VRAM during gather and measured sync latencies.}
+
+\subsection*{Trainer Extensions}
+
+The trainer integrates dual-masked loss, sequence-level importance ratios computed after masking, and variable-turn rollout collection that preserves turn boundaries while remaining batch-friendly.
+We reconciled \ac{LoRA}-only updates under ZeRO partitioning with gradient accumulation and checkpointing.
+\todoinline{Name the modified TRL modules/files and summarize the \ac{API} changes.}
+
+\subsection*{Orchestration and Isolation}
+
+Jobs run under SLURM with per-episode ephemeral repositories, workspace-scoped filesystems, cgroups, and rbash.
+Optionally, Apptainer/Singularity images pin dependencies.
+\todoinline{Note SLURM templates and environment modules used.}
+
+\section{Training Runs and Protocol}
+
+We conducted runs on Python-only SWE-Gym (\(\sim\)2{,}400 tasks) and on a compact 1k curriculum (750 SWE-Gym Python + 250 SWE-Bench-Multilingual across nine languages; 50 multilingual tasks held out for validation), repeating epochs over the latter to maximize sample reuse.
+Episodes are bounded by 30 tool calls, 12{,}288 generated tokens, and 60\,s wall-clock per bug (\(\pm\)20\,s for smaller/larger than the 14B reference).
+Training uses temperature 1.0 without top-k/top-p; evaluation uses temperature 0.2 with top-p 0.9.
+Optimization follows \ac{GSPO} with group size eight and ratio clipping \(\varepsilon=0.2\), AdamW on \ac{LoRA} parameters, gradient accumulation and checkpointing, and DeepSpeed ZeRO (2 for \(\leq\)14B; 3 for \(>\)14B).
+We primarily use Qwen3-14B and repeat best settings on Qwen3-8B and Qwen3-30B-A3B.
+
+\todoinline{Add concrete counts: updates, epochs over the 1k curriculum, compute hours, and cluster details.}
+
+\section{Ablations and Diagnostics}
+
+We explored reward-shaping variants (test-suite diff similarity and breadcrumb rewards for file targeting); both were removed in favor of the primary patch-similarity reward.
+Training disables top-k/top-p; evaluation uses mild top-p.
+We track steps-to-solution, tool-call success rate, and token usage to confirm implicit efficiency pressure from budgets and truncation.
+
+\todoinline{Insert small table of ablations attempted and their observed qualitative/quantitative impact.}
+
+\section{Practical Challenges and Resolutions}
+
+Strict \ac{JSON} validation with deterministic error messages reduced invalid-call loops.
+Enforcing uniqueness on \texttt{old\_content} and computing the canonical diff at termination ensured deterministic rewards.
+Careful scheduling of weight updates and batch servicing eliminated divergence between training and serving.
+
+\section{Performance Characterization}
+
+We characterize the training environment along three axes: peak VRAM during parameter gathering, live sync latency, and end-to-end throughput under continuous batching.
+\todoinline{Insert a table with before/after VRAM, latency (p50/p95), and tokens/sec for representative models.}
+
+\section{Deliverables and Reproducibility}
+
+Artifacts include the Nano tool schema, prompts/system messages, trainer configurations, \ac{LoRA} settings, data selection scripts, pinned package manifests, and SLURM templates.
+Appendix entries document the live sync design (\ac{NCCL} environment, gathering pseudo-code), DeepSpeed + \ac{LoRA} configuration fragments, and measured sync/throughput metrics.
+
+\todoinline{Cross-reference specific Appendix sections and figure/table identifiers once finalized.}
+
+% This yields dramatically lower peak VRAM during weight collection—on the order of hundreds-fold reduction—while also reducing update latency, enabling truly live policy updates alongside continuous batching.
+% \todoinline{Insert exact VRAM reduction factor}
+
+% Second, we resolved integration constraints so that gradient accumulation, gradient checkpointing, \ac{LoRA} adaptation, DeepSpeed ZeRO partitioning, continuous batching, and live weight sync operate concurrently without sacrificing stability.
+% The scheduling of synchronization, KV-cache reuse, and optimizer steps is documented in the Appendix, together with configuration fragments required to reproduce the combined setup.
+% \todoinline{Add appendix references to specific configs, NCCL environment settings, and memory pooling choices.}
+
+% \todoinline{Insert measured sync latencies and adapter sizes once finalized.}

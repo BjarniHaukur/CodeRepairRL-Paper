@@ -10,9 +10,12 @@ Recent open weight releases such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\
 This reinforces the need for open, reproducible methods and analysis.
 \todoinline{Verify and update SWE-Bench(-Verified) SOTA; cite system cards/technical reports for these claims (Claude 4/3.5, Qwen3-Coder, Kimi-K2) at submission.}
 
+This thesis directly addresses this need by investigating how a single, minimalist agent—Nano—enables a model to acquire agentic behavior through experiential \ac{RL} feedback occurring entirely within the agent's interactive loop.
+By situating all learning and adaptation within the Nano harness, we provide clear, reproducible insights into the mechanisms by which \ac{RL} cultivates autonomy and effective tool use in repository-level code repair.
+
 An important contemporaneous effort is SWE-RL~\cite{wei2025swerladvancingllmreasoning}, which applies \ac{GRPO} with a rule-based reward based on patch similarity (Python's \texttt{difflib.SequenceMatcher}) to train models in a static, single-turn setting where the full file contexts are provided and the model directly outputs a patch that is compared to ground truth.
 Our work is complementary: we also use \ac{GRPO} and a patch-similarity reward, but in an agentic, multi-step regime where the model must first acquire its own context through tool use before proposing edits.
-This distinction (static one-shot patch generation versus interactive context acquisition and repair) motivates our focus on agent-integrated training rather than purely prompt-time scaffolding.
+This distinction (static one-shot patch generation versus interactive context acquisition and repair) motivates our focus on agent-integrated training with a single minimalist harness (the Nano agent), rather than on prompt-time scaffolding.
 
 To understand why this shift to agentic training is both necessary and transformative, we must first examine the historical context and theoretical foundations that have led to this approach.
 
@@ -43,15 +46,16 @@ However, unlike traditional game playing \ac{RL} agents, which directly produce 
 They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental responses back into text.
 
 This critical distinction necessitates a fundamentally different approach to \ac{RL}.
-In this paradigm, a scaffold or harness interprets tool calls from the \ac{LLM}, executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
-The entire system (\ac{LLM} plus scaffold) forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
+In this paradigm, a lightweight harness interprets tool calls from the \ac{LLM}, executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
+The entire system (\ac{LLM} plus harness) forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
+In this thesis we instantiate exactly one such harness—the Nano agent—and conduct all training strictly within this single-agent setting.
 
-When equipped with appropriate scaffolds, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
+When equipped with appropriate harnesses, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
 This capability transformation makes it practical to apply \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
 \todoinline{Tie explicitly to terminal-oriented agency; add references to public statements/benchmarks on terminal skills (e.g., TerminalBench/TauBench).}
 
 In this thesis, training adopts an execution-free agentic setup: the agent does not run builds or tests during training.
-Instead it receives static, repository-local feedback (e.g., patch similarity and other non-executed diagnostics) that is sparse and delayed at the episode level.
+Instead, it receives static, repository-local feedback obtained exclusively through shell commands, without executing tests or builds.
 This trades direct functional signals for infrastructure simplicity and determinism, enabling scale and multilingual coverage while keeping optimization aligned with interaction quality (valid tool use, efficiency) and end-task success.
 Concrete observation, action, and reward definitions are specified in \cref{ch:method}.
 
@@ -78,7 +82,7 @@ Our work addresses this need by studying \ac{RL} with interactive coding agents 
 \section{Problem}
 \label{sec:intro-problem}
 
-Tool-using coding agents already exist; what is largely missing in the open scientific community is an open, reproducible training pipeline for such agents.
+Tool-using coding agents already exist; what is largely missing in the open scientific community is an open, reproducible training pipeline to surface that agentic behavior.
 Concretely, we target a minimalist, execution-free \ac{RL} recipe for repository-level \ac{APR} that (i) optimizes terminal interaction quality in live repositories using static, execution-free feedback, (ii) scales beyond a single language without bespoke test infrastructure or heavy dataset engineering, and (iii) demonstrates generalization from training suites to external evaluations and across base models.
 
 We therefore frame execution-free \ac{RL} as a pragmatic compromise: by trading direct functional signals for deterministic, static feedback, it becomes feasible to run large-scale and multilingual experiments with tight control over variance and reproducibility.
@@ -130,13 +134,14 @@ The overarching goal of this thesis is to develop and empirically validate an on
 %Through rigorous experimentation with our minimalist Nano agent, we demonstrate that models can learn effective debugging strategies through environmental interaction rather than passive observation of bug-fix pairs.
 %Our comprehensive evaluation addresses harness adaptation, cross-model generalization, dataset transfer, and task generalization as outlined in our research questions above.
 
-To make this investigation concrete, we address the following research questions aligned to our focus on a single minimalist harness (Nano) and practical generalization:
+To make this investigation concrete, we organize the work around four learnings (RQ1-RQ4) that arise from building an open-source agentic model in a single minimalist harness (Nano).
+\todoinline{Verify RQ numbering and titles are consistent with Chapters 3 and 5 before submission.}
 
 \textbf{RQ1: Does online RL improve debugging capabilities through agent-harness adaptation?
 }
 \begin{itemize}
 	\item Primary indicators: increasing reward, tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity
-	\item Hypothesis: \ac{RL} improves harness adaptation, reflected by increased tool success and reduced invalid calls without sacrificing exploration.
+	\item Hypothesis: \ac{RL} improves harness adaptation reflected by increased tool success and solvency rates.
 \end{itemize}
 
 \textbf{RQ2: Does execution-free training enable effective multilingual debugging agents?}
@@ -148,16 +153,15 @@ To make this investigation concrete, we address the following research questions
 
 \textbf{RQ3: How does the training approach generalize across model architectures?}
 \begin{itemize}
-	\item Goal: validate that our training recipe generalizes beyond the Qwen3 family
-	\item Design: replicate key experiments on Gemma3 and Llama3.1 to assess architectural robustness
-	\item This tests whether our findings represent general principles for online \ac{RL} training
+	\item Goal: validate that our training recipe transfers beyond the initial base model
+	\item Design: replicate key experiments on alternative open models (e.g., SmolLM3) without bespoke engineering
+	\item Purpose: test whether findings reflect general principles for online \ac{RL} training rather than model-specific tuning
 \end{itemize}
 
 \textbf{RQ4: Do learned debugging skills transfer to different harnesses and tasks?}
 \begin{itemize}
-	\item Cross-harness: evaluate with MiniAgent and OpenHands to test harness-independence
-	\item Cross-task: evaluate on TauBench for broader software engineering task transfer
-	\item Focus on whether multilingual training improves cross-task generalization
+	\item Cross-harness (zero-shot): evaluate with Mini-SWE-Agent and OpenHands without adaptation
+	\item Cross-task: evaluate on TauBench to test tool-calling skill transfer
 \end{itemize}
 
 With these research questions guiding our investigation, we now articulate the specific purpose and contributions of this thesis.
@@ -187,7 +191,7 @@ We employ \ac{GRPO}, a variant of \ac{PPO}~\cite{ppo2017} that forgoes value fun
 During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch quality.
 
 Our experimental design implements careful controls to ensure valid comparisons between different training paradigms.
-We maintain identical model architectures (Qwen3 family models chosen for their superior tool-calling abilities), training data sources, and computational budgets across all experimental conditions.
+We maintain identical model architectures within each comparison group, training data sources, and computational budgets across all experimental conditions.
 The primary independent variable is the training methodology (supervised learning versus \ac{RL}).
 Dependent variables include repair success rates, patch quality metrics, and generalization performance.
 
@@ -243,18 +247,16 @@ While this simplicity enables clean experimental validation of the \ac{RL} appro
 
 The remainder of this thesis is structured to provide a comprehensive treatment of \ac{RL} for automated program repair, progressing from theoretical foundations through empirical validation.
 
-\textbf{Chapter 2: Background and Theoretical Foundations} establishes the theoretical context for our work, reviewing \ac{RL} algorithms for language models with particular emphasis on \ac{GRPO}.
-We examine the evolution of automated program repair approaches, from rule-based systems through modern neural methods, and analyze the emergence of tool-augmented language models.
-The chapter introduces key concepts including agent scaffolding, reward design for code repair, and the training-inference duality that characterizes our approach.
+\todoinline{fix these names}
 
-\textbf{Chapter 3: Methodology and System Design} presents our technical approach in detail, beginning with the scaffolded training paradigm and its implementation.
-We describe the architecture of our Nano agent, explaining design decisions and rationale for the minimalist approach.
-The chapter details our two-stage training pipeline, reward formulation, and the engineering innovations that enable efficient large-scale training.
-Particular attention is given to the integration of vLLM inference servers with \ac{RL} trainers and the \ac{NCCL}-based weight synchronization system.
+\textbf{Chapter 2: Theoretical Background and Related Work} establishes the theoretical context for our work, reviewing \ac{RL} algorithms for language models (e.g., \ac{GRPO}/\acs{GSPO}) and situating \ac{APR} within repository-grounded, agentic evaluation.
+It introduces the Nano agent in relation to broader agent ecosystems and motivates execution-free rewards.
 
-\textbf{Chapter 4: Related Work} contextualizes our contributions within the broader landscape of code generation and repair research.
-We analyze prior work on \ac{RL} for programming tasks, agent-based software engineering tools, and the evolution of benchmarks for code repair evaluation.
-This chapter highlights how our approach synthesizes insights from multiple research threads while addressing limitations in existing methods.
+\textbf{Chapter 3: Methodology and System Design} presents our technical approach in detail, beginning with the Nano agent interface and its implementation.
+We describe design decisions supporting the minimalist approach, the training pipeline, reward formulation, and engineering choices that enable efficient large-scale training and evaluation.
+
+\textbf{Chapter 4: The work} what was done.
+\todoinline{write this shit}
 
 \textbf{Chapter 5: Experimental Results and Analysis} presents comprehensive empirical evaluation addressing our research questions.
 We report performance metrics on SWE-Bench-Verified, analyze learning curves and training dynamics, and examine the effectiveness of our approach.
@@ -263,4 +265,4 @@ Statistical significance testing and qualitative analysis of agent behaviors pro
 
 \textbf{Chapter 6: Conclusions and Future Directions} synthesizes our findings, explicitly answering each research question based on empirical evidence.
 We discuss the broader implications for automated software engineering, identify limitations of the current approach, and outline promising directions for future research.
-The chapter concludes with reflections on the potential impact of scaffolded \ac{RL} on the future of software development tools.
+The chapter concludes with reflections on the potential impact of applying \ac{RL} to \acp{LLM} and the future of software development tools.

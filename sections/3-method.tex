@@ -58,7 +58,9 @@ This minimal toolset encourages models to develop their own strategies for code 
 
 \subsection{Illustrative Rollout}
 
-To ground the interface in practice, Figure~\ref{fig:nano-rollout} shows a representative Nano episode captured from the command-line interface during training. The rollout illustrates repository exploration via shell commands, targeted file inspection, and a single, atomic patch application. Episode length adapts to task complexity, and request–response handling remains asynchronous throughout, so multiple episodes can progress concurrently without blocking.
+To ground the interface in practice, Figure~\ref{fig:nano-rollout} shows a representative Nano episode captured from the command-line interface during training.
+The rollout illustrates repository exploration via shell commands, targeted file inspection, and a single, atomic patch application.
+Episode length adapts to task complexity, and request-response handling remains asynchronous throughout, so multiple episodes can progress concurrently without blocking.
 
 \begin{figure}[htbp]
     \centering
@@ -248,32 +250,6 @@ The model exhibits superior Python code generation capabilities, excellent repos
 The model undergoes continued training rather than traditional fine-tuning, preserving its general capabilities while acquiring specialized agent skills through \ac{RL}.
 This approach maintains Qwen's robust tool-calling foundation while enabling learning of complex debugging behaviors.
 
-\section{Training-Inference Duality in Online RL for LLMs}
-\label{sec:training-inference}
-
-A fundamental innovation in our approach is the collapse of the traditional training-inference boundary.
-Unlike conventional \ac{RL} where trajectory collection and policy updates occur in separate phases, our system performs both simultaneously through continuous serving and real-time weight updates.
-
-Figure~\ref{fig:training-sequence-diagram} summarizes the end-to-end dataflow for the Nano agent during online training, highlighting how variable-length agent episodes interface with asynchronous serving and continuous optimization.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=1.0\textwidth]{plotting/figures/training_sequence_diagram.png}
-    \caption{Sequence of interactions in our online training loop for the Nano agent. The depicted configuration uses single-step gradient accumulation (i.e., updates are computed per collected batch without additional accumulation). Each agent episode can expand to an arbitrary number of API/tool calls, and request–response handling is fully asynchronous: agent requests are issued without blocking, and completions stream back independently, allowing episodes of different lengths to proceed concurrently.}
-    \label{fig:training-sequence-diagram}
-\end{figure}
-
-\subsection{The Unified Training-Inference Paradigm}
-
-The \ac{GRPO} process operates as a continuous cycle where: \begin{enumerate}
-	\item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
-	\item \textbf{Trajectory streaming}: Completed agent episodes stream to the training pipeline in real-time
-	\item \textbf{Immediate updates}: \ac{GRPO} computes gradients and updates weights continuously
-	\item \textbf{Live synchronization}: Updated weights propagate to the inference server without interruption
-\end{enumerate}
-
-This unified paradigm enables true online learning where the policy improves continuously throughout the training session, rather than in discrete update cycles.
-
 \section{Trainer Implementation}
 \label{sec:rl-algorithm}
 
@@ -415,6 +391,32 @@ The combination of these optimizations enables training of state-of-the-art agen
 \end{itemize}
 
 Stacking these optimizations make \ac{RL} practically feasible for academic research, democratizing access to advanced coding agent training previously available only to industry labs with unlimited compute budgets.
+
+\section{Training-Inference Duality in Online RL for LLMs}
+\label{sec:training-inference}
+
+A fundamental innovation in our approach is the collapse of the traditional training-inference boundary.
+Unlike conventional \ac{RL} where trajectory collection and policy updates occur in separate phases, our system performs both simultaneously through continuous serving and real-time weight updates.
+
+Figure~\ref{fig:training-sequence-diagram} summarizes the end-to-end dataflow for the Nano agent during online training, highlighting how variable-length agent episodes interface with asynchronous serving and continuous optimization.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{plotting/figures/training_sequence_diagram.png}
+    \caption{Sequence of interactions in our online training loop for the Nano agent. The depicted configuration uses single-step gradient accumulation (i.e., updates are computed per collected batch without additional accumulation). Each agent episode can expand to an arbitrary number of API/tool calls, and request–response handling is fully asynchronous: agent requests are issued without blocking, and completions stream back independently, allowing episodes of different lengths to proceed concurrently.}
+    \label{fig:training-sequence-diagram}
+\end{figure}
+
+\subsection{The Unified Training-Inference Paradigm}
+
+The \ac{GRPO} process operates as a continuous cycle where: \begin{enumerate}
+	\item \textbf{Live inference}: vLLM serves the current policy to multiple agent workers simultaneously
+	\item \textbf{Trajectory streaming}: Completed agent episodes stream to the training pipeline in real-time
+	\item \textbf{Immediate updates}: \ac{GRPO} computes gradients and updates weights continuously
+	\item \textbf{Live synchronization}: Updated weights propagate to the inference server without interruption
+\end{enumerate}
+
+This unified paradigm enables true online learning where the policy improves continuously throughout the training session, rather than in discrete update cycles.
 
 \section{Reward Design}
 \label{sec:method-reward-design}

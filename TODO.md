@@ -2,6 +2,8 @@ Thesis revision checklist (Intro, Background, Method)
 
 "Our method is parameter efficient and has lower developmental friction making it easier to integrate in training with a large collage of diverse RL environments"
 
+- [ ] Bit awkward around whether we should use "scaffold" vs "harness". Might require both but currently paragraphs just use them at random almost.
+
 Background
 - [~] Move MDP to background and make it shorter
 - [x] Change APR with LLMs to Agentless / Agentic
@@ -10,11 +12,15 @@ Background
 - [ ] Add a section to the RL background of how agentic coding has a well posited place
 - [x] Cite and briefly describe relevant systems (e.g., SWE-Agent, OpenHands/OpenDevin, Aider; use citable sources)
 
-- [ ] Discuss and cite Terminal- and TauBench, cite SOTA numbers perhaps, cite
-- [ ] Dr. GRPO write and cite
-- [ ] Dapo write and cite
-- [ ] Remember more of these
+- [ ] Discuss TauBench, cite SOTA numbers perhaps, cite
+- [x] Dr. GRPO write and cite
+- [x] Dapo write and cite
+- [x] Remember more of these
+ - GSPO suffices I think
 - [ ] "The ecosystem has evolved by leaps and bounds since I started"
+
+- [ ] Vibe write the methods IS EASY JUST DO IT
+- [ ] Vibe write the results, we will have my current results and just add the more polished ones
 
 
 Misc
@@ -40,6 +46,11 @@ Method
 - [ ] Reduce bullet points across these chapters; convert to flowing prose (keep only essential lists)
 - [ ] Replace the method diagram (clearer, less busy); keep label `fig:method-diagram`
 - [ ] Standardize GRPO/GSPO notation (single symbol set) and finish the GSPO stability rationale
+
+Chapter 4: The Work
+- [ ] Move practical engineering details (TRL/vLLM modifications, NCCL sync, ZeRO+LoRA+checkpointing scheduling) from Methods into Chapter 4 where appropriate
+- [ ] Fill in quantitative metrics (compute hours, sync latency, VRAM during gathers, throughput), cross-reference Appendix
+- [ ] Ensure \ac{} usage for all acronyms and align tone with single-agent scope
 
 Carryover notes (integrated as tasks)
 - [ ] Weave the "environments are the new datasets" motivation into Intro framing and transitions

@@ -17,8 +17,6 @@ Integrating the Nano agent (detailed in Section~\ref{sec:nano-agent}) with onlin
 
 \textbf{State Management Complexity}: Maintaining consistent repository states across concurrent agent sessions while enabling rollbacks and resets demanded sophisticated containerization strategies that significantly impacted system throughput.
 
-\textbf{Tool Output Variability}: The stochastic nature of shell command outputs (timing variations, environment differences) introduced unexpected variance in agent trajectories, requiring careful handling to ensure reproducible training results.
-
 \subsection{Scaling Challenges}
 
 Deploying the system at the scale required for meaningful \ac{RL} training revealed several practical limitations:
@@ -31,7 +29,8 @@ Deploying the system at the scale required for meaningful \ac{RL} training revea
 
 \subsection{Training Pipeline Adaptations}
 
-\textbf{\ac{GRPO} Modifications}: The standard \ac{GRPO} implementation required significant adaptation for coding agents (as detailed in Section~\ref{sec:rl-algorithm}), particularly in handling variable-length trajectories and tool-calling sequences that differ substantially from typical text generation tasks.
+\textbf{\ac{GRPO}
+Modifications}: The standard \ac{GRPO} implementation required significant adaptation for coding agents (as detailed in Section~\ref{sec:rl-algorithm}), particularly in handling variable-length trajectories and tool-calling sequences that differ substantially from typical text generation tasks.
 
 \textbf{Batch Composition Challenges}: Constructing training batches with sufficient diversity while maintaining computational efficiency proved more complex than anticipated, requiring dynamic batching strategies that balance trajectory length, complexity, and reward distribution.
 
