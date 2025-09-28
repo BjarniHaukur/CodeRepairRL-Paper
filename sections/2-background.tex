@@ -20,10 +20,10 @@ Within this setting, three families of approaches dominated.
 These lines collectively established feasibility on test\textendash suite benchmarks while also exposing the limits of test adequacy as a correctness proxy (overfitting, brittle generalization).
 Those constraints, together with the need to reason beyond local contexts, set the stage for the repository\textendash grounded, model\textendash based approaches reviewed next.
 
-\section{Automated Program Repair with LLMs}\label{sec:apr-with-llms}
+\section{Automated Program Repair with \acsp{LLM}}\label{sec:apr-with-llms}
 
 Codex marked an inflection point where large pretrained models on code enabled practical repair and synthesis, shifting \ac{APR} from rules or search to learned edit priors~\cite{codex2021}.
-Since then, frontier labs have converged on repository-grounded evaluation (e.g., \ac{SWE-Bench} Verified) and increasingly ship first-party \emph{agent harnesses} such as OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI} that orchestrate tool calls over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
+Since then, frontier labs have converged on repository-grounded evaluation (e.g., SWE-Bench Verified) and increasingly ship first-party \emph{agent harnesses} such as OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI} that orchestrate tool calls over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
 
 We therefore organize \ac{LLM}-assisted repair by the degree of autonomy at inference: (i) \emph{scaffold-free} models operating without an execution harness, (ii) \emph{agentless} scaffolds that curate repository context without centralized autonomy, and (iii) \emph{agentic} systems that plan and execute tools end-to-end.
 % This taxonomy clarifies which capabilities are evaluated and how results transfer across settings.
@@ -104,11 +104,11 @@ As with Qwen3, model artifacts and high-level methodology are public, but \emph{
 \paragraph{GLM\textendash 4.5 (Zhipu AI).}
 GLM\textendash 4.5 positions itself as an \emph{agentic, reasoning, and coding} (ARC) family and explicitly reports a comprehensive post-training phase that combines expert iteration with \ac{SFT} and \ac{RL}, aimed at strengthening multi-step agentic tool use.
 ~\cite{glm45_2025}.
-The public release provides open-weight checkpoints but does \emph{not} include a reproducible end-to-end agentic RL training pipeline or environment traces.
+The public release provides open-weight checkpoints but does \emph{not} include a reproducible end-to-end agentic \ac{RL} training pipeline or environment traces.
 
 Taken together, these open-weight efforts converge on the same direction: agent-facing post-training that couples tool use, long-context coding, and multi-turn control.
 They document \ac{SFT} and \ac{RL} training stages for agentic post-training and evaluations, but stop short of releasing reproducible training stacks.
-In contrast, recent work such as \emph{DeepSWE} publicly reports an RL-trained coding agent within a terminal environment and releases open-weight models alongside practical training details, offering a rare end-to-end reference point for open agentic RL on software tasks.
+In contrast, recent work such as \emph{DeepSWE} publicly reports an \ac{RL}-trained coding agent within a terminal environment and releases open-weight models alongside practical training details, offering a rare end-to-end reference point for open agentic \ac{RL} on software tasks.
 \cite{deepSWE2025}
 
 In practical terms, agentic systems close the loop between hypothesis and verification: the model requests an action, observes the real outcome, and can adjust.
@@ -133,12 +133,12 @@ The sequence likelihood factorizes as \begin{equation}
 Expectations are taken over $x \sim \mathcal{D}$ and over responses sampled from a frozen reference policy $\pi_{\theta_{\text{old}}}$ that generated the data for the current update.
 The operator $\operatorname{clip}(\cdot, 1-\epsilon, 1+\epsilon)$ denotes elementwise clipping of importance ratios into a range controlled by $\epsilon \!
 >\! 0$.
-We omit the customary $\mathrm{KL}$ regularizer to a reference model both in practice and for clarity.
+\todoinline{bla}
+We omit the customary \ac{KL} regularizer to a reference model both in practice and for clarity.
 
-\subsection{\acl{PPO}}
+\subsection{\acf{PPO}}
 \label{subsec:ppo}
-
-\acl{PPO} performs multiple gradient steps on samples drawn from the old policy while constraining update size through clipping \cite{ppo2017}.
+\acs{PPO} performs multiple gradient steps on samples drawn from the old policy while constraining update size through clipping \cite{ppo2017}.
 Using per token importance ratios and averaging across the sequence length, the objective is \begin{equation}
 J_{\mathrm{PPO}}(\theta)
 \;=\;
@@ -167,10 +167,10 @@ G_t \;=\; R \quad \text{for all } t \in \{1,\ldots,|y|\}.
 In \ac{LLM} settings, maintaining a separate value model that is comparable in size to the policy substantially increases the overall memory footprint during training.
 This elevated memory demand becomes especially pronounced for long responses, as both the policy and value models must process extended sequences in parallel, leading to significant resource consumption.
 
-\subsection{\acl{GRPO}}
+\subsection{\acf{GRPO}}
 \label{subsec:grpo}
 
-\acl{GRPO} replaces the learned value baseline with a group relative baseline computed from multiple responses to the same query \cite{grpo2024}.
+\acs{GRPO} replaces the learned value baseline with a group relative baseline computed from multiple responses to the same query \cite{grpo2024}.
 For each $x \in \mathcal{D}$, the old policy $\pi_{\theta_{\text{old}}}$ samples a group $\{y_i\}_{i=1}^G$ and each response receives an outcome $r(x,y_i) \in [0,1]$.
 Define the group mean and standard deviation \begin{equation}
 \mu \;=\; \frac{1}{G}\sum_{i=1}^{G} r(x,y_i),
@@ -181,7 +181,7 @@ A_i \;=\; \frac{r(x,y_i)-\mu}{\sigma + \varepsilon}.
 \end{equation} All tokens in $y_i$ share the same scalar $A_i$.
 With per token importance ratios \begin{equation}
 w_{i,t}(\theta) \;=\; \frac{\pi_\theta\!\big(y_{i,t}\mid x,\,y_{i,<t}\big)}{\pi_{\theta_{\text{old}}}\!\big(y_{i,t}\mid x,\,y_{i,<t}\big)},
-\end{equation} the surrogate mirrors PPO’s clipped form while averaging first within a sequence and then across the group: \begin{equation}
+\end{equation} the surrogate mirrors \ac{PPO}'s clipped form while averaging first within a sequence and then across the group: \begin{equation}
 J_{\mathrm{GRPO}}(\theta)
 \;=\;
 \mathbb{E}_{\,x \sim \mathcal{D},\; \{y_i\}_{i=1}^{G} \sim \pi_{\theta_{\text{old}}}(\cdot \mid x)}
@@ -194,13 +194,12 @@ w_{i,t}(\theta)\,A_i,\;
 \Big)
 \right].
 \end{equation} The appeal is direct.
-GRPO preserves the PPO update logic but substitutes a per query group baseline for the value model, which removes the critic, lowers memory, and simplifies training while keeping the clipped ratio safeguard and on policy sampling \cite{grpo2024}.
+\ac{GRPO} preserves the \ac{PPO} update logic but substitutes a per query group baseline for the value model, which removes the critic, lowers memory, and simplifies training while keeping the clipped ratio safeguard and on policy sampling \cite{grpo2024}.
 
 \subsubsection{Dr.\,GRPO}
 \label{subsubsec:drgrpo}
-
 Dr.
-\,GRPO identifies two biases in the GRPO objective and removes the corresponding normalization terms \cite{drGRPO2025}.
+\,GRPO identifies two biases in the \ac{GRPO} objective and removes the corresponding normalization terms \cite{drGRPO2025}.
 First, dividing each sample's loss by $|y_i|$ introduces a response level length bias.
 Second, dividing by the group standard deviation $\sigma$ couples update magnitude to the within group difficulty spread.
 Dr.
@@ -224,10 +223,9 @@ w_{i,t}(\theta)\,A_i^{\text{Dr}},\;
 In practice the inner sum is implemented as a masked mean over all tokens in the batch with a constant denominator rather than $|y_i|$ per sample.
 Removing the two normalizations improves token efficiency and reduces the tendency to inflate the length of incorrect responses \cite{drGRPO2025}.
 
-\subsubsection{\acl{DAPO}}
+\subsubsection{\acf{DAPO}}
 \label{subsubsec:dapo}
-
-\ac{DAPO} is a large scale recipe that builds on \ac{GRPO} with four concrete changes that target entropy collapse, reward noise, and instability \cite{dapo2025}.
+\acs{DAPO} is a large scale recipe that builds on \ac{GRPO} with four concrete changes that target entropy collapse, reward noise, and instability \cite{dapo2025}.
 The objective decouples clipping and aggregates at token level across the whole group: \begin{equation}
 J_{\mathrm{DAPO}}(\theta)
 \;=\;
@@ -241,22 +239,26 @@ w_{i,t}(\theta)\,A_i,\;
 \operatorname{clip}\!\big(w_{i,t}(\theta),\, 1-\epsilon_{\text{low}},\, 1+\epsilon_{\text{high}}\big)\,A_i
 \Big)
 \right],
-\end{equation} with $A_i$ the group standardized advantage as in GRPO and asymmetric clipping $(\epsilon_{\text{low}},\epsilon_{\text{high}})$.
+\end{equation} with $A_i$ the group standardized advantage as in \ac{GRPO} and asymmetric clipping $(\epsilon_{\text{low}},\epsilon_{\text{high}})$.
 The algorithm removes the \ac{KL} penalty, uses token level loss, and adds two stabilizers: \emph{dynamic sampling} with a buffer that enforces a balanced mix of correct and incorrect samples for each query group, and \emph{overlong filtering and shaping} that masks loss on truncated or timed out generations and downweights overlong failures.
 The higher upper clip encourages exploration and prevents early entropy collapse; the dynamic buffer reduces variance and improves data efficiency; token level aggregation and overlong filtering make training robust for very long reasoning traces.
 
-\subsubsection{\acl{GSPO}}
+\subsubsection*{\acf{GSPO}}
 \label{subsubsec:gspo}
-
-Token-level importance weighting in GRPO is fragile at scale.
-Small logit discrepancies between training and inference engines accumulate across long sequences, and in sparse Mixture-of-Experts models the set of activated experts can change between $\pi_{\theta_{\text{old}}}$ and $\pi_\theta$, making token-level ratios volatile and invalid as off-policy corrections.
-These effects amplify under clipping and have been observed to trigger irreversible collapse; prior \ac{MoE} work required routing-replay to stabilize GRPO.
+\todoinline{Improve}
+\acs{GSPO} builds on \acs{GRPO} and tackles two different problems.
+First is aligning the importance weighing to sequence-level advantages and better handling of small logit discrepancies between training and inference engines accumulate across long sequences.
+Token-level importance weighting in \ac{GRPO} is fragile at scale.
+The same set of weight operating on the same input sequences do not produce the same logits between training and inference engines.
+This is due to accumulated floating point errors and the different sets of kernels used optimized for training or inference respectively.
+In sparse\ac{MoE}, the logit differences are even more apparent, since the set of activated experts can change between $\pi_{\theta_{\text{old}}}$ and $\pi_\theta$, making token-level ratios volatile and invalid as off-policy corrections.
+These effects amplify under clipping and have been observed to trigger irreversible collapse; prior \ac{MoE} work required routing-replay to stabilize \ac{GRPO}.
 \cite{gspo2025}
 
 \emph{\ac{GSPO}} restores a coherent importance sampler by matching the optimization unit to the reward unit: entire responses.
-With the same group-relative advantage as GRPO, \begin{equation}
+With the same group-relative advantage as \ac{GRPO}, \begin{equation}
 A_i \;=\; \frac{r(x,y_i)\;-\;\frac{1}{G}\sum_{j=1}^{G} r(x,y_j)}{\sqrt{\frac{1}{G}\sum_{j=1}^{G}\big(r(x,y_j) - \frac{1}{G}\sum_{k=1}^{G} r(x,y_k)\big)^2} \;+\; \varepsilon},
-\end{equation} GSPO defines a \emph{length-normalized sequence-level} importance ratio \begin{equation}
+\end{equation} \ac{GSPO} defines a \emph{length-normalized sequence-level} importance ratio \begin{equation}
 s_i(\theta)
 \;=\;
 \left(\frac{\pi_\theta(y_i \mid x)}{\pi_{\theta_{\text{old}}}(y_i \mid x)}\right)^{\!1/|y_i|}
@@ -289,7 +291,7 @@ s_i(\theta)\,A_i\;\cdot\;
 \nabla_\theta \log \pi_\theta(y_{i,t}\mid x, y_{i,<t})
 \right],
 \end{equation} so all tokens in a response are weighted equally by the same sequence factor $s_i(\theta)$.
-In GRPO, by contrast, each token carries its own noisy ratio $w_{i,t}$, and those unequal weights accumulate unpredictably along the sequence.
+In \ac{GRPO}, by contrast, each token carries its own noisy ratio $w_{i,t}$, and those unequal weights accumulate unpredictably along the sequence.
 GSPO's sequence weighting eliminates that instability, removes the need for routing-replay in \acs{MoE} \ac{RL}, and is tolerant to training-vs-inference log-probprecision differences—often allowing direct use of inference-engine likelihoods without recomputation.
 \cite{gspo2025}
 

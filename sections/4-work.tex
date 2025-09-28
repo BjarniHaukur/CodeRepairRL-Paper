@@ -70,11 +70,11 @@ Executing online \ac{RL} experiments required careful orchestration of multiple 
 
 \subsection{Training Data Preparation}
 
-Preparing \ac{SWE-Gym} (described in Section~\ref{sec:experimental-setup}) for online \ac{RL} training revealed several practical challenges:
+Preparing SWE-Gym (described in Section~\ref{sec:experimental-setup}) for online \ac{RL} training revealed several practical challenges:
 
-\textbf{Environment Consistency}: Ensuring reproducible container environments across the diverse projects in \ac{SWE-Gym} required extensive testing and standardization efforts, as many repositories contained outdated or conflicting dependency specifications.
+\textbf{Environment Consistency}: Ensuring reproducible container environments across the diverse projects in SWE-Gym required extensive testing and standardization efforts, as many repositories contained outdated or conflicting dependency specifications.
 
-\textbf{Task Complexity Distribution}: The uneven distribution of task difficulties in \ac{SWE-Gym} necessitated careful sampling strategies to prevent training from concentrating on either trivially simple or impossibly complex examples.
+\textbf{Task Complexity Distribution}: The uneven distribution of task difficulties in SWE-Gym necessitated careful sampling strategies to prevent training from concentrating on either trivially simple or impossibly complex examples.
 
 \textbf{Ground Truth Validation}: A significant number of ground truth patches in the original dataset required manual validation and correction, as some did not apply cleanly or introduced unintended side effects when tested in isolated environments.
 

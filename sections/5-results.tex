@@ -33,7 +33,7 @@ Include analysis of: \begin{itemize}
 \item Initial Phase: Tool usage pattern acquisition
 \item Intermediate Phase: Strategy development and generalization
 \item Convergence Phase: Refinement and breakthrough improvements
-\end{itemize} Validate hypothesis about RL enhancement of coding capabilities.
+\end{itemize} Validate hypothesis about \ac{RL} enhancement of coding capabilities.
 }
 
 \subsubsection{Training Stability}
@@ -67,7 +67,7 @@ Report gradient variance reduction, convergence smoothness, and standard deviati
 \end{itemize}
 Analyze \ac{NCCL}-based weight synchronization overhead and contribution to efficiency gains.}
 
-\section{Main Results: RL vs.
+\section{Main Results: \ac{RL} vs.
   Baselines} \label{sec:main-results}
 
 \subsection{SWE-Bench-Verified Performance} \label{subsec:swe-bench-performance}
@@ -84,7 +84,7 @@ Table~\cref{tab:main-results} presents our primary experimental results on SWE-B
 \item 32B Model: \ac{RL} vs \ac{SFT} improvement with confidence intervals
 \item Effect sizes (Cohen's d) for both model sizes
 \end{itemize}
-Provide evidence for substantial and statistically significant RL improvements.}
+Provide evidence for substantial and statistically significant \ac{RL} improvements.}
 
 \subsubsection{Qualitative Improvement Analysis}
 
@@ -101,7 +101,7 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 \section{RQ1: Adaptation to the Nano Harness}
 \label{sec:rq1-harness}
 
-\textbf{Research Question 1}: How effectively does online RL training enable models to adapt to the Nano harness environment, and what specific improvements occur in tool usage patterns?
+\textbf{Research Question 1}: How effectively does online \ac{RL} training enable models to adapt to the Nano harness environment, and what specific improvements occur in tool usage patterns?
 
 \subsection{Methodology}
 \label{subsec:rq1-methodology}
@@ -134,7 +134,7 @@ We analyze harness adaptation through three key metrics measured throughout trai
 \item Actions-per-episode distribution analysis
 \end{itemize}}
 
-\subsection{Key Findings} \label{subsec:rq1-findings} \todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for RL training success.
+\subsection{Key Findings} \label{subsec:rq1-findings} \todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for \ac{RL} training success.
 }
 
 \section{RQ2: Multiple Base Models}
@@ -264,7 +264,7 @@ To understand the contribution of different system components, we conducted syst
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/problem_performance_distribution_tfk08zx2.png}
-	\caption{Distribution of problem-solving performance across different task categories, showing which types of problems benefit most from RL training.}
+\caption{Distribution of problem-solving performance across different task categories, showing which types of problems benefit most from \ac{RL} training.}
 	\label{fig:problem-distribution}
 \end{figure}
 
@@ -292,7 +292,7 @@ The ablation results highlight several critical system components:
 \todoinline{Analyze critical component contributions including: \begin{itemize}
 \item Multi-step interaction impact and validation of experiential learning hypothesis
 \item Agent scaffold integration benefits over direct generation
-\item RL training advantages over supervised fine-tuning
+\item \ac{RL} training advantages over supervised fine-tuning
 \item \ac{GRPO} improvements over traditional \ac{PPO} methods
 \item Real-time updates contribution to sample efficiency
 \item Ranking of component importance and implications
@@ -421,7 +421,7 @@ Our infrastructure achievements enable practical large-scale agent training:
 \todoinline{Analyze scalability characteristics including: \begin{itemize}
 \item \acp{GPU} scaling linearity up to tested limits
 \item Memory utilization efficiency achievements
-\item Network bandwidth consumption for NCCL updates
+\item Network bandwidth consumption for \ac{NCCL} updates
 \item Fault tolerance and graceful degradation capabilities
 \item Performance bottlenecks and limitations
 \end{itemize}}
@@ -446,7 +446,7 @@ Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers} \label{subsec:research-answers}
 
-\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize RL training improvements in Nano harness adaptation, including concrete metrics for tool success rates, invalid call reductions, and action efficiency improvements.
+\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize \ac{RL} training improvements in Nano harness adaptation, including concrete metrics for tool success rates, invalid call reductions, and action efficiency improvements.
 Reference Section~\ref{sec:rq1-harness}.
 }
 

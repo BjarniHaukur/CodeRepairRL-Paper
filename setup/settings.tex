@@ -68,7 +68,9 @@ citecolor=blue
 \usepackage{sectsty}
 % \usepackage{tocloft}
 
-\usepackage[printonlyused]{acronym}
+\usepackage{acro}
+\acsetup{list/display=used,make-links=true}
+\input{setup/acronyms}
 
 \usepackage{todonotes}
 \newcommand{\todoinline}[1]{%
