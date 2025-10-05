@@ -139,15 +139,23 @@ To make this investigation concrete, we organize the work around three learnings
 
 \textbf{RQ1: How does GSPO training reshape Nano harness adaptation and SWE-Bench-Verified success across model sizes?}
 \begin{itemize}
-	\item Primary indicators: success rate uplift, tool success, invalid-call reduction, and action efficiency reported per Qwen3 size.\n	\item Hypothesis: consistent behavioural improvements emerge across capacities, with qualitative differences captured in the model-size training curves.\todoinline{Ensure each size has comparable logging for tool metrics.}\n\end{itemize}
+	\item Primary indicators: success rate uplift, tool success, invalid-call reduction, and action efficiency reported per Qwen3 size.
+	\item Hypothesis: consistent behavioural improvements emerge across capacities, with qualitative differences captured in the model-size training curves.\todoinline{Ensure each size has comparable logging for tool metrics.}
+\end{itemize}
 
 \textbf{RQ2: Does the 750/250 multilingual curriculum improve held-out performance across languages?}
 \begin{itemize}
-	\item Core contribution: quantify reward deltas per language on the 50-task SWE-Bench-Multilingual holdout.\todoinline{Confirm language buckets and sample counts after final data export.}\n	\item Evaluation: pre/post reward comparison with bootstrap confidence intervals and per-language breakdowns.\n	\item Hypothesis: execution-free rewards deliver non-trivial gains beyond English-centric training.\n\end{itemize}
+	\item Core contribution: quantify reward deltas per language on the 50-task SWE-Bench-Multilingual holdout.\todoinline{Confirm language buckets and sample counts after final data export.}
+	\item Evaluation: pre/post reward comparison with bootstrap confidence intervals and per-language breakdowns.
+	\item Hypothesis: execution-free rewards deliver non-trivial gains beyond English-centric training.
+\end{itemize}
 
 \textbf{RQ3: To what extent do behaviours learned on Nano transfer to alternative scaffolds?}
 \begin{itemize}
-	\item Core contribution: evaluate zero-shot and limited-shot transfer on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses without retraining.\todoinline{Specify exact harness configurations once experiments finish.}\n	\item Evaluation: measure success rate, tool validity, and scaffold-adherence metrics relative to Nano baselines.\n	\item Hypothesis: training within a minimalist scaffold yields transferable routines that survive interface shifts.\n\end{itemize}
+	\item Core contribution: evaluate zero-shot and limited-shot transfer on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses without retraining.\todoinline{Specify exact harness configurations once experiments finish.}
+	\item Evaluation: measure success rate, tool validity, and scaffold-adherence metrics relative to Nano baselines.
+	\item Hypothesis: training within a minimalist scaffold yields transferable routines that survive interface shifts.
+\end{itemize}
 
 With these research questions guiding our investigation, we now articulate the specific purpose and contributions of this thesis.
 
@@ -181,11 +189,13 @@ The primary comparison reports pre/post SWE-Bench-Verified success rates after G
 Dependent variables include repair success rate, reward trajectory, and harness-efficiency metrics.
 
 Data collection encompasses detailed logs of agent-environment interactions capturing exploration patterns, reward signals computed via canonical diff comparison to ground-truth patches, and aggregated metrics on SWE-Bench-Verified plus a 50-sample SWE-Bench-Multilingual holdout for multilingual probing.
-We train on a 1,000-task curriculum composed of 750 SWE-Gym Python bugs and 250 SWE-Bench-Multilingual samples, evaluate primary performance on SWE-Bench-Verified, probe multilingual transfer on the 50-task holdout, and test scaffold transfer on Mini-SWE-Agent- and Aider-style harnesses without additional fine-tuning.\todoinline{Double-check the exact scaffold suite before freezing the draft.}
+We train on a 1,000-task curriculum composed of 750 SWE-Gym Python bugs and 250 SWE-Bench-Multilingual samples, evaluate primary performance on SWE-Bench-Verified, probe multilingual transfer on the 50-task holdout, and test scaffold transfer on Mini-SWE-Agent- and Aider-style harnesses without additional fine-tuning.
+\todoinline{Double-check the exact scaffold suite before freezing the draft.}
 
 Statistical analysis includes significance testing for performance differences, learning curve analysis to understand training dynamics, and qualitative examination of agent behaviors to identify emergent strategies.
 
-In coordination with the forthcoming conference submission on scaffold transfer, we reuse the protocol drafted there: Nano-trained checkpoints are replayed on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to probe zero-shot and few-shot transfer characteristics.\todoinline{Add citation once the conference paper is public and ensure alignment with Chapter~\ref{sec:rq3-scaffold}.}
+In coordination with the forthcoming conference submission on scaffold transfer, we reuse the protocol drafted there: Nano-trained checkpoints are replayed on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to probe zero-shot and few-shot transfer characteristics.
+\todoinline{Add citation once the conference paper is public and ensure alignment with Chapter~\ref{sec:rq3-scaffold}.}
 This multi-faceted approach enables both quantitative validation of our hypotheses and deeper insights into the mechanisms driving performance improvements.
 
 \section{Stakeholders}
@@ -203,7 +213,8 @@ Understanding these delimitations is essential for interpreting our findings and
 
 \textbf{Task Scope}: We focus specifically on automated bug repair tasks where a known error exists in the codebase and the goal is to generate a corrective patch.
 We extend evaluation beyond Nano only to assess cross-scaffold transfer on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses (Chapter~\ref{sec:rq3-scaffold}), but do not explore broader code-generation benchmarks.
-This focus enables deep investigation of debugging behaviour while acknowledging that specification-based synthesis remains outside scope.\todoinline{Keep the task scope sentence aligned with the final evaluation lineup.}
+This focus enables deep investigation of debugging behaviour while acknowledging that specification-based synthesis remains outside scope.
+\todoinline{Keep the task scope sentence aligned with the final evaluation lineup.}
 
 \textbf{Language and Environment Constraints}: Training uses a 1,000-task curriculum (750 SWE-Gym Python issues + 250 SWE-Bench-Multilingual issues) curated to take advantage of our programming language agnostic approach.
 

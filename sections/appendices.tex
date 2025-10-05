@@ -83,35 +83,50 @@ This suggests different exploration strategies and verbosity levels.
 
 \textbf{Test Similarity Gap}: Most models achieve low test similarity scores, suggesting that generating appropriate test changes alongside code fixes remains challenging even for frontier models.
 
-\section{Parameters}
-\label{app:params}
+\section{Sampling parameters}
+\label{app:sampling-params}
 
 \begin{table}[htbp]
 \centering
-\caption{Sampling parameters used across different models during training}
-\label{tab:sampling-parameters}
+\caption{Sampling and episode parameters for Nano agent evaluation. Values reflect the main settings used for training and SWE-Bench-Lite evaluation. \todoinline{Fill in concrete values for each model and add additional columns if more models are reported.}}
+\label{tab:sampling-params}
 \begin{tabular}{lccc}
 \toprule
-\textbf{Parameter} & \textbf{Model 1} & \textbf{Model 2} & \textbf{Model 3} \\
+\textbf{Parameter} & \textbf{Qwen3-8B} & \textbf{Qwen3-14B} & \textbf{Qwen3-30B-A3B} \\
 \midrule
-Temperature & & & \\
-Top-k & & & \\
-Top-p & & & \\
-Min-p & & & \\
-Token limit & & & \\
-Tool limit & & & \\
-Time limit & & & \\
+Temperature & 1.0 (train), 0.2 (eval) & 1.0 (train), 0.2 (eval) & 1.0 (train), 0.2 (eval) \\
+Top-k & --- & --- & --- \\
+Top-p & 0.9 & 0.9 & 0.9 \\
+Min-p & --- & --- & --- \\
+Token limit & 12,288 & 12,288 & 12,288 \\
+Tool limit & 30 & 30 & 30 \\
+Time limit & 60\,s $\pm$20\,s & 60\,s $\pm$20\,s & 60\,s $\pm$20\,s \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\todoinline{Fill in sampling parameters table.
-All parameters are identical across models except time limit.
-Include specific values for temperature (e.g., 0.7-1.0), top-k, top-p, min-p, token limit, tool limit, and model-specific time limits.
-}
+\section{Episode Termination Parameters}
+\label{app:termination-parameters}
 
-\section{\ac{LoRA} Configuration}
-\label{app:lora-config}
+\begin{table}[htbp]
+\centering
+\caption{Episode termination parameters for the Nano agent. These values are deliberately set on the lower end of typical agent system budgets to encourage efficient exploration and repair strategies during training.}
+\label{tab:termination-parameters}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} \\
+\midrule
+Tool calls & 30 & Maximum number of \texttt{shell} or \texttt{apply\_patch} calls \\
+Token budget & 12{,}288 & Cumulative generation tokens across all turns \\
+Wall-clock timeout & 60 seconds & For 14B reference model \\
+Timeout tolerance & \textpm{}20 seconds & Adjusted for smaller/larger models \\
+Per-call output & 2{,}000 chars & Truncation limit for individual tool returns \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{\ac{LoRA}
+  Configuration} \label{app:lora-config}
 
 Unless otherwise stated, we use the following \acl{LoRA} settings:
 

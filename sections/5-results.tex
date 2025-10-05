@@ -168,10 +168,14 @@ We measure multilingual transfer by evaluating GSPO-trained checkpoints on the r
 \textbf{Research Question 3}: To what extent do behaviours learned on Nano transfer to alternative scaffolds without bespoke retraining?\todoinline{List final scaffold lineup (Mini-SWE-Agent, Aider, OpenHands) once evaluations conclude.}
 
 \subsection{Evaluation Protocol}\label{subsec:rq3-protocol}
-We adopt the scaffold-transfer protocol outlined in the accompanying conference draft: egin{itemize}
-	\item Train exclusively on Nano using the 1,000-task curriculum described in \S\ref{sec:nano-agent-new}.\todoinline{Verify curriculum parity between thesis and conference experiments.}
-	\item Evaluate checkpoints zero-shot on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses over matched SWE-Bench-Verified instances.\n	\item Record success rate, tool validity, and scaffold-adherence metrics (prompt compliance, command formatting) per harness.\n	\item Provide a five-demonstration primer per harness to gauge few-shot adaptation gains after zero-shot evaluation.\todoinline{Confirm demonstration format and token budgets.}
+We adopt the scaffold-transfer protocol outlined in the accompanying conference draft:
+\begin{itemize}
+\item Train exclusively on Nano using the 1,000-task curriculum described in \S\ref{sec:nano-agent-new}.\todoinline{Verify curriculum parity between thesis and conference experiments.}
+\item Evaluate checkpoints zero-shot on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses over matched SWE-Bench-Verified instances.
+\item Record success rate, tool validity, and scaffold-adherence metrics (prompt compliance, command formatting) per harness.
+\item Provide a five-demonstration primer per harness to gauge few-shot adaptation gains after zero-shot evaluation.\todoinline{Confirm demonstration format and token budgets.}
 \end{itemize}
+
 
 \subsection{Zero-Shot Transfer}\label{subsec:rq3-zeroshot}
 \todoinline{Insert table comparing Nano performance with zero-shot transfer success rates, tool validity, and episode length across harnesses.}

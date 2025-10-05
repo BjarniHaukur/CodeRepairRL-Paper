@@ -1,7 +1,7 @@
 \chapter{Methodology and System Design}
 \label{ch:method-new}
 
-This chapter presents a single-agent, execution-free methodology for repository-level \ac{APR}.
+This chapter presents an execution-free \acs{RL} method for repository-level \acs{APR}.
 The approach embeds a minimalist terminal agent (Nano) directly into training and uses patch similarity as an outcome reward, enabling language-agnostic learning without executable test harnesses.
 We first formalize the Nano interface (observations, actions, termination, reward), then specify data, optimization, and infrastructure choices.
 Evaluation details are summarized briefly here and expanded in the Evaluation chapter.
@@ -32,7 +32,8 @@ In addition, a ``null action'' is defined: if the agent emits no further tool ca
 
 \subsection*{Termination and Limits}
 
-Episodes terminate when any of the following holds: the agent triggers the null action; 30 tool calls have been issued; 12{,}288 generated tokens have been produced in the episode; or wall-clock exceeds 60 seconds (with a tolerance of approximately \textpm{}20 seconds for models smaller or larger than the 14B reference).
+Episodes terminate when any of the following holds: the agent completes its task and has produced changes to the repository; a maximum number of tool calls has been issued; a token budget has been exhausted; or a wall-clock timeout is reached.
+These limits are set deliberately on the lower side of typical agent deployments to encourage efficient problem-solving strategies during training (see \Cref{tab:termination-parameters} for exact values).
 Reaching any cap implies immediate termination.
 
 \subsection*{Safety and Sandbox}
@@ -57,12 +58,19 @@ apply_patch(
 \end{verbatim}
 
 This format matches \ac{LLM} strengths: the model specifies edits in clear semantic terms without coordinating line numbers or offsets.
-After interaction terminates, the canonical diff is computed with git, ensuring deterministic reward computation while eliminating a major class of formatting errors.
+
+After interaction terminates, the canonical diff is computed with git:
+
+\begin{verbatim}
+subprocess.check_output(["git", "-C", str(repo_root), "diff"], text=True, errors="ignore")
+\end{verbatim}
+
+This diff is deterministic under a fixed repository state ensuring deterministic reward computation while eliminating a major class of formatting errors.
 
 \subsection*{Illustrative Rollout}
 
-Figure~\ref{fig:nano-rollout} shows a representative Nano episode captured from the command-line interface during training.
-The agent performs repository navigation (directory listings and ripgrep searches), inspects candidate files, and submits a minimal patch when sufficient evidence accumulates.
+Figure~\Cref{fig:nano-rollout} shows a representative Nano episode captured from the command-line interface during training.
+The agent navigates the repository using directory listings and ripgrep searches, inspects candidate files, and modifies the codebase through its available tools as evidence accumulates.
 Interactions are served asynchronously and episode length is adaptive, matching the multi-turn nature of repository-level repair.
 
 \begin{figure}[htbp]
@@ -71,12 +79,6 @@ Interactions are served asynchronously and episode length is adaptive, matching 
     \caption{Illustrative rollout of the Nano agent during training. The agent navigates the repository via shell, inspects files, and applies a minimal patch. The serving stack remains asynchronous across turns, aligning with multi-turn \ac{APR}.}
     \label{fig:nano-rollout}
 \end{figure}
-
-\subsection*{Canonical Diff and Patch Collection}
-
-Upon termination, the agent's modifications are captured via a canonical diff string computed by: \begin{verbatim}
-subprocess.check_output(["git", "-C", str(repo_root), "diff"], text=True, errors="ignore")
-\end{verbatim} This diff is deterministic under a fixed repository state and constitutes the basis for reward computation.
 
 \section{Training Data and Environment}
 \label{sec:data-env-new}
@@ -197,7 +199,8 @@ Compute-aware design choices implicitly encourage efficient behavior: tight per-
 
 We report test-verified success rates on SWE-Bench-Verified as the primary metric.
 Secondary analysis covers patch-similarity rates on SWE-Bench-Verified, per-language reward trends on the SWE-Bench-Multilingual holdout, and harness-efficiency metrics (tool-call success, invalid-call rate, action efficiency).
-Tertiary metrics quantify cross-scaffold transfer: we replay checkpoints on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to measure zero-shot and few-shot generalization using the protocol shared with the accompanying conference draft.\todoinline{Confirm final harness list and evaluation attempt budgets.}
+Tertiary metrics quantify cross-scaffold transfer: we replay checkpoints on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to measure zero-shot and few-shot generalization using the protocol shared with the accompanying conference draft.
+\todoinline{Confirm final harness list and evaluation attempt budgets.}
 Baselines include each base Qwen3 model with Nano (no \ac{RL}) plus the Llama3.1-8B reference run.
 We use one attempt per bug subject to the stated budgets, report bootstrap 95\% confidence intervals, and surface per-harness confidence intervals for transfer experiments.
 
