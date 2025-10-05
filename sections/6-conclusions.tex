@@ -14,8 +14,7 @@ Our work makes several methodological and infrastructure contributions to the em
 \textbf{Training-Inference Duality}: Our implementation collapses the conventional boundary between training and inference phases through continuous serving and real-time weight updates.
 This unified approach makes large-scale agent training practically feasible within academic research budgets by eliminating the need for separate training and deployment phases.
 
-\textbf{\ac{GRPO}
-Optimization for Agents}: We adapt \ac{GRPO}~\cite{grpo2024} for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training.
+\textbf{\ac{GSPO} Optimization for Agents}: We adapt \ac{GSPO}~\cite{gspo2025} with KL regularization for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training and stabilizing small-batch updates.\todoinline{Ensure GSPO reference is included in the bibliography.}
 
 \subsection{Methodological Validation}
 \label{subsec:methodological-validation}
@@ -25,7 +24,7 @@ The agent operates with only basic terminal commands and file operations, provin
 
 \textbf{Hill-Climbing Framework}: We establish the conceptual framework of "hill-climbing the coding agent gradient," providing a systematic approach to iterative improvement of coding agents through environmental interaction.
 
-\textbf{Cross-Model Portability}: \todoinline{Complete experimental validation pending: demonstrate that the training recipe and harness work across different base models, supporting the generality of the approach.}
+\textbf{Model Size Portability}: \todoinline{Complete experimental validation pending: demonstrate that the GSPO recipe improves SWE-Bench-Verified success across Qwen3-8B/14B/30B while documenting the Llama3.1-8B reference run.}
 
 \subsection{Technical Infrastructure}
 \label{subsec:technical-infrastructure}
@@ -49,32 +48,23 @@ Our methodology development and preliminary investigations provide insights into
 
 \textbf{Mechanism}: Policy updates should reinforce effective tool-usage sequences and prompt adherence, yielding co-adaptation between model and harness.
 
-\subsection{RQ2: Multiple Base Models}
+\subsection{RQ2: Multilingual Holdout}
 \label{subsec:rq2-answer}
 
-\textbf{Theoretical Foundation}: The training recipe and harness design should be portable across different base models, targeting general agentic capabilities rather than model-specific behaviors.
+\textbf{Theoretical Foundation}: Exposure to the multilingual curriculum should raise average reward on the 50-sample SWE-Bench-Multilingual holdout without overfitting to the training languages.
 
-\textbf{Evidence}: \todoinline{Experimental validation pending: compare performance across Qwen vs SmolLM3 or other chosen base models.}
+\textbf{Evidence}: \todoinline{Experimental validation pending: measure pre/post holdout rewards with bootstrap confidence intervals and highlight language-specific shifts.}
 
-\textbf{Significance}: Cross-model portability would demonstrate that the approach develops fundamental debugging capabilities rather than exploiting model-specific quirks.
+\textbf{Significance}: Positive holdout gains would indicate that execution-free rewards enable multilingual transfer without bespoke per-language infrastructure.
 
-\subsection{RQ3: Cross-Dataset Generalization}
+\subsection{RQ3: Scaffold Transfer}
 \label{subsec:rq3-answer}
 
-\textbf{Theoretical Foundation}: Models trained through experiential learning on SWE-Gym should demonstrate generalization to related debugging tasks without severe overfitting.
+\textbf{Theoretical Foundation}: Behaviours learned in the minimalist Nano scaffold should persist when the policy interacts with richer tool suites.\todoinline{Capture zero-shot vs few-shot expectations for each harness.}
 
-\textbf{Evidence}: \todoinline{Experimental validation pending: measure cross-dataset performance on SWE-Bench and Multi-SWE-Bench, compare against \ac{SFT} baselines with confidence intervals.}
+\textbf{Evidence}: \todoinline{Experimental validation pending: report zero-shot and few-shot performance on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses relative to Nano baselines.}
 
-\textbf{Significance}: Cross-dataset generalization would support the thesis that experiential training yields broadly applicable debugging skills rather than narrow task-specific behaviors.
-
-\subsection{RQ4: Cross-Harness/Task Generalization}
-\label{subsec:rq4-answer}
-
-\textbf{Theoretical Foundation}: Models trained through experiential learning should exhibit transfer to alternative interfaces and task contexts, demonstrating that learned skills generalize beyond specific harness implementations.
-
-\textbf{Evidence}: \todoinline{Experimental validation pending: evaluate zero-shot transfer to alternative harnesses (Aider/OpenHands-style) and terminal-oriented tasks (TauBench/TerminalBench).}
-
-\textbf{Significance}: Cross-harness generalization would indicate that the approach develops fundamental interaction skills rather than harness-specific behaviors.
+\textbf{Significance}: Demonstrating transfer would show that Nano-based training yields reusable interaction routines, reducing the need for scaffold-specific retraining.
 
 \section{Broader Implications}
 \label{sec:broader-implications}

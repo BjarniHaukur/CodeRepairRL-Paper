@@ -13,7 +13,7 @@
 			\textit{• Agent executing actions in repository environment}\\
 			\textit{• Environment providing observations and feedback}\\
 			\textit{• Reward computation based on patch quality}\\
-			\textit{• GRPO updating policy parameters in real-time}\\
+			\textit{• GSPO updating policy parameters in real-time}\\
 			\textit{• NCCL synchronizing weights to inference servers}\\
 			\vspace{3cm}
 		\end{minipage}}
@@ -33,13 +33,13 @@
 			\textit{This figure should illustrate the complete system architecture showing:}\\
 			\textit{• vLLM inference cluster with KV-cache optimization}\\
 			\textit{• Distributed agent worker pool in containerized environments}\\
-			\textit{• GRPO training pipeline with gradient computation}\\
+			\textit{• GSPO training pipeline with gradient computation}\\
 			\textit{• NCCL communication layer for weight synchronization}\\
 			\textit{• Real-time data flow between components}\\
 			\textit{• Resource orchestration and load balancing}\\
 			\vspace{3cm}
 		\end{minipage}}
-	\caption{Complete system architecture illustrating data flow between the vLLM inference cluster, distributed agent worker pool, and GRPO training pipeline.
+	\caption{Complete system architecture illustrating data flow between the vLLM inference cluster, distributed agent worker pool, and GSPO training pipeline.
 		The diagram highlights the NCCL communication layer that enables real-time weight synchronization, supporting the training-inference duality that distinguishes our approach from conventional RL systems.
 	}
 	\label{fig:system-architecture}
@@ -55,8 +55,8 @@
 			\textit{This figure should show multiple subplots displaying:}\\
 			\textit{• Success rate vs. training episodes for 8B and 32B models}\\
 			\textit{• Reward progression throughout training}\\
-			\textit{• Comparison of GRPO vs.
-				PPO training stability}\\ \textit{• Standard deviation bands showing training consistency}\\ \textit{• Phase markers for initial, intermediate, and convergence phases}\\ \vspace{3cm} \end{minipage}} \caption{Training dynamics showing the evolution of reward and success rate throughout GRPO training for both 8B and 32B parameter Qwen models using the nano-agent.
+			\textit{• Comparison of GSPO vs.
+				PPO training stability}\\ \textit{• Standard deviation bands showing training consistency}\\ \textit{• Phase markers for initial, intermediate, and convergence phases}\\ \vspace{3cm} \end{minipage}} \caption{Training dynamics showing the evolution of reward and success rate throughout GSPO training for both 8B and 32B parameter Qwen models using the nano-agent.
 		The curves demonstrate monotonic improvement and remarkable training stability compared to traditional PPO implementations.
 	}
 	\label{fig:training-curves}
@@ -71,13 +71,13 @@
 			Performance Comparison Bar Charts\\[0.5cm]
 			\textit{This figure should contain bar charts showing:}\\
 			\textit{• SWE-Bench-Verified success rates across different approaches}\\
-			\textit{• Comparison between base models, \ac{SFT}, and \ac{RL} training}\\
+			\textit{• Comparison between base checkpoints and GSPO-trained agents}\\
 			\textit{• Error bars showing statistical confidence intervals}\\
 			\textit{• Separate comparisons for 8B and 32B model sizes}\\
 			\textit{• Highlighting statistical significance markers}\\
 			\vspace{3cm}
 		\end{minipage}}
-	\caption{Performance comparison on SWE-Bench-Verified showing statistically significant improvements from online RL training over both pretrained models and supervised fine-tuning approaches.
+	\caption{Performance comparison on SWE-Bench-Verified showing statistically significant improvements from online RL training over the original pretrained checkpoints.
 		Error bars represent 95\% confidence intervals.
 	}
 	\label{fig:performance-comparison}

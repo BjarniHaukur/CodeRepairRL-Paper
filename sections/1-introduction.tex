@@ -52,7 +52,7 @@ In this thesis we instantiate exactly one such harness—the Nano agent—and co
 
 When equipped with appropriate harnesses, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
 This capability transformation makes it practical to apply \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
-\todoinline{Tie explicitly to terminal-oriented agency; add references to public statements/benchmarks on terminal skills (e.g., TerminalBench/TauBench).}
+\todoinline{Add citations for terminal-oriented agency benchmarks (e.g., TauBench) and point readers to the cross-scaffold evaluation in Chapter~\ref{sec:rq3-scaffold}.}
 
 In this thesis, training adopts an execution-free agentic setup: the agent does not run builds or tests during training.
 Instead, it receives static, repository-local feedback obtained exclusively through shell commands, without executing tests or builds.
@@ -134,35 +134,20 @@ The overarching goal of this thesis is to develop and empirically validate an on
 %Through rigorous experimentation with our minimalist Nano agent, we demonstrate that models can learn effective debugging strategies through environmental interaction rather than passive observation of bug-fix pairs.
 %Our comprehensive evaluation addresses harness adaptation, cross-model generalization, dataset transfer, and task generalization as outlined in our research questions above.
 
-To make this investigation concrete, we organize the work around four learnings (RQ1-RQ4) that arise from building an open-source agentic model in a single minimalist harness (Nano).
+To make this investigation concrete, we organize the work around three learnings (RQ1-RQ3) that arise from building an open-source agentic model in a single minimalist harness (Nano).
 \todoinline{Verify RQ numbering and titles are consistent with Chapters 3 and 5 before submission.}
 
-\textbf{RQ1: Does online \ac{RL} improve debugging capabilities through agent-harness adaptation?
-}
+\textbf{RQ1: How does GSPO training reshape Nano harness adaptation and SWE-Bench-Verified success across model sizes?}
 \begin{itemize}
-	\item Primary indicators: increasing reward, tool success rate over training, invalid tool-call rate, tool-usage entropy/diversity
-	\item Hypothesis: \ac{RL} improves harness adaptation reflected by increased tool success and solvency rates.
-\end{itemize}
+	\item Primary indicators: success rate uplift, tool success, invalid-call reduction, and action efficiency reported per Qwen3 size.\n	\item Hypothesis: consistent behavioural improvements emerge across capacities, with qualitative differences captured in the model-size training curves.\todoinline{Ensure each size has comparable logging for tool metrics.}\n\end{itemize}
 
-\textbf{RQ2: Does execution-free training enable effective multilingual debugging agents?}
+\textbf{RQ2: Does the 750/250 multilingual curriculum improve held-out performance across languages?}
 \begin{itemize}
-	\item Core contribution: Compare Python-only versus Python+multilingual training
-	\item Evaluation: Performance over holdout data and on extracurricular evaluation benchmarks
-	\item Hypothesis: Execution-free rewards enable multilingual capability without the engineering complexity of per-language test infrastructure
-\end{itemize}
+	\item Core contribution: quantify reward deltas per language on the 50-task SWE-Bench-Multilingual holdout.\todoinline{Confirm language buckets and sample counts after final data export.}\n	\item Evaluation: pre/post reward comparison with bootstrap confidence intervals and per-language breakdowns.\n	\item Hypothesis: execution-free rewards deliver non-trivial gains beyond English-centric training.\n\end{itemize}
 
-\textbf{RQ3: How does the training approach generalize across model architectures?}
+\textbf{RQ3: To what extent do behaviours learned on Nano transfer to alternative scaffolds?}
 \begin{itemize}
-	\item Goal: validate that our training recipe transfers beyond the initial base model
-	\item Design: replicate key experiments on alternative open models (e.g., SmolLM3) without bespoke engineering
-	\item Purpose: test whether findings reflect general principles for online \ac{RL} training rather than model-specific tuning
-\end{itemize}
-
-\textbf{RQ4: Do learned debugging skills transfer to different harnesses and tasks?}
-\begin{itemize}
-	\item Cross-harness (zero-shot): evaluate with Mini-SWE-Agent and OpenHands without adaptation
-	\item Cross-task: evaluate on TauBench to test tool-calling skill transfer
-\end{itemize}
+	\item Core contribution: evaluate zero-shot and limited-shot transfer on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses without retraining.\todoinline{Specify exact harness configurations once experiments finish.}\n	\item Evaluation: measure success rate, tool validity, and scaffold-adherence metrics relative to Nano baselines.\n	\item Hypothesis: training within a minimalist scaffold yields transferable routines that survive interface shifts.\n\end{itemize}
 
 With these research questions guiding our investigation, we now articulate the specific purpose and contributions of this thesis.
 
@@ -187,23 +172,20 @@ We adopt efficiency practices such as mixed-precision training, reuse of checkpo
 This research employs a rigorous experimental methodology designed to systematically evaluate \ac{RL} for repository-level bug fixing.
 % Our approach combines theoretical insights from \ac{RL} with practical engineering solutions to create a comprehensive experimental framework.
 
-We employ \ac{GRPO}, a variant of \ac{PPO}~\cite{ppo2017} that forgoes value function estimation in favor of group-relative reward baselines.
-During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch quality.
+We employ \ac{GSPO}, a sequence-level variant of \ac{GRPO}~\cite{grpo2024} that pairs group-relative baselines with a KL regularizer to stabilize updates under the small effective batch sizes available on academic compute allotments.
 
-Our experimental design implements careful controls to ensure valid comparisons between different training paradigms.
-We maintain identical model architectures within each comparison group, training data sources, and computational budgets across all experimental conditions.
-The primary independent variable is the training methodology (supervised learning versus \ac{RL}).
-Dependent variables include repair success rates, patch quality metrics, and generalization performance.
+During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch similarity.
 
-Data collection encompasses multiple complementary sources: detailed logs of agent-environment interactions capturing exploration patterns and decision-making processes, reward signals computed through automated comparison with ground-truth patches, and comprehensive evaluation metrics across diverse benchmarks.
-We employ both the SWE-Gym environment for training, which provides thousands of real-world Python bug-fixing tasks, and SWE-Bench for evaluation, ensuring robust assessment on human-verified bug fixes.
+Our experimental design keeps training conditions constant across model sizes: each Qwen3 checkpoint (8B/14B/30B) and the Llama3.1-8B reference share identical data streams, optimization hyperparameters, and compute budgets.
+The primary comparison reports pre/post SWE-Bench-Verified success rates after GSPO training; we do not rely on supervised fine-tuning baselines.
+Dependent variables include repair success rate, reward trajectory, and harness-efficiency metrics.
 
-\todoinline{SWE-Bench?
-Verified?
-R2E?
-}
+Data collection encompasses detailed logs of agent-environment interactions capturing exploration patterns, reward signals computed via canonical diff comparison to ground-truth patches, and aggregated metrics on SWE-Bench-Verified plus a 50-sample SWE-Bench-Multilingual holdout for multilingual probing.
+We train on a 1,000-task curriculum composed of 750 SWE-Gym Python bugs and 250 SWE-Bench-Multilingual samples, evaluate primary performance on SWE-Bench-Verified, probe multilingual transfer on the 50-task holdout, and test scaffold transfer on Mini-SWE-Agent- and Aider-style harnesses without additional fine-tuning.\todoinline{Double-check the exact scaffold suite before freezing the draft.}
 
 Statistical analysis includes significance testing for performance differences, learning curve analysis to understand training dynamics, and qualitative examination of agent behaviors to identify emergent strategies.
+
+In coordination with the forthcoming conference submission on scaffold transfer, we reuse the protocol drafted there: Nano-trained checkpoints are replayed on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to probe zero-shot and few-shot transfer characteristics.\todoinline{Add citation once the conference paper is public and ensure alignment with Chapter~\ref{sec:rq3-scaffold}.}
 This multi-faceted approach enables both quantitative validation of our hypotheses and deeper insights into the mechanisms driving performance improvements.
 
 \section{Stakeholders}
@@ -220,18 +202,17 @@ This investigation operates within carefully defined boundaries that balance sci
 Understanding these delimitations is essential for interpreting our findings and their applicability to broader contexts.
 
 \textbf{Task Scope}: We focus specifically on automated bug repair tasks where a known error exists in the codebase and the goal is to generate a corrective patch.
-While we conduct limited evaluation on general code generation benchmarks to assess skill transfer, our primary emphasis remains on debugging and repair scenarios.
-This focus allows deep investigation of the debugging process while acknowledging that code generation from specifications represents a related but distinct challenge.
+We extend evaluation beyond Nano only to assess cross-scaffold transfer on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses (Chapter~\ref{sec:rq3-scaffold}), but do not explore broader code-generation benchmarks.
+This focus enables deep investigation of debugging behaviour while acknowledging that specification-based synthesis remains outside scope.\todoinline{Keep the task scope sentence aligned with the final evaluation lineup.}
 
-\textbf{Language and Environment Constraints}: Our experiments focus exclusively on Python repositories due to the availability of high-quality benchmarks and the language's popularity in open-source development.
-We specifically exclude bugs requiring complex runtime environments, external service interactions, or hardware-specific behaviors, as these cannot be reliably simulated in our containerized training environment.
+\textbf{Language and Environment Constraints}: Training uses a 1,000-task curriculum (750 SWE-Gym Python issues + 250 SWE-Bench-Multilingual issues) curated to take advantage of our programming language agnostic approach.
 
 \textbf{Compute Environment Constraints}: Experiments were conducted on the Berzelius and Alvis Swedish national \ac{GPU} clusters, which use SLURM scheduling and do not support horizontal scalability via Docker-based container orchestration.
 This constraint informed the design of both the Nano agent and the training pipeline, leading us to adopt parallelization and isolation mechanisms compatible with SLURM scheduling.
 
-\textbf{Model Architecture Scope}: Our primary development and analysis focuses on the Qwen3 model family (reasoning turned off), selected for their exceptional tool-calling capabilities and open availability.
-We deliberately avoid reasoning models as they generate excessively verbose outputs that rapidly exhaust token budgets in our online training environment.
-To validate generalizability, we replicate key experiments on Gemma3 and Llama3.1.
+\textbf{Model Architecture Scope}: Our primary development and analysis focuses on the Qwen3 model family (with reasoning disabled) because of their tool-calling reliability and open availability.
+We deliberately avoid reasoning modes as they generate verbose outputs that exhaust token budgets in online training settings.
+We also evaluate our approach on Llama3.1-8B alongside the Qwen3 series.
 
 \textbf{Evaluation Protocol Boundaries}: Our reward function relies on automated patch comparison rather than full test suite execution, trading perfect functional correctness assessment for computational tractability.
 While this approach aligns with established benchmarks and enables large-scale experiments, it may occasionally miss functionally equivalent but syntactically different solutions.

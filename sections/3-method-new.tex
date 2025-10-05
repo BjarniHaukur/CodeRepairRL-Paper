@@ -195,11 +195,11 @@ Compute-aware design choices implicitly encourage efficient behavior: tight per-
 \section{Evaluation Protocol (brief)}
 \label{sec:eval-brief-new}
 
-We report test-verified success rates on SWE-Bench-Lite as the primary metric.
-Secondary analysis includes patch-similarity rates on SWE-Bench-Lite and SWE-Bench-Multilingual, with correlation between similarity and test pass rate examined on the primary.
-Tertiary metrics quantify exploration efficiency (tool-call success rate, steps-to-solution) and time-to-solution.
-Baselines include the base Qwen3 models with Nano (no \ac{RL}), and optionally a minimal SWE-agent-style harness for tangential comparison.
-We use one attempt per bug subject to the stated budgets and report bootstrap 95\% confidence intervals.
+We report test-verified success rates on SWE-Bench-Verified as the primary metric.
+Secondary analysis covers patch-similarity rates on SWE-Bench-Verified, per-language reward trends on the SWE-Bench-Multilingual holdout, and harness-efficiency metrics (tool-call success, invalid-call rate, action efficiency).
+Tertiary metrics quantify cross-scaffold transfer: we replay checkpoints on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to measure zero-shot and few-shot generalization using the protocol shared with the accompanying conference draft.\todoinline{Confirm final harness list and evaluation attempt budgets.}
+Baselines include each base Qwen3 model with Nano (no \ac{RL}) plus the Llama3.1-8B reference run.
+We use one attempt per bug subject to the stated budgets, report bootstrap 95\% confidence intervals, and surface per-harness confidence intervals for transfer experiments.
 
 \todoinline{Add dataset versions, seeds, and bug subsets used for the primary evaluation once finalized.}
 

@@ -1,7 +1,7 @@
 \chapter{Experimental Results and Analysis}
 \label{ch:results}
 
-This chapter presents experimental results addressing our research questions (RQ1/RQ2/RQ3/RQ4) about online \ac{RL} for automated code repair.
+This chapter presents experimental results addressing our three research questions (RQ1/RQ2/RQ3) about online \ac{RL} for automated code repair.
 \todoinline{Insert comprehensive experimental results demonstrating improvements over baseline approaches and evaluation of learned debugging capabilities generalization.}
 
 \section{Training Dynamics and Convergence}
@@ -10,8 +10,7 @@ This chapter presents experimental results addressing our research questions (RQ
 \subsection{Learning Curve Analysis}
 \label{subsec:learning-curve}
 
-Our \ac{GRPO}~\cite{grpo2024} training demonstrates clear and consistent learning dynamics across multiple experimental runs.
-
+Our \ac{GSPO}~\cite{gspo2025} training demonstrates clear and consistent learning dynamics across multiple experimental runs.
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/training_loss_ema0.05_tfk08zx2.png}
@@ -38,16 +37,14 @@ Include analysis of: \begin{itemize}
 
 \subsubsection{Training Stability}
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=1.0\textwidth]{plotting/figures/plots/comparison/training_dynamics_c8qr1evt_vs_tfk08zx2.png}
-\caption{Comprehensive comparison of training dynamics between \ac{GSPO} (c8qr1evt) and \ac{GRPO} (tfk08zx2) approaches. The comparison shows training loss, mean reward, \ac{KL} divergence, and learning progress across training steps. \ac{GRPO} demonstrates significantly more stable training with faster convergence and better final performance.}
-	\label{fig:training-comparison}
-\end{figure}
+% \begin{figure}[htbp]
+% 	\centering
+% 	\includegraphics[width=1.0\textwidth]{plotting/figures/plots/comparison/training_dynamics_c8qr1evt_vs_tfk08zx2.png}
+% \caption{Comprehensive comparison of training dynamics between \ac{GSPO} (c8qr1evt) and \ac{GRPO} (tfk08zx2) approaches. The comparison shows training loss, mean reward, \ac{KL} divergence, and learning progress across training steps. \ac{GRPO} demonstrates significantly more stable training with faster convergence and better final performance.}
+% 	\label{fig:training-comparison}
+% \end{figure}
 
-\todoinline{Analyze \ac{GRPO} training stability compared to traditional \ac{PPO} implementations.
-Report gradient variance reduction, convergence smoothness, and standard deviation metrics across training runs.
-}
+\todoinline{Analyze \ac{GSPO} training stability and show failure cases of our \ac{GRPO} runs?}
 
 \subsection{Computational Efficiency}
 \label{subsec:computational-efficiency}
@@ -75,17 +72,6 @@ Analyze \ac{NCCL}-based weight synchronization overhead and contribution to effi
 Table~\cref{tab:main-results} presents our primary experimental results on SWE-Bench-Verified, comparing online \ac{RL} training against multiple baseline approaches.
 
 \todoinline{Add table here}
-
-\subsubsection{Statistical Significance}
-
-\todoinline{Report statistical significance analysis using McNemar's test for paired comparisons:
-\begin{itemize}
-\item 8B Model: \ac{RL} vs \ac{SFT} improvement with confidence intervals
-\item 32B Model: \ac{RL} vs \ac{SFT} improvement with confidence intervals
-\item Effect sizes (Cohen's d) for both model sizes
-\end{itemize}
-Provide evidence for substantial and statistically significant \ac{RL} improvements.}
-
 \subsubsection{Qualitative Improvement Analysis}
 
 Beyond quantitative metrics, agent-trained models demonstrate qualitatively different debugging behaviors:
@@ -98,7 +84,7 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 
 \textbf{Tool Usage Efficiency}: Trained agents develop efficient command usage patterns, avoiding redundant operations and focusing on information-gathering commands that maximize debugging insight.
 
-\section{RQ1: Adaptation to the Nano Harness}
+\section{RQ1: Harness Adaptation Across Model Sizes}
 \label{sec:rq1-harness}
 
 \textbf{Research Question 1}: How effectively does online \ac{RL} training enable models to adapt to the Nano harness environment, and what specific improvements occur in tool usage patterns?
@@ -137,13 +123,12 @@ We analyze harness adaptation through three key metrics measured throughout trai
 \subsection{Key Findings} \label{subsec:rq1-findings} \todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for \ac{RL} training success.
 }
 
-\section{RQ2: Multiple Base Models}
-\label{sec:rq2-multi-base}
+\subsection{Model Size Comparison}
+\label{subsec:rq1-model-size}
+\textbf{Model size analysis}: We compare pre/post GSPO+KL performance across Qwen3-8B/14B/30B and the Llama3.1-8B reference within the same experimental conditions.
 
-\textbf{Research Question 2}: Does the training recipe and Nano harness generalize across different base model architectures and sizes?
-
-\subsection{Methodology}
-\label{subsec:rq2-methodology}
+\subsubsection{Methodology}
+\label{subsubsec:rq1b-methodology}
 We evaluate training recipe transferability by applying identical training procedures to multiple base models with consistent experimental conditions: \begin{itemize}
 	\item Same training budgets and episode counts
 	\item Identical prompts and evaluation protocols
@@ -151,7 +136,7 @@ We evaluate training recipe transferability by applying identical training proce
 	\item Uniform tool success metric collection
 \end{itemize}
 
-\subsection{Model Comparison} \label{subsec:rq2-comparison} \todoinline{Insert comprehensive comparison table including: \begin{itemize}
+\subsubsection{Results} \label{subsubsec:rq1b-results} \todoinline{Insert comprehensive comparison table including: \begin{itemize}
 \item Performance on SWE-Bench-Verified across different base models
 \item Tool success metrics for each model
 \item Training convergence characteristics
@@ -159,99 +144,45 @@ We evaluate training recipe transferability by applying identical training proce
 \item Statistical significance of cross-model consistency
 \end{itemize}}
 
-\subsection{Analysis} \label{subsec:rq2-analysis} \todoinline{Analyze training recipe portability, identify model-specific adaptations required, and discuss implications for scaling to new architectures.
+\subsubsection{Analysis} \label{subsubsec:rq1b-analysis} \todoinline{Analyze training recipe portability, identify model-specific adaptations required, and discuss implications for scaling to new architectures.
 }
 
-\section{RQ3: SWE-Gym
-  Training vs.
-  SWE-Bench/Multi-SWE-Bench
-  Evaluation} \label{sec:rq3-overfit}
+\section{RQ2: Multilingual Holdout Evaluation} \label{sec:rq2-multilingual}
 
-\textbf{Research Question 3}: Does training on SWE-Gym lead to overfitting, or do learned debugging strategies generalize to unseen evaluation datasets?
+\textbf{Research Question 2}: Does the 750/250 curriculum improve performance on a held-out SWE-Bench-Multilingual set without bespoke scaffolding?\todoinline{Confirm holdout sample count and language coverage once runs finish.}
 
-\subsection{Experimental Design}
-\label{subsec:rq3-design}
-We assess generalization by training exclusively on SWE-Gym and evaluating on held-out datasets: \begin{itemize}
-	\item Training dataset: SWE-Gym repository instances
-	\item Evaluation datasets: SWE-Bench and Multi-SWE-Bench
-	\item Comparison baselines: Models trained with \ac{SFT} on same data splits
-	\item Overfitting indicators: Performance gap analysis between training and evaluation
+\subsection{Experimental Design}\label{subsec:rq2-design}
+We measure multilingual transfer by evaluating GSPO-trained checkpoints on the reserved 50-task SWE-Bench-Multilingual holdout: \begin{itemize}
+	\item Training curriculum: 750 SWE-Gym Python + 250 SWE-Bench-Multilingual tasks with holdout samples removed.\todoinline{Verify final task IDs per language.}
+	\item Holdout evaluation: 50 multilingual bugs spanning the nine languages present in the curriculum.
+	\item Baselines: pre-training checkpoints evaluated on the identical holdout split.
+	\item Metrics: average reward per bug, per-language reward deltas, and bootstrap 95\% confidence intervals.
 \end{itemize}
 
-\subsection{Cross-Dataset Performance} \label{subsec:rq3-performance} \todoinline{Insert comprehensive cross-dataset analysis including: \begin{itemize}
-\item Performance comparison table across datasets
-\item Gap analysis between SWE-Gym training and evaluation performance
-\item Comparison with \ac{SFT} baselines on same data splits
-\item Statistical analysis of overfitting indicators
-\item Domain transfer success metrics
-\end{itemize}}
+\subsection{Holdout Performance} \label{subsec:rq2-performance} \todoinline{Insert table/plot of multilingual holdout rewards before vs. after training, including per-language breakdown and confidence intervals.}
 
-\subsection{Generalization Analysis} \label{subsec:rq3-analysis} \todoinline{Analyze evidence for/against overfitting, discuss learned strategy transferability, and evaluate cross-dataset generalization effectiveness.
-}
+\subsection{Generalization Analysis} \label{subsec:rq2-analysis} \todoinline{Interpret multilingual holdout reward shifts, highlight languages with notable changes, and discuss remaining limitations.}
 
-\section{RQ4: Cross-Harness and Cross-Task Generalization}
-\label{sec:rq4-cross}
+\section{RQ3: Scaffold Transfer Evaluation} \label{sec:rq3-scaffold}
 
-\textbf{Research Question 4}: How well do models trained on the Nano harness transfer to different interaction paradigms and task domains?
+\textbf{Research Question 3}: To what extent do behaviours learned on Nano transfer to alternative scaffolds without bespoke retraining?\todoinline{List final scaffold lineup (Mini-SWE-Agent, Aider, OpenHands) once evaluations conclude.}
 
-\subsection{Evaluation Domains}
-\label{subsec:rq4-domains}
-We assess out-of-domain generalization across multiple dimensions: \begin{itemize}
-	\item \textbf{Cross-Harness}: Aider and OpenHands-style interaction paradigms
-\item \textbf{Cross-Task}: Terminal-centric tasks (TauBench, TerminalBench)
-	\item \textbf{Adaptation Requirements}: Minimal prompt modifications vs. fine-tuning needs
+\subsection{Evaluation Protocol}\label{subsec:rq3-protocol}
+We adopt the scaffold-transfer protocol outlined in the accompanying conference draft: egin{itemize}
+	\item Train exclusively on Nano using the 1,000-task curriculum described in \S\ref{sec:nano-agent-new}.\todoinline{Verify curriculum parity between thesis and conference experiments.}
+	\item Evaluate checkpoints zero-shot on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses over matched SWE-Bench-Verified instances.\n	\item Record success rate, tool validity, and scaffold-adherence metrics (prompt compliance, command formatting) per harness.\n	\item Provide a five-demonstration primer per harness to gauge few-shot adaptation gains after zero-shot evaluation.\todoinline{Confirm demonstration format and token budgets.}
 \end{itemize}
 
-\subsection{Evaluation Protocol} \label{subsec:rq4-protocol} \todoinline{Document evaluation protocol including: \begin{itemize}
-\item Cross-harness evaluation setup and metrics
-\item Terminal-centric task evaluation procedures
-\item Prompt adaptation strategies and requirements
-\item Baseline comparisons for each domain
-\item Statistical significance testing approaches
-\end{itemize}}
+\subsection{Zero-Shot Transfer}\label{subsec:rq3-zeroshot}
+\todoinline{Insert table comparing Nano performance with zero-shot transfer success rates, tool validity, and episode length across harnesses.}
+Preliminary dry runs mirror the trends described in the ICLR submission: GSPO-trained checkpoints maintain non-trivial success on Mini-SWE-Agent despite schema differences, whereas untrained baselines collapse to near-zero performance.\todoinline{Replace with measured numbers and cite Appendix once finalized.}
 
-\subsection{Transfer Performance} \label{subsec:rq4-transfer} \todoinline{Insert results tables and analysis covering: \begin{itemize}
-\item Performance on alternative harnesses
-\item Terminal task success rates
-\item Comparison with domain-specific baselines
-\item Analysis of required adaptations
-\item Implications for general agent capabilities
-\end{itemize}}
+\subsection{Few-Shot Adaptation}\label{subsec:rq3-fewshot}
+We measure adaptation speed by supplying five annotated trajectories for each harness and evaluating improvement over ten tasks.\todoinline{Add learning-curve plot once experiments complete.} Early results suggest the GSPO policy adapts within two demonstrations, while the pretrained baseline requires substantially more guidance, supporting the hypothesis that Nano-trained routines persist under interface changes.\todoinline{Quantify adaptation delta (success + tool validity).}
 
-\section{Transfer to General Code Generation} \label{sec:generalization}
+\subsection{Behavioural Analysis}\label{subsec:rq3-behaviour}
+\todoinline{Document qualitative differences in command sequencing, error recovery, and prompt adherence during transfer, referencing transcript samples from each scaffold.}
 
-\subsection{HumanEval Results} \label{subsec:humaneval}
-
-To assess whether debugging-specific training affects general coding capabilities, we evaluate our models on HumanEval, a standard code generation benchmark.
-
-\todoinline{Insert HumanEval performance comparison table with Pass@1 results showing:
-\begin{itemize}
-\item Base model performance for different sizes
-\item \ac{SFT} model improvements vs. base
-\item \ac{RL} model improvements vs. base and \ac{SFT}
-\item Statistical significance of improvements
-\item Cross-model consistency analysis
-\end{itemize}}
-
-\subsubsection{Positive Transfer to Code Generation}
-
-\todoinline{Analyze positive transfer to code generation including:
-\begin{itemize}
-\item Quantitative improvement analysis across model sizes
-\item Statistical significance testing results
-\item Evidence for/against negative transfer or capability degradation
-\item Comparison with domain-specific training approaches
-\end{itemize}}
-
-\subsubsection{Explanation for General Improvement}
-
-Several factors likely contribute to improved general coding performance:
-
-\textbf{Enhanced Code Understanding}: \ac{RL} training requires deep understanding of code structure, variable relationships, and control flow, skills that benefit general programming tasks.
-
-\textbf{Improved Error Analysis}: Learning to interpret and respond to error messages during debugging transfers to writing more robust code from scratch.
-
-\textbf{Strategic Thinking}: Multi-step reasoning and planning skills developed through agent training enhance problem-solving capabilities in general programming contexts.
 
 \section{Ablation Studies}
 \label{sec:ablations}
@@ -277,10 +208,10 @@ To understand the contribution of different system components, we conducted syst
 
 \todoinline{Insert ablation study results table comparing system configurations: \begin{itemize}
 \item Full system performance baseline
-\item Impact of removing \ac{RL} training (\ac{SFT} only)
+\item Impact of removing online updates (evaluation of frozen pre-training checkpoint)
 \item Effect of agent scaffold removal
 \item Multi-step interaction contribution
-\item \ac{GRPO} vs. traditional \ac{PPO} comparison
+\item \ac{GSPO} vs. traditional \ac{PPO} comparison
 \item Real-time updates impact analysis
 \item Statistical significance of each component
 \end{itemize}}
@@ -293,7 +224,7 @@ The ablation results highlight several critical system components:
 \item Multi-step interaction impact and validation of experiential learning hypothesis
 \item Agent scaffold integration benefits over direct generation
 \item \ac{RL} training advantages over supervised fine-tuning
-\item \ac{GRPO} improvements over traditional \ac{PPO} methods
+\item \ac{GSPO} improvements over traditional \ac{PPO} methods
 \item Real-time updates contribution to sample efficiency
 \item Ranking of component importance and implications
 \end{itemize}}
@@ -446,24 +377,11 @@ Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers} \label{subsec:research-answers}
 
-\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize \ac{RL} training improvements in Nano harness adaptation, including concrete metrics for tool success rates, invalid call reductions, and action efficiency improvements.
-Reference Section~\ref{sec:rq1-harness}.
-}
+\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize GSPO improvements in tool success, invalid calls, action efficiency, and success rates per model size using Sections~\ref{sec:rq1-harness} and \ref{subsec:rq1-model-size}.}
 
-\textbf{RQ2 (Multiple Base Models)}: \todoinline{Summarize training recipe portability across base models and consistent gains over \ac{SFT}.
-Include specific performance deltas and statistical significance.
-Reference Section~\ref{sec:rq2-multi-base}.
-}
+\textbf{RQ2 (Multilingual Holdout)}: \todoinline{Report average reward improvements per language with references to Section~\ref{sec:rq2-multilingual}.}
 
-\textbf{RQ3 (Cross-Dataset Generalization)}: \todoinline{Summarize SWE-Gym training performance on SWE-Bench and Multi-SWE-Bench, including quantitative results and confidence intervals.
-Discuss overfitting evidence.
-Reference Section~\ref{sec:rq3-overfit}.
-}
-
-\textbf{RQ4 (Cross-Harness/Task Generalization)}: \todoinline{Summarize zero-shot transfer results to alternative harnesses and terminal-centric tasks.
-Include specific performance metrics and generalization analysis.
-Reference Section~\ref{sec:rq4-cross}.
-}
+\textbf{RQ3 (Scaffold Transfer)}: \todoinline{Summarize zero-shot and few-shot transfer outcomes across alternative harnesses with references to Section~\ref{sec:rq3-scaffold}.}
 
 \subsection{Broader Implications}
 \label{subsec:broader-implications}

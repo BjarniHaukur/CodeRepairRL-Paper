@@ -1,59 +1,88 @@
-Thesis revision checklist (Intro, Background, Method)
+# Thesis TODOs
 
-"Our method is parameter efficient and has lower developmental friction making it easier to integrate in training with a large collage of diverse RL environments"
+## Immediate Data & Analysis Capture
+- [ ] Launch the final SWE-Bench-Verified evaluation for the Qwen3-14B GSPO checkpoint (record job id and ETA in the lab log).
+- [ ] Start the corresponding SWE-Bench-Verified run for the Qwen3-8B GSPO checkpoint to validate the observed uplift.
+- [ ] Queue the SWE-Bench-Verified pass for Qwen3-30B-A3B so all reported model sizes share the same evaluation protocol.
+- [ ] Run the reference Llama3.1-8B evaluation to document the non-convergent baseline in Appendix materials.
+- [ ] Compute pre/post average reward on the 50-sample multilingual holdout split and export the plot to `plotting/figures/multilingual_holdout.png`.
+- [ ] Extract tool-success, invalid-call, and action-count metrics from `tfk08zx2` into `plotting/derived/harness_metrics.csv` for RQ1 analysis.
+- [ ] Aggregate GPU hours, peak VRAM during NCCL gathers, and sync latency stats into `notes/compute.md` for citation in Methods and Results.
 
-- [ ] Bit awkward around whether we should use "scaffold" vs "harness". Might require both but currently paragraphs just use them at random almost.
+## Introduction (`sections/1-introduction.tex`)
+- [ ] Refresh the SWE-Bench-Verified SOTA paragraph with current numbers and cite Claude~4.1, Kimi-K2, and Qwen3-Coder system cards.
+- [ ] Replace the “which traditional paper to cite here” marker with canonical pre-LLM APR references (GenProg, SemFix, Prophet).
+- [ ] Rewrite the RL feasibility discussion to explain how patch-similarity rewards make GSPO viable without heuristics, citing SWE-RL or related work.
+- [x] Add TauBench as the sole forward-looking terminal benchmark and note that broader cross-harness studies are deferred.
+- [x] Clarify that the thesis reports pure GSPO+KL training without SFT or distillation baselines.
+- [x] Align the listed research questions with the final Results chapter scope (SWE-Bench-Verified focus plus multilingual holdout analysis).
+- [x] Update the methodology teaser to name the 750 SWE-Gym + 250 SWE-Bench-Multilingual curriculum explicitly.
+- [ ] Add a short preview of the cross-scaffold evaluation (Mini-SWE-Agent/Aider/OpenHands) so readers expect RQ3 later.
+- [ ] Confirm the Benefits/Ethics section notes whether enhanced Apptainer isolation was enabled in the final experiments.
+- [ ] Fix the Outline subsection by renaming “Chapter 4” properly and replacing the placeholder sentence for Chapter~\ref{ch:work-new}.
 
-Background
-- [~] Move MDP to background and make it shorter
-- [x] Change APR with LLMs to Agentless / Agentic
-  - [x] What about the basic ones? 
-- [x] Merge LLM APR and related work
-- [ ] Add a section to the RL background of how agentic coding has a well posited place
-- [x] Cite and briefly describe relevant systems (e.g., SWE-Agent, OpenHands/OpenDevin, Aider; use citable sources)
+## Background (`sections/2-background.tex`)
+- [ ] Insert the sentence explaining that many scaffolds treat the LLM as a callable function, complicating end-to-end RL, addressing the pending TODO.
+- [ ] Expand the PPO→GRPO→Dr.GRPO progression so GSPO appears as the culminating method with KL regularization for small batch regimes.
+- [ ] Replace the “bla” placeholder beneath the clipping equation with an explanation of how the group baseline interacts with asymmetric clipping.
+- [ ] Rewrite the GSPO subsection to describe its motivation (sequence-level ratios, inference/training mismatch) and cite the primary source.
 
-- [ ] Discuss TauBench, cite SOTA numbers perhaps, cite
-- [x] Dr. GRPO write and cite
-- [x] Dapo write and cite
-- [x] Remember more of these
- - GSPO suffices I think
-- [ ] "The ecosystem has evolved by leaps and bounds since I started"
+## Methodology & System Design (`sections/3-method-new.tex`)
+- [ ] Document dataset versions, commit hashes, and filtering rules for the 750 SWE-Gym + 250 SWE-Bench-Multilingual curriculum.
+- [ ] Add the promised reward aggregation table showing per-file patch similarity roll-ups to episode scores.
+- [ ] Record the effective batch size (post masking) and total update count for the main GSPO+KL run.
+- [ ] Cite the TRL modules modified for GSPO support and summarize the Nano-specific API extensions.
+- [ ] Insert measured VRAM reduction factors and NCCL sync latencies with forward references to the appendix.
+- [ ] Specify seeds and held-out splits for both the main curriculum and the 50-sample multilingual evaluation.
+- [ ] Once figures are exported, add cross-references for the agent loop, system architecture, and rollout illustrations.
 
-- [ ] Vibe write the methods IS EASY JUST DO IT
-- [ ] Vibe write the results, we will have my current results and just add the more polished ones
+## The Work (`sections/4-work-new.tex`)
+- [ ] Add a concise repository layout figure or bullet map highlighting the trainer, serving stack, and logging pipelines.
+- [ ] List the key vLLM server flags, batching parameters, and scheduler adjustments that enforced deterministic tool calls.
+- [ ] Report before/after peak VRAM and sync latencies for the live adapter synchronization upgrade.
+- [ ] Name the TRL files touched for GSPO integration and summarize the API changes (dual-masked loss, KL term).
+- [ ] Document the SLURM templates and environment modules used to launch GSPO runs.
+- [ ] Provide concrete counts for updates, curriculum epochs, compute hours, and cluster specs for each reported model size.
+- [ ] Summarize ablation attempts (e.g., KL weight sweeps, curriculum variants) in a compact table with qualitative outcomes.
+- [ ] Populate the performance characterization table with VRAM, p50/p95 latency, and tokens/sec for the main model sizes.
+- [ ] Cross-reference the appendix sections that contain configuration fragments and sync measurement details.
 
+## Experimental Results (`sections/5-results.tex`)
+- [ ] Draft the chapter opener summarizing overall SWE-Bench-Verified improvements from GSPO training.
+- [ ] Describe the three learning phases using the reward/component curves from Figures~\ref{fig:training-loss} and \ref{fig:reward-components}.
+- [ ] Compare GSPO stability versus PPO using gradient variance or loss volatility statistics from training logs.
+- [ ] Explain computational efficiency gains (wall-clock, GPU util, sample efficiency) achieved by the training–inference duality.
+- [ ] Build the main SWE-Bench-Verified table covering base vs GSPO checkpoints for Qwen3-8B/14B/30B and the Llama3.1-8B reference.
+- [ ] Add the McNemar-style significance analysis with confidence intervals and effect sizes for each model comparison.
+- [ ] Summarize RQ1 harness metrics (tool success, invalid calls, action efficiency) using the exported traces.
+- [ ] Present the multilingual holdout pre/post analysis (table + plot) and discuss observed reward shifts.
+- [ ] Detail the non-convergent Llama3.1-8B behaviour as a contrastive case in the analysis subsection.
+- [ ] Fill in the ablation table (KL weight, curriculum composition) and interpret the critical components.
+- [ ] Build the cross-scaffold transfer table summarizing zero-shot results across Mini-SWE-Agent/Aider/OpenHands.
+- [ ] Draft the few-shot adaptation paragraph and learning-curve description for cross-scaffold transfer.
+- [ ] Add qualitative analysis bullets for scaffold-specific behaviours referencing transcript excerpts.
+- [ ] Write the learning-rate sensitivity paragraph with tested values and stability observations.
+- [ ] Discuss trajectory-length impacts using the plotted distributions.
+- [ ] Create the failure-mode table focused on SWE-Bench-Verified error categories and add commentary on file localization challenges.
+- [ ] Complete the training performance metrics table and follow with scalability and cost-effectiveness narratives grounded in the recorded compute stats.
+- [ ] Conclude the chapter with completed RQ1–RQ3 summary bullets referencing the SWE-Bench and multilingual findings.
+- [ ] Add the “Design Philosophy” reflection (minimalist tools + GSPO) and the “Future Potential” note about scaling trends within the constraint of single-agent training.
 
-Misc
-- [ ] Move specific lora efficiency gains discussion to method
+## Conclusions (`sections/6-conclusions.tex`)
+- [ ] Update the Cross-Model Portability paragraph to cite the finalized Qwen3/Llama3.1 results.
+- [ ] Insert empirical evidence for RQ1 once harness metrics are finalized.
+- [ ] Add the RQ2 summary referencing the multi-model SWE-Bench-Verified table.
+- [ ] Summarize the multilingual holdout improvements for RQ3 with confidence intervals.
+- [ ] Document in the conclusions that broader cross-harness studies are deferred while referencing the multilingual holdout evidence.
+- [ ] Add RQ3 scaffold-transfer takeaways once zero-/few-shot experiments conclude.
+- [ ] Replace the “pending validation” note with citations to the completed training curves and performance comparisons in Chapter~\ref{ch:results}.
 
-Style and consistency
-- [ ] Reduce subsubsections; prefer sections/subsections; keep paragraphs over long bullet lists
-- [x] Use cref
+## Appendices & Supplementary Material (`sections/appendices.tex`)
+- [ ] Fill in the sampling-parameter table (temperature/top-p/tool budgets) for training and SWE-Bench evaluation.
+- [ ] Add supplementary SWE-Bench-Verified breakdowns (per-category success, tool metrics) once the main tables are locked.
+- [ ] Include the multilingual holdout plot and extended statistics backing the RQ3 discussion.
 
-Introduction
-- [ ] Align central narrative in `sections/1-introduction.tex`
-  - [ ] Make the opening motivation (open, reproducible methods) coherent with the main problem framing
-  - [ ] Reframe "Problem" to emphasize learning agency via RL (not proposing agency itself), tying to the open, reproducible agenda
-- [x] Consider retitle in `main.tex` to: "Learning Agency in the Terminal: Lessons from Repository-Level Reinforcement Learning"
-- [ ] Justify Nano, CodeRepairRL, etc., as vehicles for the above scope; tie explicitly to initial motivation
-- [ ] DeepSWE comparison: double-check compute normalization and references; clearly state our novelty (test-free reward, much lower GPU cost)
-
-Method
-- [ ] Split current Chapter 3 into three chapters and update `main.tex` includes
-  - [ ] Chapter: "Nano: Terminal-Based Coding Agent" (current 3.2 + add a short example run)
-  - [ ] Chapter: "Efficient Agentic Learning Framework" (current 3.3, 3.5, 3.6, 3.8, 3.9)
-  - [ ] Chapter: "Experimental Methodology" (current 3.4; optionally include rewards from 3.7)
-- [ ] Reduce bullet points across these chapters; convert to flowing prose (keep only essential lists)
-- [ ] Replace the method diagram (clearer, less busy); keep label `fig:method-diagram`
-- [ ] Standardize GRPO/GSPO notation (single symbol set) and finish the GSPO stability rationale
-
-Chapter 4: The Work
-- [ ] Move practical engineering details (TRL/vLLM modifications, NCCL sync, ZeRO+LoRA+checkpointing scheduling) from Methods into Chapter 4 where appropriate
-- [ ] Fill in quantitative metrics (compute hours, sync latency, VRAM during gathers, throughput), cross-reference Appendix
-- [ ] Ensure \ac{} usage for all acronyms and align tone with single-agent scope
-
-Carryover notes (integrated as tasks)
-- [ ] Weave the "environments are the new datasets" motivation into Intro framing and transitions
-- [~] Highlight novelty vs. DeepSWE: test-free reward signal and lower GPU cost; emphasize low engineering friction enabling broader environments/tasks
-- [~] We use SWE-RL's patch based reward scheme, talk about it in method but credit in background? It ties nicely into the "low friction" angle. It is a nascent trend in the field to train models on many environments concurrently. Having an environment that requires extensive dockerized setups for test-driven / execution driven rewards is hard to get working along with other environments. That is where our execution-free patch similarity comes in nicely. And we can easily support more programming languages.
-- [ ] Consider brief discussion of in-context learning vs. RL for agentic behavior (scope to a short contrast in Intro/Background)
+## Cross-Chapter Consistency
+- [x] Remove any remaining references to SFT baselines, HumanEval, or cross-harness benchmarks that are now out of scope.
+- [x] Verify that RQ numbering and chapter references stay aligned once all edits land.
+- [ ] Run a final spellcheck/capitalization pass for recurring terms (Nano, GSPO, SWE-Bench-Verified) after textual updates.
