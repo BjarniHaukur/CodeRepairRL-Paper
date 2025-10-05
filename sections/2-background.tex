@@ -119,9 +119,9 @@ Having established how agentic systems enable end-to-end learning, we now turn t
 
 \section{\acl{RL} for Language Models}
 \label{sec:rl-language-models}
-\todoinline{the goal with this section is to incrementally showcase unqiue changes to \ac{PPO} which culminates in the final version we use (in methods we will say \ac{GRPO} with \ac{GSPO} importance, with \ac{DAPO} clipping, with Dr.
-GRPO bias aversions)} This section fixes notation and states the \acl{PPO} objective that will serve as our baseline.
-Subsequent sections build on this with \acl{GRPO} and \acl{GSPO}.
+This section reviews policy optimization algorithms for \acp{LLM}, progressing from \ac{PPO} through group-relative methods (\ac{GRPO}, Dr.
+\,GRPO, \ac{DAPO}) to \ac{GSPO}, which we ultimately adopt for its superior robustness in multi-turn agent training.
+We first establish \ac{PPO} notation, then present the group-relative baseline principle, and conclude with \ac{GSPO}'s sequence-level importance weighting that addresses stability challenges in variable-length trajectories.
 \subsection{Preliminaries}
 \label{subsec:preliminaries}
 
@@ -245,8 +245,9 @@ The higher upper clip encourages exploration and prevents early entropy collapse
 
 \subsubsection*{\acf{GSPO}}
 \label{subsubsec:gspo}
-\todoinline{Improve}
-\acs{GSPO} builds on \acs{GRPO} and tackles two different problems.
+
+\acs{GSPO}~\cite{gspo2025} addresses critical stability challenges in group-relative policy optimization, particularly for variable-length sequences and \ac{MoE} architectures.
+The algorithm tackles two fundamental problems that limit the robustness of token-level importance weighting.
 First is aligning the importance weighing to sequence-level advantages and better handling of small logit discrepancies between training and inference engines accumulate across long sequences.
 Token-level importance weighting in \ac{GRPO} is fragile at scale.
 The same set of weight operating on the same input sequences do not produce the same logits between training and inference engines.
@@ -292,8 +293,11 @@ s_i(\theta)\,A_i\;\cdot\;
 \right],
 \end{equation} so all tokens in a response are weighted equally by the same sequence factor $s_i(\theta)$.
 In \ac{GRPO}, by contrast, each token carries its own noisy ratio $w_{i,t}$, and those unequal weights accumulate unpredictably along the sequence.
-GSPO's sequence weighting eliminates that instability, removes the need for routing-replay in \acs{MoE} \ac{RL}, and is tolerant to training-vs-inference log-probprecision differences—often allowing direct use of inference-engine likelihoods without recomputation.
-\cite{gspo2025}
+\ac{GSPO}'s sequence weighting eliminates that instability, removes the need for routing-replay in \acs{MoE} \ac{RL}, and tolerates training-versus-inference log-probability precision differences—often allowing direct use of inference-engine likelihoods without recomputation.
+
+The superior robustness of \ac{GSPO} makes it particularly attractive for multi-turn agent training where episodes vary substantially in length and structure.
+By matching the importance weighting granularity to the reward granularity—both at the sequence level—\ac{GSPO} provides more stable gradients than token-level approaches when training on variable-length trajectories with sparse terminal rewards.
+These properties led to our adoption of \ac{GSPO} as the policy optimization algorithm for the Nano agent training described in Chapter~\ref{ch:method}.
 
 \section{\acl{LoRA} (\acs{LoRA})} \label{sec:lora}
 
@@ -443,7 +447,7 @@ Our approach is also significantly more compute-efficient, as noted above; detai
 This chapter has established the theoretical and empirical foundations for online \ac{RL} applied to \ac{APR}.
 By examining the evolution from rule-based repair systems to modern \ac{LLM}-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and the dynamic nature of debugging.
 
-Our review of reinforcement learning techniques, particularly the elegant simplification offered by \ac{GRPO}, demonstrates how computational efficiency can be achieved without sacrificing theoretical guarantees.
+Our review \ac{RL} techniques, particularly the progression from \ac{PPO} to group-relative methods culminating in \ac{GSPO}, demonstrates how computational efficiency and training stability can be achieved through careful algorithmic design without sacrificing theoretical guarantees.
 The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
 
 The Nano agent architecture presents an alternative approach to agent design.

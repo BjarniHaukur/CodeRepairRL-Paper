@@ -14,7 +14,9 @@ Our work makes several methodological and infrastructure contributions to the em
 \textbf{Training-Inference Duality}: Our implementation collapses the conventional boundary between training and inference phases through continuous serving and real-time weight updates.
 This unified approach makes large-scale agent training practically feasible within academic research budgets by eliminating the need for separate training and deployment phases.
 
-\textbf{\ac{GSPO} Optimization for Agents}: We adapt \ac{GSPO}~\cite{gspo2025} with KL regularization for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training and stabilizing small-batch updates.\todoinline{Ensure GSPO reference is included in the bibliography.}
+\textbf{\ac{GSPO}
+Optimization for Agents}: We adapt \ac{GSPO}~\cite{gspo2025} with KL regularization for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training and stabilizing small-batch updates.
+\todoinline{Ensure GSPO reference is included in the bibliography.}
 
 \subsection{Methodological Validation}
 \label{subsec:methodological-validation}
@@ -29,9 +31,12 @@ The agent operates with only basic terminal commands and file operations, provin
 \subsection{Technical Infrastructure}
 \label{subsec:technical-infrastructure}
 
-\textbf{\ac{NCCL}-Based Weight Synchronization}: We develop infrastructure for real-time weight synchronization between training and inference processes using NVIDIA Collective Communications Library, enabling practical online \ac{RL} training with \ac{LoRA} adapters.
+\textbf{Compute-Efficient Training Architecture}: Our implementation demonstrates that sophisticated online \ac{RL} for coding agents remains tractable within academic compute budgets through systematic optimization.
+We implemented real-time weight synchronization to OpenAI-compatible \ac{API} servers using \ac{NCCL}, enabling continuous batching where episodes progress independently within turns through asynchronous request handling.
+Through careful memory management and differential weight updates, the system enables practical training of models up to 30B parameters on modest \ac{GPU} clusters.
 
-\textbf{Scalable Training Architecture}: Our implementation provides a foundation for scaling agent training across multiple \acp{GPU}, demonstrating the practical feasibility of distributed online \ac{RL} for coding agents.
+\textbf{Generalizable Design Choices}: By operating through standard OpenAI-compatible \ac{API} interfaces, the architecture naturally extends beyond coding agents to other interactive applications where outcomes can be rewarded.
+The training pipeline remains application-agnostic, suggesting potential applicability to training task-specific assistants, dialogue agents, or document processors where conventional \ac{API} interfaces already exist.
 
 \textbf{Open-Source Implementation}: Complete open-source release of training infrastructure, agent implementations, and evaluation protocols enables reproducible investigation of online \ac{RL} techniques and reduces barriers to academic research in this domain.
 
@@ -88,6 +93,41 @@ The methodological foundation supports future development toward practical deplo
 By providing complete open-source implementations, we enable broader academic investigation of online \ac{RL} techniques for coding agents.
 This open approach facilitates reproducible research and community-driven development of advanced agent training methods, reducing barriers to entry in this emerging field.
 
+\subsection{Design Philosophy and the Bitter Lesson}
+\label{subsec:design-philosophy}
+
+\subsubsection{From Games to Real Tasks: \acp{LLM} as the Missing Foundation}
+
+The application of \ac{RL} to real-world tasks like coding represents a fundamental shift in what reinforcement learning can accomplish.
+AlphaZero's superhuman game performance demonstrated the power of learning through interaction, yet simultaneously exposed a critical limitation: games provide reward signals for every legal move, while real-world tasks require deep conceptual understanding just to participate meaningfully.
+Before \acp{LLM}, applying \ac{RL} to tasks like code repair was futile not because the algorithms were inadequate, but because models lacked the prerequisite knowledge to attempt such problems coherently.
+An \ac{RL} agent cannot learn from experience if it cannot generate experiences worth learning from—there is no gradient to climb when every action produces meaningless output.
+
+\acp{LLM} solved this foundational problem by providing the conceptual substrate necessary for coherent interaction with complex environments.
+When a modern \ac{RL} agent attempts to fix a bug, it can execute valid commands, parse error messages, and propose syntactically reasonable patches.
+These capabilities—acquired through massive-scale pretraining—give the agent that crucial first rung on the ladder, enabling the generation of rich learning signals that \ac{RL} algorithms can exploit.
+For the first time, we can apply decades of reinforcement learning research to problems that matter, because \acp{LLM} have bridged the gap between random exploration and meaningful interaction.
+
+\subsubsection{Learning Versus Engineering: The Minimalist Approach}
+
+Our experimental results inform broader design philosophy questions in agent development.
+\todoinline{Based on Chapter 5 results: discuss how the bitter lesson applies to training software engineering agents, comparing simple tools with extensive learning versus sophisticated engineering approaches.
+Analyze whether learned behaviors from minimal interfaces outperform hand-crafted sophisticated tooling, referencing specific performance comparisons from §5.
+}
+
+The minimalist Nano agent design—deliberately simple tools combined with extensive \ac{RL} training—represents a test of whether learning-based approaches can match or exceed carefully engineered systems.
+The empirical evidence from our training dynamics and transfer experiments provides insight into the relative merits of learning versus engineering for coding agent capabilities.
+
+\subsection{Continued Improvement Potential}
+\label{subsec:improvement-potential}
+
+\todoinline{Based on Chapter 5 training curves: analyze evidence for continued improvement potential through longer training periods and larger models.
+Reference specific training dynamics from §5.1 showing whether performance plateaued or continued improving, discuss sample efficiency trends, and project potential gains from extended training budgets.
+}
+
+The observed training dynamics throughout our experiments inform expectations about future capability improvements.
+Whether performance curves exhibit continued upward trends or approach plateaus carries implications for the scalability of online \ac{RL} approaches to more complex software engineering tasks.
+
 \section{Limitations and Constraints} \label{sec:limitations}
 
 \subsection{Experimental Validation Status}
@@ -108,6 +148,13 @@ Additionally, the current scope emphasizes single-commit bug fixes rather than c
 
 Despite optimizations, online training remains computationally intensive compared to traditional supervised learning.
 The distributed training infrastructure presents implementation complexity that may challenge smaller research groups, though our open-source release aims to mitigate these barriers through comprehensive documentation and modular design.
+
+\subsection{Rollout Isolation}
+\label{subsec:rollout-isolation}
+
+Our isolation approach uses ephemeral repository checkouts, restricted bash environments, and cgroups rather than containerization.
+Infrastructure constraints—specifically, unavailability of Docker on the training cluster—necessitated this simpler strategy.
+While adequate for safe training and reproducible execution, this limitation constrains parallelism: proper containerization would enable safely running more concurrent episodes per node, substantially increasing throughput.
 
 \subsection{Reward Function Simplifications}
 \label{subsec:reward-simplifications}
@@ -172,6 +219,27 @@ This includes specialized training for security vulnerability fixing and perform
 
 Investigation of experiential training across different model architectures could reveal optimal designs for agentic programming tasks, including architecture variants like mixture-of-experts models, systematic study of performance scaling effects, multimodal integration with visual debugging information, and external memory systems for long-term context.
 
+\subsection{Infrastructure Optimization}
+\label{subsec:infra-optimization}
+
+\subsubsection{Cross-Group Walltime Optimization}
+
+Our current implementation optimizes intra-group asynchronous behavior, allowing individual episodes within a training group to progress independently.
+However, the system treats episode groups synchronously: inference pauses once the configured group size is reached, waiting for training to complete and weights to synchronize before new episodes begin.
+Given the substantial variation in episode completion times—some problems resolve in five turns while others require twenty or more—this creates walltime dependencies where the inference servers sit idle during training updates.
+
+Future implementations could eliminate these barriers through slightly off-policy rollouts.
+Instead of pausing inference during training, new episodes would begin immediately using the current policy while training proceeds on completed episodes in parallel.
+When weight updates broadcast to inference servers, any in-flight episodes would continue with the updated policy, making them slightly off-policy: they began with policy version $\pi_n$ but will complete under $\pi_{n+1}$ or later.
+Given the small, gradual nature of \ac{GSPO} updates and continuous weight synchronization, this off-policy gap remains bounded and acceptable.
+This approach would maintain continuous inference server utilization, eliminate idle time during training phases, and enable training to begin as soon as any subset of episodes completes rather than waiting for full groups.
+The optimization would particularly benefit throughput when episode length distributions exhibit high variance, as faster episodes would immediately feed into training while longer episodes continue exploration without blocking progress.
+
+\subsubsection{Enhanced Containerization}
+
+As discussed in \S\ref{subsec:rollout-isolation}, proper containerization would enable higher parallelism by safely multiplexing more episodes per node.
+Combined with off-policy rollouts described above, this would eliminate on of the primary throughput bottlenecks in the current system.
+
 \subsection{Advanced Agent Architectures}
 \label{subsec:advanced-agents}
 
@@ -197,6 +265,54 @@ Continued optimization could enable broader access through federated learning ac
 
 Standardized evaluation frameworks would accelerate progress through comprehensive benchmarks for Python debugging tasks, automated functional correctness assessment, reproducibility tools for research extension, and community platforms for collaborative development.
 
+\section{Lessons Learned from Implementation}
+\label{sec:lessons-learned}
+
+The process of implementing and deploying online \ac{RL} for coding agents yielded insights that extend beyond the specific technical contributions documented in this thesis.
+These reflections illuminate both the opportunities and challenges inherent in experiential learning approaches for complex reasoning tasks.
+
+\subsection{System Complexity and Engineering Effort}
+
+Integrating large language models with online \ac{RL} training revealed engineering challenges that significantly exceeded initial estimates.
+
+Many critical failure modes only emerged during extended training runs spanning multiple days, revealing the difficulty of predicting distributed system behavior through local testing.
+Robust monitoring infrastructure and iterative refinement proved essential—ambitious initial designs consistently required substantial simplification before achieving stability.
+
+Engineering effort for production-ready implementation substantially outweighed theoretical development.
+Implementing weight-synchronized OpenAI-compatible \ac{API} servers required many weeks of trial and error to achieve stable operation, revealing that infrastructure reliability demands sustained investment beyond algorithmic innovation.
+
+Integrating bleeding-edge libraries amplified this challenge.
+The system relied on rapidly evolving dependencies—TRL for \ac{RL} training, vLLM for inference serving, Liger-Kernel for memory-efficient kernels, and Flash Attention for optimized attention—each offering significant performance benefits but introducing breaking changes with every update.
+We forked and extensively modified these projects to resolve conflicts, implement missing features, and fix blocking bugs.
+Many modifications were contributed back upstream, but each library update frequently broke the entire system, requiring substantial effort to restore compatibility.
+This experience highlights an inherent tension in cutting-edge research: leveraging the latest capabilities requires accepting integration burden that can exceed core research implementation effort.
+
+\subsection{Reward Misspecification}
+
+Initial experiments with auxiliary rewards revealed subtle failure modes in multi-objective training.
+We introduced a file-matching reward to provide intermediate learning signal, hypothesizing it would help the agent learn to identify relevant files before optimizing patch quality.
+However, because the primary diff similarity reward remained sparse while the file-matching reward provided frequent feedback, the model optimized aggressively for the auxiliary objective to the detriment of actual patch similarity.
+
+Evaluating successive training checkpoints on SWE-Bench-Verified exposed this misspecification clearly: downstream performance improved initially but noticeably worsened after a certain point in training, even as file-matching accuracy continued increasing.
+The agent learned to modify the correct files consistently while producing increasingly poor patches—a textbook case of reward hacking where optimizing a proxy metric degraded the true objective.
+This experience reinforced the value of sparse, well-aligned rewards over dense but misspecified shaping signals.
+
+\subsection{Broader Insights for Experiential Learning}
+
+Several insights transcend the specific domain of code repair and inform experiential learning research more broadly.
+The tension between exploration and exploitation manifests differently in multi-turn structured environments than in traditional \ac{RL} domains.
+Agents must balance exploring alternative debugging strategies against exploiting known successful patterns while simultaneously learning which environmental observations warrant deeper investigation versus cursory examination.
+This hierarchical exploration challenge suggests that flat action spaces may inadequately represent the decision structure of complex reasoning tasks.
+
+The importance of execution-free rewards extends beyond computational convenience to methodological flexibility.
+By decoupling learning signals from language-specific test infrastructure, we enabled rapid experimentation across programming languages and failure modes without maintaining complex execution environments.
+This design choice traded some precision in correctness evaluation for substantial gains in experimental velocity and scope.
+Similar trade-offs may benefit other domains where approximate but tractable reward signals enable broader exploration than expensive ground-truth evaluation.
+
+The success of minimalist agent design suggests that sophisticated capabilities can emerge from simple interfaces when combined with adequate training.
+Rather than engineering complex tool suites that embed human debugging knowledge through careful interface design, we provided basic primitives and relied on learning to discover effective strategies.
+This philosophy aligns with core \ac{RL} principles of capability emergence through environmental interaction, though it requires sufficient training time and sample efficiency to realize in practice.
+
 \section{Long-Term Vision}
 \label{sec:long-term-vision}
 
@@ -211,8 +327,13 @@ Enhanced automated debugging capabilities could accelerate research workflows by
 \section{Final Reflections}
 \label{sec:final-reflections}
 
-This research demonstrates that the convergence of large language models and \ac{RL} opens unprecedented opportunities for developing sophisticated \ac{AI} systems capable of complex reasoning and interaction.
-The success of experiential training validates broader principles about learning through environmental interaction and suggests promising directions for advancing \ac{AI} capabilities across domains requiring multi-step reasoning and strategic planning.
+This research demonstrates that the convergence of \acp{LLM} and \ac{RL} opens unprecedented opportunities for developing sophisticated \ac{AI} systems capable of complex reasoning and interaction.
+\acp{LLM} have fundamentally transformed what reinforcement learning can accomplish by providing the conceptual foundation necessary for coherent interaction with complex environments.
+Where previous generations of models could not generate meaningful actions in domains like code repair—leaving \ac{RL} algorithms with no gradient to climb—modern \acp{LLM} enable agents to participate meaningfully from the start, creating the rich learning signals that \ac{RL} algorithms require.
+
+The success of experiential training in this work validates broader principles about learning through environmental interaction and suggests promising directions for advancing \ac{AI} capabilities across domains requiring multi-step reasoning and strategic planning.
+By demonstrating that sophisticated debugging behaviors can emerge from simple tools combined with \ac{RL} training, we provide evidence that decades of reinforcement learning research can now be applied to problems that matter.
+The infrastructure and methodologies developed here offer a foundation for future investigations into how agents acquire complex skills through interaction, extending beyond coding to any domain where \acp{LLM} provide that crucial first rung on the ladder of competence.
 
 Perhaps most importantly, our work demonstrates that sophisticated \ac{AI} research infrastructure can be developed within academic settings through careful engineering and open-source collaboration.
 By providing accessible implementations of online \ac{RL} training systems, we enable broader investigation of experiential learning approaches that were previously confined to well-resourced industry laboratories.

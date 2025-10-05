@@ -1,8 +1,10 @@
-\chapter{Experimental Results and Analysis}
+\chapter{Experimental Results}
 \label{ch:results}
 
-This chapter presents experimental results addressing our three research questions (RQ1/RQ2/RQ3) about online \ac{RL} for automated code repair.
-\todoinline{Insert comprehensive experimental results demonstrating improvements over baseline approaches and evaluation of learned debugging capabilities generalization.}
+This chapter presents experimental results addressing the three research questions established in Chapter~\ref{ch:introduction}.
+Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we report test-verified success rates on SWE-Bench-Verified as the primary metric, supplemented by patch-similarity rates, per-language reward trends on the SWE-Bench-Multilingual holdout, harness-efficiency metrics (tool-call success, invalid-call rate, action efficiency), and cross-scaffold transfer performance.
+
+\todoinline{Insert comprehensive experimental results tables and statistical analyses once training runs complete, demonstrating improvements over baseline approaches.}
 
 \section{Training Dynamics and Convergence}
 \label{sec:training-dynamics}
@@ -84,20 +86,14 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 
 \textbf{Tool Usage Efficiency}: Trained agents develop efficient command usage patterns, avoiding redundant operations and focusing on information-gathering commands that maximize debugging insight.
 
-\section{RQ1: Harness Adaptation Across Model Sizes}
+\section{RQ1: Harness Adaptation and Model Scaling}
 \label{sec:rq1-harness}
 
-\textbf{Research Question 1}: How effectively does online \ac{RL} training enable models to adapt to the Nano harness environment, and what specific improvements occur in tool usage patterns?
+\textbf{Research Question 1}: How does \ac{GSPO} training reshape Nano harness adaptation and SWE-Bench-Verified success across model sizes?
 
-\subsection{Methodology}
-\label{subsec:rq1-methodology}
-We analyze harness adaptation through three key metrics measured throughout training: \begin{itemize}
-	\item \textbf{Tool success rate}: fraction of tool calls that execute without schema/validation errors
-	\item \textbf{Invalid call rate}: fraction of calls rejected by the harness (schema mismatch, unsafe commands)
-	\item \textbf{Action efficiency}: commands per successful episode; files viewed per solved task
-\end{itemize}
+Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we measured harness adaptation through tool success rates, invalid-call reduction, and action efficiency across the Qwen3 model family.
 
-\subsection{Results} \label{subsec:rq1-results}
+\subsection{Harness Adaptation Results} \label{subsec:rq1-results}
 
 \begin{figure}[htbp]
 	\centering
@@ -123,20 +119,12 @@ We analyze harness adaptation through three key metrics measured throughout trai
 \subsection{Key Findings} \label{subsec:rq1-findings} \todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for \ac{RL} training success.
 }
 
-\subsection{Model Size Comparison}
+\subsection{Model Size Scaling Results}
 \label{subsec:rq1-model-size}
-\textbf{Model size analysis}: We compare pre/post GSPO+KL performance across Qwen3-8B/14B/30B and the Llama3.1-8B reference within the same experimental conditions.
 
-\subsubsection{Methodology}
-\label{subsubsec:rq1b-methodology}
-We evaluate training recipe transferability by applying identical training procedures to multiple base models with consistent experimental conditions: \begin{itemize}
-	\item Same training budgets and episode counts
-	\item Identical prompts and evaluation protocols
-	\item Consistent hyperparameter scaling approaches
-	\item Uniform tool success metric collection
-\end{itemize}
+We compare pre-training versus post-\ac{GSPO} performance across Qwen3-8B, Qwen3-14B, Qwen3-30B-A3B, and the Llama3.1-8B reference run, applying identical training procedures as described in \S\ref{sec:models}.
 
-\subsubsection{Results} \label{subsubsec:rq1b-results} \todoinline{Insert comprehensive comparison table including: \begin{itemize}
+\subsubsection{Quantitative Results} \label{subsubsec:rq1b-results} \todoinline{Insert comprehensive comparison table including: \begin{itemize}
 \item Performance on SWE-Bench-Verified across different base models
 \item Tool success metrics for each model
 \item Training convergence characteristics
@@ -147,46 +135,37 @@ We evaluate training recipe transferability by applying identical training proce
 \subsubsection{Analysis} \label{subsubsec:rq1b-analysis} \todoinline{Analyze training recipe portability, identify model-specific adaptations required, and discuss implications for scaling to new architectures.
 }
 
-\section{RQ2: Multilingual Holdout Evaluation} \label{sec:rq2-multilingual}
+\section{RQ2: Multilingual Holdout Performance} \label{sec:rq2-multilingual}
 
-\textbf{Research Question 2}: Does the 750/250 curriculum improve performance on a held-out SWE-Bench-Multilingual set without bespoke scaffolding?\todoinline{Confirm holdout sample count and language coverage once runs finish.}
+\textbf{Research Question 2}: Does the 750/250 multilingual curriculum improve held-out performance across languages?
 
-\subsection{Experimental Design}\label{subsec:rq2-design}
-We measure multilingual transfer by evaluating GSPO-trained checkpoints on the reserved 50-task SWE-Bench-Multilingual holdout: \begin{itemize}
-	\item Training curriculum: 750 SWE-Gym Python + 250 SWE-Bench-Multilingual tasks with holdout samples removed.\todoinline{Verify final task IDs per language.}
-	\item Holdout evaluation: 50 multilingual bugs spanning the nine languages present in the curriculum.
-	\item Baselines: pre-training checkpoints evaluated on the identical holdout split.
-	\item Metrics: average reward per bug, per-language reward deltas, and bootstrap 95\% confidence intervals.
-\end{itemize}
+Using the mixed curriculum described in \S\ref{sec:data-env}, we evaluate \ac{GSPO}-trained checkpoints on the reserved 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
+We report reward deltas per language with bootstrap 95\% confidence intervals, comparing pre-training baselines against post-training performance.
 
-\subsection{Holdout Performance} \label{subsec:rq2-performance} \todoinline{Insert table/plot of multilingual holdout rewards before vs. after training, including per-language breakdown and confidence intervals.}
+\subsection{Per-Language Results} \label{subsec:rq2-performance} \todoinline{Insert table/plot of multilingual holdout rewards before vs. after training, including per-language breakdown and confidence intervals.}
 
 \subsection{Generalization Analysis} \label{subsec:rq2-analysis} \todoinline{Interpret multilingual holdout reward shifts, highlight languages with notable changes, and discuss remaining limitations.}
 
-\section{RQ3: Scaffold Transfer Evaluation} \label{sec:rq3-scaffold}
+\section{RQ3: Scaffold Transfer Results} \label{sec:rq3-scaffold}
 
-\textbf{Research Question 3}: To what extent do behaviours learned on Nano transfer to alternative scaffolds without bespoke retraining?\todoinline{List final scaffold lineup (Mini-SWE-Agent, Aider, OpenHands) once evaluations conclude.}
+\textbf{Research Question 3}: To what extent do behaviours learned on Nano transfer to alternative scaffolds?
 
-\subsection{Evaluation Protocol}\label{subsec:rq3-protocol}
-We adopt the scaffold-transfer protocol outlined in the accompanying conference draft:
-\begin{itemize}
-\item Train exclusively on Nano using the 1,000-task curriculum described in \S\ref{sec:nano-agent-new}.\todoinline{Verify curriculum parity between thesis and conference experiments.}
-\item Evaluate checkpoints zero-shot on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses over matched SWE-Bench-Verified instances.
-\item Record success rate, tool validity, and scaffold-adherence metrics (prompt compliance, command formatting) per harness.
-\item Provide a five-demonstration primer per harness to gauge few-shot adaptation gains after zero-shot evaluation.\todoinline{Confirm demonstration format and token budgets.}
-\end{itemize}
+Following the evaluation protocol in \S\ref{sec:eval-brief}, we evaluate Nano-trained checkpoints on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses.
+We measure success rates, tool validity, and scaffold-adherence metrics for both zero-shot and few-shot (five demonstrations) conditions.
 
-
-\subsection{Zero-Shot Transfer}\label{subsec:rq3-zeroshot}
+\subsection{Zero-Shot Transfer Results}\label{subsec:rq3-zeroshot}
 \todoinline{Insert table comparing Nano performance with zero-shot transfer success rates, tool validity, and episode length across harnesses.}
-Preliminary dry runs mirror the trends described in the ICLR submission: GSPO-trained checkpoints maintain non-trivial success on Mini-SWE-Agent despite schema differences, whereas untrained baselines collapse to near-zero performance.\todoinline{Replace with measured numbers and cite Appendix once finalized.}
+Preliminary dry runs mirror the trends described in the ICLR submission: GSPO-trained checkpoints maintain non-trivial success on Mini-SWE-Agent despite schema differences, whereas untrained baselines collapse to near-zero performance.
+\todoinline{Replace with measured numbers and cite Appendix once finalized.}
 
 \subsection{Few-Shot Adaptation}\label{subsec:rq3-fewshot}
-We measure adaptation speed by supplying five annotated trajectories for each harness and evaluating improvement over ten tasks.\todoinline{Add learning-curve plot once experiments complete.} Early results suggest the GSPO policy adapts within two demonstrations, while the pretrained baseline requires substantially more guidance, supporting the hypothesis that Nano-trained routines persist under interface changes.\todoinline{Quantify adaptation delta (success + tool validity).}
+We measure adaptation speed by supplying five annotated trajectories for each harness and evaluating improvement over ten tasks.
+\todoinline{Add learning-curve plot once experiments complete.}
+Early results suggest the GSPO policy adapts within two demonstrations, while the pretrained baseline requires substantially more guidance, supporting the hypothesis that Nano-trained routines persist under interface changes.
+\todoinline{Quantify adaptation delta (success + tool validity).}
 
 \subsection{Behavioural Analysis}\label{subsec:rq3-behaviour}
 \todoinline{Document qualitative differences in command sequencing, error recovery, and prompt adherence during transfer, referencing transcript samples from each scaffold.}
-
 
 \section{Ablation Studies}
 \label{sec:ablations}
@@ -336,65 +315,15 @@ Successful agents develop efficient tool usage patterns:
 	\item \textbf{Error-Driven Learning}: Adapt strategies based on command outputs and error messages
 \end{itemize}
 
-\section{Computational Performance Analysis} \label{sec:performance-analysis}
-
-\subsection{Training Efficiency Metrics} \label{subsec:training-efficiency}
-
-Our infrastructure achievements enable practical large-scale agent training:
-
-\todoinline{Insert training performance metrics table including: \begin{itemize}
-\item Episodes per hour for different model configurations
-\item Memory usage across model sizes
-\item Update latency measurements
-\item Training throughput analysis
-\item \acp{GPU} utilization efficiency
-\item Scalability characteristics
-\end{itemize}}
-
-\subsubsection{Scalability Achievements}
-
-\todoinline{Analyze scalability characteristics including: \begin{itemize}
-\item \acp{GPU} scaling linearity up to tested limits
-\item Memory utilization efficiency achievements
-\item Network bandwidth consumption for \ac{NCCL} updates
-\item Fault tolerance and graceful degradation capabilities
-\item Performance bottlenecks and limitations
-\end{itemize}}
-
-\subsection{Cost-Effectiveness Analysis} \label{subsec:cost-effectiveness}
-
-\todoinline{Analyze computational cost-effectiveness including: \begin{itemize}
-\item Total training costs for different model sizes
-\item Per-episode cost comparisons with commercial \acp{API}
-\item Development cost implications for academic research
-\item Infrastructure maintenance requirements
-\item Budget accessibility and democratization implications
-\end{itemize}}
-
-\todoinline{Table of A100 \ac{GPU} hours per run?
-}
-
-\section{Summary of Key Findings}
-\label{sec:key-findings}
+\section{Summary of Key Findings} \label{sec:key-findings}
 
 Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers} \label{subsec:research-answers}
 
-\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize GSPO improvements in tool success, invalid calls, action efficiency, and success rates per model size using Sections~\ref{sec:rq1-harness} and \ref{subsec:rq1-model-size}.}
+\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize GSPO improvements in tool success, invalid calls, action efficiency, and success rates per model size using Sections~\ref{sec:rq1-harness} and \ref{subsec:rq1-model-size}.
+}
 
 \textbf{RQ2 (Multilingual Holdout)}: \todoinline{Report average reward improvements per language with references to Section~\ref{sec:rq2-multilingual}.}
 
 \textbf{RQ3 (Scaffold Transfer)}: \todoinline{Summarize zero-shot and few-shot transfer outcomes across alternative harnesses with references to Section~\ref{sec:rq3-scaffold}.}
-
-\subsection{Broader Implications}
-\label{subsec:broader-implications}
-
-These results have several important implications for the field:
-
-\begin{itemize}
-	\item \textbf{Design Philosophy}: \todoinline{Discuss how the bitter lesson applies to training software engineering agents, comparing simple tools with extensive learning versus sophisticated engineering approaches.}
-	\item \textbf{Future Potential}: \todoinline{Analyze evidence for continued improvement potential through longer training periods and larger models, based on observed training dynamics.}
-\end{itemize}
-
-These findings establish online reinforcement learning as a promising direction for advancing automated software engineering capabilities.

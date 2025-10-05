@@ -14,7 +14,7 @@ This thesis directly addresses this need by investigating how a single, minimali
 By situating all learning and adaptation within the Nano harness, we provide clear, reproducible insights into the mechanisms by which \ac{RL} cultivates autonomy and effective tool use in repository-level code repair.
 
 An important contemporaneous effort is SWE-RL~\cite{wei2025swerladvancingllmreasoning}, which applies \ac{GRPO} with a rule-based reward based on patch similarity (Python's \texttt{difflib.SequenceMatcher}) to train models in a static, single-turn setting where the full file contexts are provided and the model directly outputs a patch that is compared to ground truth.
-Our work is complementary: we also use \ac{GRPO} and a patch-similarity reward, but in an agentic, multi-step regime where the model must first acquire its own context through tool use before proposing edits.
+Our work is complementary: we also use execution-free patch-similarity rewards, but combine them with \ac{GSPO}—a more robust sequence-level variant—in an agentic, multi-step regime where the model must first acquire its own context through tool use before proposing edits.
 This distinction (static one-shot patch generation versus interactive context acquisition and repair) motivates our focus on agent-integrated training with a single minimalist harness (the Nano agent), rather than on prompt-time scaffolding.
 
 To understand why this shift to agentic training is both necessary and transformative, we must first examine the historical context and theoretical foundations that have led to this approach.
@@ -170,7 +170,7 @@ By reducing barriers to entry and facilitating independent replication, the proj
 
 Ethical considerations arise from the potential misuse of agentic systems and the provenance of training data.
 We restrict experiments to permissively licensed repositories and avoid exposing sensitive credentials or private data within environments.
-We emphasize safe tooling (read/write-limited file access, sandboxed execution) and encourage downstream \todoinline{I believe we can better isolate each agent with some apptainer flags I found, decide if the final iteration of experiments will use those}
+We employ restricted file access and process-level isolation to ensure safe episode execution without compromising host system integrity.
 
 We closely monitor the amount of compute per experiment and report tokens processed and \ac{GPU}-hours to support reproducibility and minimize unnecessary energy use.
 We adopt efficiency practices such as mixed-precision training, reuse of checkpoints and shared inference servers via training-inference duality, and targeted ablations to avoid redundant runs.
@@ -180,7 +180,8 @@ We adopt efficiency practices such as mixed-precision training, reuse of checkpo
 This research employs a rigorous experimental methodology designed to systematically evaluate \ac{RL} for repository-level bug fixing.
 % Our approach combines theoretical insights from \ac{RL} with practical engineering solutions to create a comprehensive experimental framework.
 
-We employ \ac{GSPO}, a sequence-level variant of \ac{GRPO}~\cite{grpo2024} that pairs group-relative baselines with a KL regularizer to stabilize updates under the small effective batch sizes available on academic compute allotments.
+We employ \ac{GSPO}~\cite{gspo2025}, a sequence-level policy optimization algorithm that extends the group-relative baseline principle with improved importance weighting.
+\ac{GSPO} demonstrates superior robustness and stability compared to earlier group-relative methods, proving particularly effective for the small effective batch sizes and high-variance rewards inherent in multi-turn agent training under academic compute constraints.
 
 During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch similarity.
 
@@ -221,8 +222,8 @@ This focus enables deep investigation of debugging behaviour while acknowledging
 \textbf{Compute Environment Constraints}: Experiments were conducted on the Berzelius and Alvis Swedish national \ac{GPU} clusters, which use SLURM scheduling and do not support horizontal scalability via Docker-based container orchestration.
 This constraint informed the design of both the Nano agent and the training pipeline, leading us to adopt parallelization and isolation mechanisms compatible with SLURM scheduling.
 
-\textbf{Model Architecture Scope}: Our primary development and analysis focuses on the Qwen3 model family (with reasoning disabled) because of their tool-calling reliability and open availability.
-We deliberately avoid reasoning modes as they generate verbose outputs that exhaust token budgets in online training settings.
+\textbf{Model Architecture Scope}: Our primary development and analysis focuses on the base Qwen3 model family—hybrid reasoning models with strong tool-calling capabilities—with reasoning explicitly disabled to conserve context window budget in multi-turn episodes.
+We use Qwen3 (not the specialized Qwen3-Coder variant) for its superior tool-calling reliability and open availability.
 We also evaluate our approach on Llama3.1-8B alongside the Qwen3 series.
 
 \textbf{Evaluation Protocol Boundaries}: Our reward function relies on automated patch comparison rather than full test suite execution, trading perfect functional correctness assessment for computational tractability.
