@@ -174,49 +174,22 @@ This section states algorithmic choices and their rationale; implementation deta
 
 \todoinline{Insert exact effective batch size and total update count for the main runs.}
 
-To focus optimization on agent-authored content, we employ a dual-masking strategy that carefully separates what the model observes from what drives gradient updates.
-
-\paragraph{Motivation for Selective Loss Masking.}
-Interactive agents must process and reason about tool outputs—shell command results, file contents, search results—to maintain coherent multi-turn conversations and make informed decisions.
-However, including these externally-generated tokens in the loss computation dilutes the optimization signal.
-Consider an agent trajectory $\tau = (s_1, a_1, o_1, s_2, a_2, o_2, \ldots, s_T)$ where $a_t$ represents agent actions such as tool calls and $o_t$ denotes corresponding tool outputs.
-While tool outputs exhibit some predictability given sufficient context, training the model to predict them shifts optimization pressure away from the primary learning objective: selecting and invoking appropriate tools based on repository context.
-Traditional sequence modeling treats the entire trajectory as a prediction target, thereby dispersing the learning signal across both agent reasoning and external content prediction.
-
-\paragraph{Dual-Mask Strategy.}
-We introduce a dual-masking approach that preserves contextual information during forward computation while focusing optimization exclusively on agent-authored content.
-Let $\mathbf{x} = [x_1, x_2, \ldots, x_n]$ represent a tokenized trajectory and $\mathcal{T} \subset \{1, 2, \ldots, n\}$ denote the indices corresponding to tool-generated tokens.
-During the forward pass, the model processes the complete sequence with full causal attention, ensuring that when computing log probabilities for agent-authored tokens, the model maintains access to tool response content through the attention mechanism.
-This preserves the contextual information necessary for reasoning about external observations.
-
-For loss computation, we apply selective masking to concentrate optimization on agent decisions.
-We define a binary loss mask $\mathbf{M}_{\text{loss}}[i] = 1$ if $i \notin \mathcal{T}$ (agent-authored) and $\mathbf{M}_{\text{loss}}[i] = 0$ if $i \in \mathcal{T}$ (tool-generated).
-The masked policy loss then becomes: \[ \mathcal{L}_{\text{policy}} = \frac{\sum_{i=1}^{n} \mathbf{M}_{\text{loss}}[i] \cdot \ell_i \cdot A_i}{\sum_{i=1}^{n} \mathbf{M}_{\text{loss}}[i]} \] where $\ell_i$ represents the per-token policy loss and $A_i$ denotes advantages computed via \ac{GSPO}.
-
-\paragraph{Perplexity Analysis and Training Focus.}
-Tool-generated tokens consistently exhibit higher perplexity than agent-authored content, as the model's predicted distributions often diverge from actual tool outputs.
-This divergence reflects the inherent difficulty of precisely predicting external system responses without complete environmental state, rather than a deficiency in model capability.
-Without selective masking, the optimization objective allocates substantial capacity toward predicting tool outputs—content that while partially predictable represents a distinct learning goal from the desired focus on contextual tool selection and agent reasoning.
-
-\paragraph{Algorithmic Benefits.}
-This dual-mask formulation provides several key advantages for training tool-augmented language models.
-Tool tokens contribute zero gradient magnitude, ensuring optimization pressure concentrates on agent reasoning and tool invocation patterns rather than external content prediction.
-Simultaneously, the forward pass maintains full attention over tool outputs, enabling coherent reasoning about external information while directing learning toward appropriate tool usage.
-The masking approach integrates seamlessly with existing implementations, avoiding computational overhead.
-As tool outputs grow in length and complexity, training remains focused on core agent capabilities rather than becoming diluted across content prediction tasks.
-
+To focus optimization on agent behavior, we mask tool outputs from the loss computation while preserving them in the attention context.
+This standard practice in tool-augmented training concentrates gradient updates on agent decisions—tool invocations, reasoning steps, and edit operations—rather than dispersing them across prediction of external environment responses such as shell output or file contents.
+The model processes the complete trajectory during the forward pass with full causal attention, ensuring access to all tool responses when computing log probabilities for subsequent agent actions, but the loss mask zeroes gradients for tokens originating from tool outputs.
 A modest \ac{KL} penalty is included in the objective to maintain stability, particularly important given the small effective batch sizes typical of academic compute settings where variance in advantage estimates would otherwise destabilize training.
+Complete mathematical formulation of the masking strategy appears in Appendix~\ref{app:masked-loss}.
 
 \section{Training Environment}
 \label{sec:train-env}
 
 Online training operates as a coupled system of serving and optimization.
-The inference side uses vLLM's OpenAI-compatible \ac{API} server with continuous batching and asynchronous request handling to execute multi-turn episodes, while the trainer collects completed trajectories, computes execution-free rewards on canonical diffs, and applies \ac{GSPO} updates under the dual-mask objective.
+The inference side uses vLLM's OpenAI-compatible \ac{API} server with continuous batching and asynchronous request handling to execute multi-turn episodes, while the trainer collects completed trajectories, computes execution-free rewards on canonical diffs, and applies \ac{GSPO} updates under the masked objective.
 Policy improvements propagate to the running \ac{API} server via \ac{NCCL}-based weight broadcasts without service interruption, enabling true online learning where serving agents benefit immediately from training updates.
 
 Conceptually, the system advances through cycles of asynchronous interaction, reward computation, and policy improvement; concrete mechanisms are detailed in Chapter~\cref{ch:work}.
 
-The trainer builds on TRL but required substantial extensions to support multi-turn, tool-augmented \ac{GSPO} at scale: we added dual-masked loss over assistant-authored tokens, sequence-level importance ratios computed after masking, and rollout collection that preserves turn boundaries while remaining stream- and batch-friendly under variable-length episodes.
+The trainer builds on TRL but required substantial extensions to support multi-turn, tool-augmented \ac{GSPO} at scale: we added masked loss over assistant-authored tokens, sequence-level importance ratios computed after masking, and rollout collection that preserves turn boundaries while remaining stream- and batch-friendly under variable-length episodes.
 We further reconciled optimizer state partitioning with \ac{LoRA}-only updates under ZeRO and ensured compatibility with gradient checkpointing and accumulation.
 These changes allow the agentic \ac{RL} loop to run with the same stability and throughput as single-turn recipes while honoring tool I/O semantics.
 \todoinline{Cite code modules changed in TRL and summarize \ac{API} extensions once finalized.}
@@ -297,20 +270,17 @@ Tool-call formatting remains deterministic through strict \ac{JSON} schema valid
 \section{Evaluation Protocol (brief)}
 \label{sec:eval-brief}
 
+Our evaluation protocol addresses the three research questions established in Chapter~\ref{ch:introduction}.
+For \textbf{RQ1} (harness adaptation and model scaling), we measure SWE-Bench-Verified success rates alongside harness-efficiency metrics (tool-call success, invalid-call rate, action efficiency) across the Qwen3 model family (8B/14B/30B-A3B) and Llama3.1-8B.
+For \textbf{RQ2} (multilingual holdout performance), we evaluate per-language reward trends on the 50-task SWE-Bench-Multilingual holdout with bootstrap confidence intervals, comparing pre-training and post-training checkpoints.
+For \textbf{RQ3} (scaffold transfer), we replay trained checkpoints on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to measure zero-shot and few-shot generalization without retraining.
+
 We report test-verified success rates on SWE-Bench-Verified as the primary metric.
-Secondary analysis covers patch-similarity rates on SWE-Bench-Verified, per-language reward trends on the SWE-Bench-Multilingual holdout, and harness-efficiency metrics (tool-call success, invalid-call rate, action efficiency).
-Tertiary metrics quantify cross-scaffold transfer: we replay checkpoints on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to measure zero-shot and few-shot generalization using the protocol shared with the accompanying conference draft.
+Secondary analysis covers patch-similarity rates on SWE-Bench-Verified, per-language reward trends on the SWE-Bench-Multilingual holdout, and harness-efficiency metrics.
+Tertiary metrics quantify cross-scaffold transfer using the protocol shared with the accompanying conference draft.
 \todoinline{Confirm final harness list and evaluation attempt budgets.}
 Baselines include each base Qwen3 model with Nano (no \ac{RL}) plus the Llama3.1-8B reference run.
 We use one attempt per bug subject to the stated budgets, report bootstrap 95\% confidence intervals, and surface per-harness confidence intervals for transfer experiments.
 
 \todoinline{Add dataset versions, seeds, and bug subsets used for the primary evaluation once finalized.}
 
-\section{Reproducibility}
-\label{sec:repro}
-
-We will release the Nano tool schema, system prompts, trainer configurations, \ac{LoRA} hyperparameters, data selection and deduplication scripts, pinned package manifests, and SLURM submission templates.
-Per-episode logs include tool traces (with truncation markers), token counts per turn, wall-clock timings, canonical diffs, rewards, and RNG seeds.
-Figures include an agent loop diagram, a concise system architecture, and an annotated rollout.
-
-\todoinline{Insert figure references when generated (agent loop; system architecture; example rollout).}
