@@ -16,7 +16,10 @@ All results and ablations assume a single-agent paradigm.
 \section{Nano Agent}
 \label{sec:nano-agent}
 
-\subsection*{Observations}
+We formalize the Nano agent through its observation space, action space, interaction dynamics, termination conditions, and safety constraints.
+This specification provides the foundation for the \ac{RL} training methodology described subsequently.
+
+\subsection{Observations}
 
 All interaction occurs through a terminal transcript.
 The agent observes system input/output/error as they appear in the dialogue.
@@ -30,7 +33,7 @@ Patches must target files within the current repository; the specified \texttt{o
 
 In addition, a ``null action'' is defined: if the agent emits no further tool call while the git repository contains changes, the episode terminates.
 
-\subsection*{Formal Interaction Loop}
+\subsection{Formal Interaction Loop}
 
 The agent operates through a structured cycle that formalizes the relationship between observations, actions, and environmental feedback.
 At each timestep $t$, the agent maintains a conversation history $h_t$ comprising of the system message, issue description, and all prior agent and environment interactions.
@@ -45,7 +48,7 @@ The terminal return $R(\tau)$ evaluates the trajectory based on the similarity b
 This outcome-based reward provides the learning signal that drives policy improvement through \ac{RL} optimization.
 The formalism ensures that the agent learns from both successful debugging strategies that receive high returns and unsuccessful attempts that yield lower rewards, gradually refining its ability to navigate repositories and identify correct fixes through repeated environmental interaction.
 
-\subsection*{Termination and Limits}
+\subsection{Termination and Limits}
 
 Episodes terminate when any of the following holds: the agent completes its task and has produced changes to the repository; a maximum number of tool calls has been issued; a token budget has been exhausted; or a wall-clock timeout is reached.
 These limits are set deliberately on the lower side of typical agent deployments to encourage efficient problem-solving strategies during training (see \Cref{tab:termination-parameters} for exact values).
@@ -57,12 +60,12 @@ Tool call budgets prevent runaway episodes where agents enter exploration loops 
 Wall-clock timeouts provide a hard upper bound on compute allocation per episode, enabling reliable throughput estimation and preventing individual problematic episodes from monopolizing training resources.
 These constraints shape the optimization landscape: agents must learn to solve problems efficiently within fixed budgets rather than relying on unbounded exploration, encouraging the development of focused debugging strategies that generalize better to deployment scenarios.
 
-\subsection*{Isolation and Safety Measures}
+\subsection{Isolation and Safety Measures}
 
 Every episode runs in an ephemeral working copy of a git repository; the shell is restricted via rbash and file operations are confined to the workspace.
 This ensures reproducible inputs and constrains side effects to the per-episode checkout.
 
-\subsection*{Sidestepping the Diff Generation Problem}
+\subsection{Sidestepping the Diff Generation Problem}
 
 Generating valid unified diffs is a brittle output-formatting task for language models: line numbers must reflect current file state, context lines must exactly match existing content, and headers must carry correct paths and chunk sizes.
 Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers or incorrect context that prevent patch application.
@@ -88,7 +91,7 @@ subprocess.check_output(["git", "-C", str(repo_root), "diff"], text=True, errors
 
 This diff is deterministic under a fixed repository state ensuring deterministic reward computation while eliminating a major class of formatting errors.
 
-\subsection*{Illustrative Rollout}
+\subsection{Illustrative Rollout}
 
 Figure~\Cref{fig:nano-rollout} shows a representative Nano episode captured from the command-line interface during training.
 The agent navigates the repository using directory listings and ripgrep searches, inspects candidate files, and modifies the codebase through its available tools as evidence accumulates.
@@ -192,7 +195,7 @@ Conceptually, the system advances through cycles of asynchronous interaction, re
 The trainer builds on TRL but required substantial extensions to support multi-turn, tool-augmented \ac{GSPO} at scale: we added masked loss over assistant-authored tokens, sequence-level importance ratios computed after masking, and rollout collection that preserves turn boundaries while remaining stream- and batch-friendly under variable-length episodes.
 We further reconciled optimizer state partitioning with \ac{LoRA}-only updates under ZeRO and ensured compatibility with gradient checkpointing and accumulation.
 These changes allow the agentic \ac{RL} loop to run with the same stability and throughput as single-turn recipes while honoring tool I/O semantics.
-\todoinline{Cite code modules changed in TRL and summarize \ac{API} extensions once finalized.}
+Implementation details, including modifications to TRL's trainer and data collator modules, are described in \cref{ch:work} with complete source code released for reproducibility.
 
 Figure~\ref{fig:training-sequence-diagram} depicts the end-to-end control and data flow: requests enter the vLLM scheduler; episodes interleave tool calls and model generations; diffs are computed upon termination; rewards are produced without execution; and adapter updates are broadcast back to servers with bounded memory.
 
@@ -209,9 +212,8 @@ First, we implemented live weight synchronization to deployed OpenAI-compatible 
 This addresses the mismatch between traditional batched inference (where requests finish synchronously) and asynchronous multi-turn agents (where episodes progress independently within turns, completing at heterogeneous rates).
 Second, we reconciled a complex execution schedule in which inference optimizations, gradient accumulation, gradient checkpointing, \ac{LoRA} adaptation, and ZeRO partitioning operate concurrently without sacrificing stability.
 
-Full configuration fragments and measured latencies are provided in the Appendix.
+Complete \ac{LoRA}, sampling, and episode termination configurations are documented in \cref{app:lora-config,app:sampling-params,app:termination-parameters}.
 The implementation optimizes intra-group asynchronous behavior while treating episode groups synchronously; future work might optimize across groups to eliminate cross-group walltime dependencies.
-\todoinline{Add Appendix references.}
 
 \section{Model Choice and Adaptation}
 \label{sec:models}

@@ -146,6 +146,26 @@ target_modules:
 
 These choices balance adapter capacity and efficiency and allow adaptation of both attention and MLP projections when needed.
 
+\section{vLLM Server Configuration}
+\label{app:vllm-config}
+
+\todoinline{Document vLLM server flags, batching settings, scheduler adjustments, continuous batching parameters, KV-cache configuration, function-calling enforcement settings, and JSON error handling configuration.}
+
+\section{TRL Modifications}
+\label{app:trl-modifications}
+
+\todoinline{Document modifications to TRL trainer and data collator modules: masked loss integration, sequence-level importance ratio computation, variable-turn rollout collection, LoRA-ZeRO reconciliation, gradient accumulation/checkpointing compatibility, and API extensions.}
+
+\section{SLURM Configuration}
+\label{app:slurm-config}
+
+\todoinline{Document SLURM submission templates, environment modules, ephemeral repository setup, workspace isolation configuration, cgroups settings, rbash configuration, and optional Apptainer/Singularity containerization.}
+
+\section{Deepspeed Configuration}
+\label{app:deepspeed-config}
+
+\todoinline{Document NCCL environment variables, communication group setup, gradient synchronization configuration, policy broadcasting setup, async broadcast parameters, memory-bounded gathering implementation, and bandwidth optimization settings.}
+
 \section{Masked Loss Computation for Tool-Augmented \ac{RL}}
 \label{app:masked-loss}
 

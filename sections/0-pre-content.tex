@@ -12,9 +12,7 @@ Bjarni Haukur Bjarnason <bhbj@kth.se>\\ Electrical Engineering and Computer Scie
 
 \subsection*{Supervisor} André Afonso Nunes Silva <andreans@kth.se>\\ Division of Theoretical Computer Science\\ KTH Royal Institute of Technology ~ }
 
-\newpage
-\thispagestyle{plain}
-\input{sections/0.1-acronyms}
+\newpage \thispagestyle{plain} \input{sections/0.1-acronyms}
 
 \newpage \thispagestyle{plain} \chapter*{Abstract} Software engineering agents have emerged as the dominant approach for automated program repair, with systems like SWE-agent, OpenHands and Claude Code achieving unprecedented success on real-world software engineering tasks.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  The English abstract% Topic
@@ -37,14 +35,17 @@ By training models within the exact scaffolding they will use at deployment, we 
 Our work attempts to bridge the gap between closed-source frontier capabilities and open research, providing complete implementation details, training procedures and infrastructure specifications.
 
 % Detail/Nuance
-We implement this through \ac{GSPO}~\cite{gspo2025} with an explicit KL regularizer, enabling stable updates while models actively debug real repositories during training.\todoinline{Verify GSPO citation details once bibliography is finalized.}
+We implement this through \ac{GSPO}~\cite{gspo2025} with an explicit KL regularizer, enabling stable updates while models actively debug real repositories during training.
 The key technical innovation lies in our training-inference duality: a custom integration layer enables simultaneous model training and serving, with \ac{NCCL} facilitating live weight synchronization across distributed \acsp{GPU} [expand: specific throughput numbers, latency implications].
-Our \textit{Nano-agent} architecture provides essential bash and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.\todoinline{Add brief description of Mini-SWE-Agent/Aider transfer once experiments finish.}
+Our \textit{Nano-agent} architecture provides essential bash and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
+\todoinline{Add brief description of Mini-SWE-Agent/Aider transfer once experiments finish.}
 
 % Evidence / Secondary Contribution
-Experiments on [X training instances, Y compute hours] demonstrate that online training yields models exhibiting sophisticated debugging behaviors: systematic hypothesis testing, incremental code modification, and test-guided exploration [specific examples needed].\todoinline{Insert zero-shot transfer summary once scaffold experiments are finalized.}
+Experiments on [X training instances, Y compute hours] demonstrate that online training yields models exhibiting sophisticated debugging behaviors: systematic hypothesis testing, incremental code modification, and test-guided exploration [specific examples needed].
+\todoinline{Insert zero-shot transfer summary once scaffold experiments are finalized.}
 On SWE-Bench-Verified, our approach achieves [X\% resolve rate], representing [Y\% improvement over baselines].
-Secondary findings include emergent systematic debugging strategies and significant computational efficiency gains through training-inference duality.\todoinline{Insert concrete efficiency numbers once evaluation completes.}
+Secondary findings include emergent systematic debugging strategies and significant computational efficiency gains through training-inference duality.
+\todoinline{Insert concrete efficiency numbers once evaluation completes.}
 
 % Weaker Result
 [Preliminary results on cross-dataset generalization / specific failure modes / computational cost analysis - expand based on actual findings]

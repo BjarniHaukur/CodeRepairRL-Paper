@@ -16,7 +16,6 @@ This unified approach makes large-scale agent training practically feasible with
 
 \textbf{\ac{GSPO}
 Optimization for Agents}: We adapt \ac{GSPO}~\cite{gspo2025} with KL regularization for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training and stabilizing small-batch updates.
-\todoinline{Ensure GSPO reference is included in the bibliography.}
 
 \subsection{Methodological Validation}
 \label{subsec:methodological-validation}
@@ -93,10 +92,8 @@ The methodological foundation supports future development toward practical deplo
 By providing complete open-source implementations, we enable broader academic investigation of online \ac{RL} techniques for coding agents.
 This open approach facilitates reproducible research and community-driven development of advanced agent training methods, reducing barriers to entry in this emerging field.
 
-\subsection{Design Philosophy and the Bitter Lesson}
+\subsection{From Games to Real Tasks: \acp{LLM} as the Missing Foundation}
 \label{subsec:design-philosophy}
-
-\subsubsection{From Games to Real Tasks: \acp{LLM} as the Missing Foundation}
 
 The application of \ac{RL} to real-world tasks like coding represents a fundamental shift in what reinforcement learning can accomplish.
 AlphaZero's superhuman game performance demonstrated the power of learning through interaction, yet simultaneously exposed a critical limitation: games provide reward signals for every legal move, while real-world tasks require deep conceptual understanding just to participate meaningfully.
@@ -108,7 +105,7 @@ When a modern \ac{RL} agent attempts to fix a bug, it can execute valid commands
 These capabilities—acquired through massive-scale pretraining—give the agent that crucial first rung on the ladder, enabling the generation of rich learning signals that \ac{RL} algorithms can exploit.
 For the first time, we can apply decades of reinforcement learning research to problems that matter, because \acp{LLM} have bridged the gap between random exploration and meaningful interaction.
 
-\subsubsection{Learning Versus Engineering: The Minimalist Approach}
+\subsection{Learning Versus Engineering: The Minimalist Approach}
 
 Our experimental results inform broader design philosophy questions in agent development.
 \todoinline{Based on Chapter 5 results: discuss how the bitter lesson applies to training software engineering agents, comparing simple tools with extensive learning versus sophisticated engineering approaches.
@@ -219,10 +216,8 @@ This includes specialized training for security vulnerability fixing and perform
 
 Investigation of experiential training across different model architectures could reveal optimal designs for agentic programming tasks, including architecture variants like mixture-of-experts models, systematic study of performance scaling effects, multimodal integration with visual debugging information, and external memory systems for long-term context.
 
-\subsection{Infrastructure Optimization}
+\subsection{Cross-Group Walltime Optimization}
 \label{subsec:infra-optimization}
-
-\subsubsection{Cross-Group Walltime Optimization}
 
 Our current implementation optimizes intra-group asynchronous behavior, allowing individual episodes within a training group to progress independently.
 However, the system treats episode groups synchronously: inference pauses once the configured group size is reached, waiting for training to complete and weights to synchronize before new episodes begin.
@@ -235,10 +230,10 @@ Given the small, gradual nature of \ac{GSPO} updates and continuous weight synch
 This approach would maintain continuous inference server utilization, eliminate idle time during training phases, and enable training to begin as soon as any subset of episodes completes rather than waiting for full groups.
 The optimization would particularly benefit throughput when episode length distributions exhibit high variance, as faster episodes would immediately feed into training while longer episodes continue exploration without blocking progress.
 
-\subsubsection{Enhanced Containerization}
+\subsection{Enhanced Containerization}
 
 As discussed in \S\ref{subsec:rollout-isolation}, proper containerization would enable higher parallelism by safely multiplexing more episodes per node.
-Combined with off-policy rollouts described above, this would eliminate on of the primary throughput bottlenecks in the current system.
+Combined with off-policy rollouts described above, this would eliminate one of the primary throughput bottlenecks in the current system.
 
 \subsection{Advanced Agent Architectures}
 \label{subsec:advanced-agents}

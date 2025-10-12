@@ -8,7 +8,7 @@ This rapid progress underscores the critical importance of maintaining open rese
 Across diverse perspectives, there emerges a common recognition that researchers must maintain competitive access to the tools and methodologies driving these advances, ensuring that critical insights remain accessible to the broader scientific community rather than concentrated within proprietary systems.
 Recent open weight releases such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\cite{qwen3CoderBlog2025} follow closely behind frontier performance, but do not include full training recipes.
 This reinforces the need for open, reproducible methods and analysis.
-\todoinline{Verify and update SWE-Bench(-Verified) SOTA; cite system cards/technical reports for these claims (Claude 4/3.5, Qwen3-Coder, Kimi-K2) at submission.}
+\todoinline{Verify SWE-Bench-Verified SOTA numbers at submission time as frontier performance continues to evolve rapidly.}
 
 This thesis directly addresses this need by investigating how a single, minimalist agent—Nano—enables a model to acquire agentic behavior through experiential \ac{RL} feedback occurring entirely within the agent's interactive loop.
 By situating all learning and adaptation within the Nano harness, we provide clear, reproducible insights into the mechanisms by which \ac{RL} cultivates autonomy and effective tool use in repository-level code repair.
@@ -26,7 +26,7 @@ Traditional systems for automated code repair have relied predominantly on super
 In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process.
 While computationally efficient, this approach fundamentally misrepresents the nature of repository-level software debugging, which involves iterative hypothesis refinement, strategic exploration of entire codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation.
 Moreover, the information needed to fix a bug in real-world repositories is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide to navigate and understand the broader codebase context.
-\todoinline{which traditional paper to cite here}
+\todoinline{Add citation to traditional APR survey or seminal work (e.g., GenProg, Prophet, or APR survey paper).}
 
 The question becomes: how do we train such agentic systems when the very complexity that necessitates their existence also makes traditional training approaches intractable?
 \ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaGo2016}.
@@ -52,7 +52,7 @@ In this thesis we instantiate exactly one such harness—the Nano agent—and co
 
 When equipped with appropriate harnesses, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
 This capability transformation makes it practical to apply \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
-\todoinline{Add citations for terminal-oriented agency benchmarks (e.g., TauBench) and point readers to the cross-scaffold evaluation in Chapter~\ref{sec:rq3-scaffold}.}
+Terminal-oriented agency benchmarks such as TauBench~\cite{taubench2024} provide standardized evaluation frameworks for such capabilities; our cross-scaffold transfer experiments (\cref{sec:rq3-scaffold}) further explore generalization across different interaction interfaces.
 
 In this thesis, training adopts an execution-free agentic setup: the agent does not run builds or tests during training.
 Instead, it receives static, repository-local feedback obtained exclusively through shell commands, without executing tests or builds.
@@ -113,7 +113,6 @@ We prioritize methodological clarity and reproducibility: all configurations and
 % This thesis makes several significant contributions to the field of automated program repair and \ac{RL} for code generation:
 
 % \textbf{Novel Training Paradigm}: We introduce and implement \ac{RL} for code repair, wherein autonomous agents interact with real software environments during training.
-% \todoinline{Recommend defining this approach once and dropping the term}
 % This approach represents a fundamental departure from static supervised learning, enabling models to learn debugging strategies through direct experience.
 % Our implementation demonstrates the feasibility of this paradigm at scale, handling the computational and engineering challenges of simultaneous training and environment interaction.
 
@@ -135,7 +134,6 @@ The overarching goal of this thesis is to develop and empirically validate an on
 %Our comprehensive evaluation addresses harness adaptation, cross-model generalization, dataset transfer, and task generalization as outlined in our research questions above.
 
 To make this investigation concrete, we organize the work around three learnings (RQ1-RQ3) that arise from building an open-source agentic model in a single minimalist harness (Nano).
-\todoinline{Verify RQ numbering and titles are consistent with Chapters 3 and 5 before submission.}
 
 \textbf{RQ1: How does GSPO training reshape Nano harness adaptation and SWE-Bench-Verified success across model sizes?}
 \begin{itemize}

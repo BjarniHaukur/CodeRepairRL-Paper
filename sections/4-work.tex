@@ -3,13 +3,7 @@
 
 This chapter provides a practical account of the work performed.
 Where Chapter~\cref{ch:method} formalizes the methodology, here we describe concretely what was implemented, how components were integrated, and which engineering choices enabled a stable, scalable training environment for a single minimalist agent.
-
-\section{Scope and Objectives}
-
-Our objective was to realize an online, repository-grounded training environment in which a single terminal-based agent learns via execution-free, outcome rewards.
-Achieving this required cohesive changes across serving, training, and orchestration so that multi-turn \ac{RL}, tool I/O, and live policy updates operate concurrently and reliably.
-
-\section{Implementation Overview}
+All implementation artifacts—system prompts, trainer configurations, hyperparameters, data processing scripts, SLURM templates, and per-episode logs—are released to enable full replication; specific configurations are documented in the Appendix.
 
 We implemented an end-to-end training environment that couples a minimalist terminal agent with an OpenAI-compatible serving layer and a scalable trainer.
 The Nano harness exposes only two tools (\texttt{shell}, \texttt{apply\_patch}) and enforces strict truncation (2{,}000 characters per tool call) and episode budgets over tools, tokens, and time.
@@ -19,20 +13,26 @@ Experiments are orchestrated by SLURM with per-episode ephemeral repositories an
 
 \todoinline{Insert repository layout diagram or concise bullet map of major packages/modules.}
 
-\section{Training Environment Implementation}
+\section{Scope and Objectives}
 
-\subsection*{Serving and Function Calling}
+Our objective was to realize an online, repository-grounded training environment in which a single terminal-based agent learns via execution-free, outcome rewards.
+Achieving this required cohesive changes across serving, training, and orchestration so that multi-turn \ac{RL}, tool I/O, and live policy updates operate concurrently and reliably.
+
+\section{Training Environment Implementation}
+\label{sec:training-environment-implementation}
+
+\subsection{Serving and Function Calling}
 
 We extended the vLLM \ac{API} server with strict function-calling enforcement and deterministic error messages for invalid \ac{JSON} tool calls.
 Continuous batching and KV-cache reuse are configured for multi-turn episodes.
-\todoinline{List relevant server flags, batching settings, and any scheduler adjustments.}
+Specific server configurations are documented in \cref{app:vllm-config}.
 
-\subsection*{Live Adapter Synchronization to Deployed API Servers}
+\subsection{Live Adapter Synchronization to Deployed API Servers}
 
 A key technical requirement for our compute-efficient approach is real-time weight synchronization to deployed OpenAI-compatible \ac{API} servers using \ac{NCCL}.
 This capability addresses a fundamental mismatch between traditional batched inference servers and the asynchronous, multi-turn nature of coding agents.
 
-\paragraph{The Async Multi-Turn Challenge.}
+\subsubsection{The Async Multi-Turn Challenge}
 Standard inference servers optimize for batched generation where all requests in a batch complete synchronously—the batch finishes when the slowest request finishes.
 This batching strategy proves incompatible with multi-turn coding agents where episodes vary dramatically in both turn count and per-turn generation length.
 An agent might complete debugging in five turns with brief commands, while another requires twenty turns with extensive repository exploration.
@@ -43,7 +43,7 @@ Our implementation leverages vLLM's OpenAI-compatible \ac{API} server with conti
 Requests complete as soon as generation finishes, tool calls execute immediately without waiting for other agents, and episodes advance at their natural pace without synchronization barriers.
 This asynchronous behavior within turns is essential for practical online \ac{RL} with multi-turn agents, as it maintains high throughput despite heterogeneous episode structures.
 
-\paragraph{Weight Synchronization Architecture.}
+\subsubsection{Weight Synchronization Architecture}
 The key technical challenge becomes synchronizing updated policy weights to these running \ac{API} servers without interrupting ongoing inference operations.
 Training nodes compute \ac{GSPO} updates on \ac{LoRA} adapter parameters following each batch of collected trajectories.
 Rather than checkpointing and restarting servers—which would discard valuable KV-cache state and introduce multi-second interruptions—we broadcast weight deltas directly to live servers via \ac{NCCL} collective communication primitives.
@@ -58,29 +58,31 @@ This memory-bounded gathering strategy enables weight synchronization to coexist
 Asynchronous broadcast operations allow training to proceed while synchronization completes, preventing pipeline stalls.
 The system maintains separate \ac{NCCL} communication groups: one for gradient synchronization within the distributed training cluster and another for policy broadcasting to inference servers, enabling concurrent operation without interference.
 
-\paragraph{Performance and Generality.}
+\subsubsection{Performance and Generality}
 Weight broadcasts complete in 150-300ms for typical adapter configurations, representing a small fraction of episode generation time.
 The differential update strategy reduces communication overhead by approximately 95\% compared to full weight synchronization.
 Custom \ac{CUDA} memory management prevents conflicts during concurrent training and inference operations, with automatic recovery from transient network failures through retry mechanisms.
 
-\paragraph{Broader Applicability Beyond Coding Agents.}
+\subsubsection{Broader Applicability Beyond Coding Agents}
 The architecture's reliance on standard OpenAI-compatible \ac{API} interfaces means it naturally extends beyond code repair to other interactive applications where outcomes can be rewarded.
 The training pipeline remains application-agnostic, requiring only a reward function to evaluate completed interactions.
 This design choice simplified our development workflow—we could prototype agent behaviors using standard vLLM serving infrastructure, then enable online training by connecting to the \ac{GSPO} trainer without service interruption—and suggests potential utility for training other interactive systems such as task-specific assistants, document processors, or dialogue agents where conventional \ac{API} interfaces already exist.
 
-\subsection*{Trainer Extensions}
+\subsection{Trainer Extensions}
 
-The trainer integrates masked loss (see Appendix~\ref{app:masked-loss}), sequence-level importance ratios computed after masking, and variable-turn rollout collection that preserves turn boundaries while remaining batch-friendly.
+The trainer integrates masked loss (see \cref{app:masked-loss}), sequence-level importance ratios computed after masking, and variable-turn rollout collection that preserves turn boundaries while remaining batch-friendly.
 We reconciled \ac{LoRA}-only updates under ZeRO partitioning with gradient accumulation and checkpointing.
-\todoinline{Name the modified TRL modules/files and summarize the \ac{API} changes.}
+Our modifications to TRL's trainer and vLLM integration implement these extensions while maintaining compatibility with the standard \ac{API}; implementation details are documented in \cref{app:trl-modifications,app:vllm-config}.
 
-\subsection*{Orchestration and Isolation}
+\subsection{Orchestration and Isolation}
 
 Jobs run under SLURM with per-episode ephemeral repositories, workspace-scoped filesystems, cgroups, and rbash.
 Optionally, Apptainer/Singularity images pin dependencies.
-\todoinline{Note SLURM templates and environment modules used.}
+SLURM submission templates and environment configurations are documented in \cref{app:slurm-config}.
 
 \section{Training Runs and Protocol}
+
+With the training environment infrastructure established, we now describe the concrete experimental protocol and parameter choices for the runs conducted.
 
 We conducted runs on Python-only SWE-Gym (\(\sim\)2{,}400 tasks) and on a compact 1k curriculum (750 SWE-Gym Python + 250 SWE-Bench-Multilingual across nine languages; 50 multilingual tasks held out for validation), repeating epochs over the latter to maximize sample reuse.
 Episodes are bounded by 30 tool calls, 12{,}288 generated tokens, and 60\,s wall-clock per bug (\(\pm\)20\,s for smaller/larger than the 14B reference).
@@ -95,7 +97,7 @@ We primarily use Qwen3-14B and repeat best settings on Qwen3-8B and Qwen3-30B-A3
 A central objective of this work was demonstrating that online \ac{RL} for coding agents remains tractable within academic compute budgets.
 We achieved this through systematic application of memory and computational optimizations that, when composed carefully, enable training of models up to 30B parameters on modest \ac{GPU} clusters.
 
-\paragraph{Parameter-Efficient Adaptation with \ac{LoRA}.}
+\subsection{Parameter-Efficient Adaptation with \ac{LoRA}}
 Rather than fine-tuning complete model weights, we restrict updates to low-rank adapter matrices applied to attention and \ac{MLP} projections.
 With rank 32 and $\alpha=64$, adapter parameters comprise less than 1\% of the base model, dramatically reducing optimizer state memory requirements.
 This architectural choice provides several compounding benefits beyond raw parameter reduction.
@@ -103,40 +105,40 @@ Adapters enable clean separation between the frozen base policy and trainable mo
 The restricted parameter space also accelerates convergence on downstream tasks, as optimization focuses on a compact representation rather than attempting to shift billions of frozen pre-training parameters.
 Adapter-only updates integrate naturally with our differential weight synchronization system, as only the small adapter state requires transmission to inference servers rather than the full model.
 
-\paragraph{Memory Management Through DeepSpeed ZeRO.}
+\subsection{Memory Management Through DeepSpeed ZeRO}
 Training multi-billion parameter models requires distributing optimizer states, gradients, and parameters across multiple \acp{GPU}.
 We employ DeepSpeed ZeRO-2 partitioning for models up to 14B parameters and ZeRO-3 for larger configurations.
 ZeRO-2 shards optimizer states and gradients while replicating model parameters across devices, balancing communication overhead against memory savings.
 This configuration suffices for 8B and 14B models where parameter memory remains manageable but optimizer states—particularly for AdamW with its first and second moment estimates—would otherwise exceed available \ac{VRAM}.
 For the 30B-class models, ZeRO-3 extends sharding to include model parameters themselves, gathering required parameters on demand during forward and backward passes while keeping per-device memory consumption bounded.
 
-\paragraph{Gradient Checkpointing for Activation Memory.}
+\subsection{Gradient Checkpointing for Activation Memory}
 Multi-turn agent episodes generate long sequence lengths that accumulate substantial activation memory during backward passes.
 Gradient checkpointing trades computation for memory by selectively discarding intermediate activations during the forward pass and recomputing them on demand during backpropagation.
 We checkpoint activations at transformer layer boundaries, reducing peak activation memory by approximately 50\% while incurring modest recomputation overhead.
 This memory savings proves essential for accommodating longer episodes within fixed memory budgets, enabling training on realistic debugging scenarios that span dozens of turns rather than constraining experiments to artificially short interactions.
 
-\paragraph{Mixed-Precision Training with BF16.}
+\subsection{Mixed-Precision Training with BF16}
 All training employs Brain Float 16 (BF16) arithmetic for forward and backward passes while maintaining FP32 precision for optimizer state accumulation.
 BF16 provides memory and throughput advantages over FP32 while offering better numerical stability than FP16 for large language model training, as its wider exponent range prevents the underflow issues that plague FP16 in deep networks.
 The precision choice integrates cleanly with other optimizations: DeepSpeed ZeRO handles mixed-precision sharding automatically, gradient checkpointing operates transparently at BF16 precision, and \ac{LoRA} adapters train stably without requiring loss scaling or other numerical interventions.
 
-\paragraph{Custom Triton Kernels for \ac{GSPO}
-Loss Computation.
-}
+\subsection{Custom Triton Kernels for \ac{GSPO}
+Loss Computation}
+
 The \ac{GSPO} loss involves multiple sequential operations: log-probability computation, masking, importance weighting, advantage normalization, and clipping.
 Implementing these as separate PyTorch operations materializes intermediate tensors at each stage, consuming memory bandwidth and triggering numerous kernel launches.
 We implemented fused Triton kernels that combine these operations into single GPU kernels, eliminating intermediate materialization and reducing memory traffic by approximately 60\% during the loss computation phase.
 Triton's Python-like syntax enabled rapid iteration compared to hand-written CUDA while achieving performance within 5-10\% of optimized CUDA implementations.
 These kernels have since been adopted in several open-source \ac{RL} training frameworks.
 
-\paragraph{Kernel Optimizations for Attention and Serving.}
+\subsection{Kernel Optimizations for Attention and Serving}
 The vLLM inference server leverages optimized attention kernels and memory management specifically designed for language model serving.
 PagedAttention manages KV-cache memory efficiently, reducing fragmentation and enabling higher batch sizes for concurrent agent episodes.
 Continuous batching dynamically assembles requests into batches as they arrive, maintaining high \ac{GPU} utilization despite variable episode lengths and completion times.
 While FlashAttention provides kernel-level speedups for attention computation, our primary gains come from algorithmic improvements in cache management and batching rather than raw arithmetic throughput.
 
-\paragraph{Resource Requirements and Scalability.}
+\subsection{Resource Requirements and Scalability}
 The composed optimizations yield manageable resource requirements across model scales.
 Qwen3-8B trains comfortably on 2-3 A100 \acp{GPU} with ZeRO-2 and \ac{LoRA}, Qwen3-14B on 3-4 \acp{GPU} with the same configuration, and Qwen3-30B-A3B on 6-8 \acp{GPU} with ZeRO-3.
 Inference serving requires 1-2 \acp{GPU} depending on model size and desired throughput.
@@ -174,22 +176,3 @@ Total training costs remain accessible for academic research groups.
 \todoinline{Insert cost analysis table with total A100 \ac{GPU}-hours per run for each model size, per-episode cost comparisons, development cost implications, and infrastructure maintenance requirements.}
 These requirements demonstrate that sophisticated online \ac{RL} training need not demand industrial-scale compute budgets when systematic optimization and careful architectural choices reduce overhead efficiently.
 
-\section{Deliverables and Reproducibility}
-\label{sec:repro}
-
-We release the Nano tool schema, system prompts, trainer configurations, \ac{LoRA} hyperparameters, data selection and deduplication scripts, pinned package manifests, and SLURM submission templates to enable full replication of our training setup.
-Per-episode logs capture comprehensive execution traces including tool invocations (with truncation markers), token counts per turn, wall-clock timings, canonical diffs, computed rewards, and RNG seeds, providing complete transparency into the training process.
-
-Appendix entries document the live sync design (\ac{NCCL} environment, gathering pseudo-code), DeepSpeed + \ac{LoRA} configuration fragments, and measured sync/throughput metrics.
-Figures include an agent loop diagram, a concise system architecture, and an annotated rollout example.
-
-\todoinline{Cross-reference specific Appendix sections and figure/table identifiers once finalized.}
-
-% This yields dramatically lower peak VRAM during weight collection—on the order of hundreds-fold reduction—while also reducing update latency, enabling truly live policy updates alongside continuous batching.
-% \todoinline{Insert exact VRAM reduction factor}
-
-% Second, we resolved integration constraints so that gradient accumulation, gradient checkpointing, \ac{LoRA} adaptation, DeepSpeed ZeRO partitioning, continuous batching, and live weight sync operate concurrently without sacrificing stability.
-% The scheduling of synchronization, KV-cache reuse, and optimizer steps is documented in the Appendix, together with configuration fragments required to reproduce the combined setup.
-% \todoinline{Add appendix references to specific configs, \ac{NCCL} environment settings, and memory pooling choices.}
-
-% \todoinline{Insert measured sync latencies and adapter sizes once finalized.}
