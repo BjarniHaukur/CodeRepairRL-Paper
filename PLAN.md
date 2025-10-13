@@ -2,6 +2,22 @@
 
 This plan tracks the restructuring of the thesis to follow the KTH template with clear separation between methodology (Ch 3), implementation (Ch 4), and results (Ch 5).
 
+## ✅ Supervisor Feedback Session (Acknowledgements, Abstract, Minor Fixes)
+
+### Completed Items
+- [x] **Acknowledgements section** - Enhanced from draft to polished 5-paragraph structure with NAISS infrastructure, ASSERT-KTH book club, open-source ecosystem, and personal thanks
+- [x] **Abstract rewrite** - Complete publication-quality abstract with clear structure (problem → solution → method → results → impact), data placeholders ready for fill-in
+- [x] **Keywords finalized** - 7-term list including GSPO, online learning, tool-augmented LMs
+- [x] **Chapter 4 title change** - "The Work" → "Implementation" for better clarity
+- [x] **Section 3.10 title cleanup** - Removed "(brief)" from "Evaluation Protocol"
+- [x] **Chapter reference fix** - Fixed "Chapter Chapter 3" to "\cref{ch:method}" in Chapter 4 opening
+- [x] **Code overflow fix (page 29)** - Broke long `subprocess.check_output()` line into multiple lines in verbatim block
+
+### Outstanding Questions
+- [ ] **Aider/OpenHands ablation** - Need to confirm with supervisor: are we still planning full ablation on Aider and OpenHands scaffolds? (Currently removed from main RQs, could be appendix-only if data exists)
+
+---
+
 ## ✅ Recent Session (RQ Restructuring & Prose Polish)
 
 ### Research Question Restructuring

@@ -85,7 +85,10 @@ This format aligns with \ac{LLM} strengths: the model specifies edits in clear s
 After interaction terminates, the canonical diff is computed deterministically via git:
 
 \begin{verbatim}
-subprocess.check_output(["git", "-C", str(repo_root), "diff"], text=True, errors="ignore")
+subprocess.check_output(
+    ["git", "-C", str(repo_root), "diff"],
+    text=True, errors="ignore"
+)
 \end{verbatim}
 
 This diff is deterministic under a fixed repository state and consistent git configuration, ensuring reproducible reward computation while eliminating the entire class of diff formatting errors that would otherwise corrupt the learning signal.
@@ -261,7 +264,7 @@ During evaluation, we use temperature 0.2 with top-p 0.9, exploiting the learned
 Lower temperature concentrates sampling on high-probability actions identified as effective during training, while mild top-p filtering prevents occasional sampling of extremely low-probability tokens.
 Tool-call formatting remains deterministic through strict \ac{JSON} schema validation regardless of temperature.
 
-\section{Evaluation Protocol (brief)}
+\section{Evaluation Protocol}
 \label{sec:eval-brief}
 
 Our evaluation protocol addresses the three research questions established in Chapter~\ref{ch:introduction}.
