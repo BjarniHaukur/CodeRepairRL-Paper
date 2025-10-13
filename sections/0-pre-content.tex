@@ -59,8 +59,7 @@ Beyond code repair, \ac{RL} offers a general framework for training \ac{AI} syst
 By demonstrating that models can learn rich environmental interactions through \ac{RL}—rather than requiring hand-crafted reasoning chains—this work points toward [future possibilities: self-improving coding assistants, autonomous software development, general experiential \ac{AI} training].
 
 \subsection*{Keywords}
-automated program repair, coding agents, reinforcement learning, execution-free training, repository-level evaluation, reproducibility, multilingual
-\todoinline{populate}
+automated program repair, coding agents, reinforcement learning, group relative policy optimization, online learning, tool-augmented language models, execution-free training, multilingual generalization
 
 \newpage
 \thispagestyle{plain}
@@ -82,11 +81,17 @@ Presentera
 \thispagestyle{plain}
 \chapter*{Acknowledgements}
 I would like to express my sincere gratitude to my supervisor, André Afonso Nunes Silva, and my examiner, Martin Monperrus, for their exceptional guidance throughout this thesis.
-What made this experience truly special was not only their excellent supervision but also their trust in my judgment to steer the project in my own direction, even when it led to a complete pivot midway through.
-They further provided access to the extensive \acs{NAISS} computational resources, particularly the Alvis and Berzelius clusters, whose scale enabled reasearching the application \ac{RL} to \acp{LLM}.
+Their supervision extended beyond technical feedback: they trusted me to pursue an ambitious research direction and supported a complete methodological pivot midway through the project when evidence suggested a more promising path.
 
-I would also like to thank all the members who regularly attended the Monday meetings at ASSERT-KTH.
-These sessions provided an invaluable venue for discussing ideas and hearing what others working on similar research are thinking.
+This research would not have been possible without access to the computational infrastructure provided by the National Academic Infrastructure for Supercomputing in Sweden (\acs{NAISS}).
+Training on the Alvis and Berzelius \ac{GPU} clusters enabled experimentation at a scale far beyond typical academic resources, making the investigation of online \ac{RL} for coding agents feasible.
+I am grateful to the infrastructure providers and the Swedish research community for maintaining these shared resources.
+
+I thank the members of ASSERT-KTH who regularly attended the Monday meetings, which operated as an informal book club for those interested in \ac{AI} for software engineering.
+These sessions provided a welcoming forum to discuss recent papers, share emerging ideas, and engage with a group of like-minded researchers.
+
+I acknowledge the developers and maintainers of the open-source projects that form the foundation of this research: TRL, vLLM, DeepSpeed, PyTorch, and the broader \ac{LLM} training ecosystem.
+Standing on the shoulders of these efforts made this investigation possible within academic constraints.
 
 Lastly, I thank my friends at KTH, Jonas and Navin, who have been with me from the start of my master's studies.
 Their steady friendship and camaraderie are the foundation on which these studies stand.

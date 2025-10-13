@@ -176,89 +176,48 @@ The gap between training environments and production deployment contexts may lim
 \section{Future Research Directions}
 \label{sec:future-work}
 
-\subsection{Completing Experimental Validation}
-\label{subsec:completing-validation}
-
-The immediate priority involves completing the comprehensive experimental evaluation outlined in our research questions:
-
-\subsubsection{Performance Quantification}
-
-Systematic measurement of performance improvements across the training process, including adaptation metrics for the Nano harness, cross-model portability validation, and cross-dataset generalization assessment.
-This evaluation will provide the empirical foundation needed to validate the theoretical contributions developed in this thesis.
-
-\subsubsection{Statistical Validation}
-
-Rigorous statistical analysis of results with appropriate confidence intervals and significance testing.
-Comparison against supervised fine-tuning baselines to establish the relative merits of experiential learning approaches.
-
-\subsection{Enhanced Reward Engineering}
-\label{subsec:enhanced-reward}
-
-\subsubsection{Test-Based Validation}
-
-The most natural extension involves incorporating actual test execution into reward computation.
-Instead of relying on patch similarity metrics, future systems could execute project test suites and reward agents based on functional correctness.
-This approach would provide more accurate correctness signals, enable discovery of alternative valid solutions, support evaluation of partial fixes, and better align training objectives with real-world debugging goals.
-
-\subsubsection{Multi-Objective Optimization}
-
-Future reward functions could incorporate multiple objectives beyond correctness: code quality metrics for readability and maintainability, efficiency considerations for patch minimality and performance impact, robustness measures for edge case handling, and documentation quality for explanations and comments.
-
-\subsection{Scaling and Generalization}
-\label{subsec:scaling-generalization}
-
-\subsubsection{Broader Domain Expansion}
-
-Systematic evaluation across different programming contexts and application domains would validate the universality of learned debugging skills.
-This includes specialized training for security vulnerability fixing and performance optimization; evaluation on large-scale enterprise codebases with complex dependencies; and adaptation to different development workflows and coding conventions.
-
-\subsubsection{Model Architecture Exploration}
-
-Investigation of experiential training across different model architectures could reveal optimal designs for agentic programming tasks, including architecture variants like mixture-of-experts models, systematic study of performance scaling effects, multimodal integration with visual debugging information, and external memory systems for long-term context.
-
 \subsection{Cross-Group Walltime Optimization}
-\label{subsec:infra-optimization}
+\label{subsec:cross-group-optimization}
 
 Our current implementation optimizes intra-group asynchronous behavior, allowing individual episodes within a training group to progress independently.
 However, the system treats episode groups synchronously: inference pauses once the configured group size is reached, waiting for training to complete and weights to synchronize before new episodes begin.
-Given the substantial variation in episode completion times—some problems resolve in five turns while others require twenty or more—this creates walltime dependencies where the inference servers sit idle during training updates.
+Given the substantial variation in episode completion times—some problems resolve in five turns while others require twenty or more—this synchronous grouping creates walltime dependencies where inference servers sit idle during training updates.
 
-Future implementations could eliminate these barriers through slightly off-policy rollouts.
+Future implementations could eliminate this bottleneck through slightly off-policy rollouts.
 Instead of pausing inference during training, new episodes would begin immediately using the current policy while training proceeds on completed episodes in parallel.
 When weight updates broadcast to inference servers, any in-flight episodes would continue with the updated policy, making them slightly off-policy: they began with policy version $\pi_n$ but will complete under $\pi_{n+1}$ or later.
 Given the small, gradual nature of \ac{GSPO} updates and continuous weight synchronization, this off-policy gap remains bounded and acceptable.
+
 This approach would maintain continuous inference server utilization, eliminate idle time during training phases, and enable training to begin as soon as any subset of episodes completes rather than waiting for full groups.
-The optimization would particularly benefit throughput when episode length distributions exhibit high variance, as faster episodes would immediately feed into training while longer episodes continue exploration without blocking progress.
+The optimization would particularly benefit throughput when episode length distributions exhibit high variance, as faster episodes immediately feed into training while longer episodes continue without blocking progress.
 
-\subsection{Enhanced Containerization}
+\subsection{Unified Training-Inference Architecture}
 
-As discussed in \S\ref{subsec:rollout-isolation}, proper containerization would enable higher parallelism by safely multiplexing more episodes per node.
-Combined with off-policy rollouts described above, this would eliminate one of the primary throughput bottlenecks in the current system.
+The current system separates training and inference across distinct \ac{GPU} pools with explicit weight synchronization.
+While this design maximizes throughput by overlapping computation, it increases infrastructure requirements: even modest experiments demand three \acp{GPU} (two for training, one for inference).
+Future implementations could co-locate training and inference on a single set of weights, eliminating synchronization overhead entirely and reducing the entry barrier for \ac{RL} experimentation.
 
-\subsection{Advanced Agent Architectures}
-\label{subsec:advanced-agents}
+In this unified architecture, the model would alternate between inference and training phases rather than running them concurrently.
+Episodes would accumulate using the current policy weights, and once sufficient experience is collected, the system would pause rollout generation, perform training updates in-place, then resume inference with the updated policy.
+This eliminates the need for separate inference servers, weight broadcasting infrastructure, and \ac{NCCL} synchronization—reducing the minimum viable system to a single training node.
 
-\subsubsection{Hierarchical and Modular Agents}
+The trade-off is straightforward: training updates pause inference, reducing overall throughput compared to the parallel design.
+However, for researchers with limited compute budgets or those conducting initial feasibility studies, this reduced throughput may be acceptable in exchange for dramatically lower infrastructure complexity and resource requirements.
+The design would particularly benefit early-stage experimentation where validating core concepts matters more than maximizing sample efficiency.
 
-Future agent designs could incorporate hierarchical planning with high-level strategy formation and detailed execution sub-agents, modular debugging skills that can be combined for complex repairs, adaptive scaffolding with dynamic tool selection, and collaborative multi-agent approaches for complex debugging tasks.
+\subsection{Multi-Task Curriculum Training}
 
-\subsubsection{Meta-Learning and Continual Learning}
+The OpenAI-compatible \ac{API} abstraction and plug-and-play harness design naturally extend to multi-task training scenarios.
+Rather than optimizing a single objective (code repair), the system could train concurrently on diverse tasks—code repair, email classification, document summarization, or any other problem admitting a structured reward signal.
+Episodes from different task distributions would interleave within training groups, and the shared policy would learn to handle heterogeneous environments through the same tool-calling interface.
 
-Agents that rapidly adapt to new environments represent an important frontier, including few-shot adaptation to new programming environments, continual learning without catastrophic forgetting, systematic transfer learning approaches, and self-improvement through reflection on debugging experiences.
+This multi-task formulation raises fundamental questions about capability emergence and transfer in \ac{RL} post-training.
+Does sharing model capacity across diverse objectives improve generalization, allowing debugging skills to transfer to related reasoning tasks?
+Or does multi-task training introduce interference, degrading performance on individual objectives compared to specialized single-task policies?
+The answers would illuminate whether \ac{RL}-trained \acp{LLM} benefit from curriculum diversity analogous to pre-training's broad data mixtures, or whether task-specific specialization remains necessary for complex reasoning domains.
 
-\subsection{Human-\ac{AI}
-Collaboration} \label{subsec:human-ai-collab}
-
-Rather than fully autonomous agents, future systems could focus on human-\ac{AI} partnerships through explanatory debugging that shares reasoning, incremental assistance adapting to developer preferences, learning from natural human feedback, and preference learning for individual coding styles.
-
-Educational applications could revolutionize programming instruction through tutoring systems that teach debugging skills, adaptive curricula based on individual weaknesses, automated skill assessment and improvement, and code review training through interactive analysis.
-
-\subsection{Infrastructure and Tooling Advances}
-\label{subsec:infra-tooling}
-
-Continued optimization could enable broader access through federated learning across institutions, efficient communication protocols for model updates, robust fault tolerance for distributed systems, and dynamic resource optimization for mixed workloads.
-
-Standardized evaluation frameworks would accelerate progress through comprehensive benchmarks for Python debugging tasks, automated functional correctness assessment, reproducibility tools for research extension, and community platforms for collaborative development.
+Investigating these questions could reveal fundamental insights about the future of \ac{RL} post-training: whether general-purpose reasoning emerges from diverse experiential curricula, or whether different cognitive skills require isolated optimization.
+The infrastructure documented in this thesis provides the foundation for such investigations, requiring only task-specific harnesses and reward functions to explore multi-objective training systematically.
 
 \section{Lessons Learned from Implementation}
 \label{sec:lessons-learned}
