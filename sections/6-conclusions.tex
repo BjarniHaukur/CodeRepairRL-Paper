@@ -61,14 +61,14 @@ Performance} \label{subsec:rq2-answer}
 
 \textbf{Significance}: Positive test-verified improvements would validate that execution-free patch-similarity rewards serve as effective proxies for functional correctness, enabling tractable multilingual training.
 
-\subsection{RQ3: Execution-Free Multilingual Curriculum Generalization}
+\subsection{RQ3: Language-Agnostic Training Effectiveness}
 \label{subsec:rq3-answer}
 
-\textbf{Theoretical Foundation}: Exposure to the multilingual curriculum should raise average reward on the 50-task SWE-Bench-Multilingual holdout without overfitting to the training languages.
+\textbf{Theoretical Foundation}: Execution-free patch-similarity rewards should enable effective multilingual training without language-specific engineering, yielding improvements across diverse programming languages on the 50-task SWE-Bench-Multilingual holdout.
 
 \textbf{Evidence}: \todoinline{Experimental validation pending: measure per-language reward improvements on the 50-task multilingual holdout with bootstrap confidence intervals, highlighting language-specific patterns.}
 
-\textbf{Significance}: Positive multilingual holdout gains would demonstrate that execution-free rewards enable cross-language transfer without bespoke per-language infrastructure, validating the language-agnostic training approach.
+\textbf{Significance}: Positive multilingual holdout gains would demonstrate that execution-free rewards enable unified training across programming languages without language-specific test infrastructure, engineering, or adaptations—validating the core design principle of language-agnostic RL training.
 
 \section{Broader Implications}
 \label{sec:broader-implications}

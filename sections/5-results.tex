@@ -2,7 +2,7 @@
 \label{ch:results}
 
 This chapter presents experimental results addressing the three research questions established in Chapter~\ref{ch:introduction}.
-Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we report harness adaptation metrics (RQ1), test-verified success rates on SWE-Bench-Verified (RQ2), and per-language reward trends on the SWE-Bench-Multilingual holdout (RQ3), supplemented by patch-similarity rates and training dynamics analysis.
+Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we report harness adaptation metrics (RQ1), test-verified success rates on SWE-Bench-Verified (RQ2), and language-agnostic training effectiveness on the SWE-Bench-Multilingual holdout (RQ3), supplemented by patch-similarity rates and training dynamics analysis.
 
 \todoinline{Insert comprehensive experimental results tables and statistical analyses once training runs complete, demonstrating improvements over baseline approaches.}
 
@@ -137,11 +137,12 @@ We report test-verified success rates with bootstrap 95\% confidence intervals.
 
 \subsection{Analysis} \label{subsec:rq2-analysis} \todoinline{Interpret success rate improvements, discuss error modes and failure cases, and relate patch-similarity training rewards to test-verified success.}
 
-\section{RQ3: Execution-Free Multilingual Curriculum Generalization} \label{sec:rq3-multilingual}
+\section{RQ3: Language-Agnostic Training Effectiveness} \label{sec:rq3-multilingual}
 
-\textbf{Research Question 3}: Does the execution-free multilingual curriculum generalize beyond Python?
+\textbf{Research Question 3}: Does execution-free \ac{RL} enable effective multilingual training without language-specific engineering?
 
 Using the mixed 1,000-task curriculum described in \S\ref{sec:data-env} (750 Python + 250 multilingual training tasks), we evaluate \ac{GSPO}-trained checkpoints on the reserved 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
+This evaluation directly tests whether execution-free patch-similarity rewards enable unified training across diverse languages without language-specific infrastructure.
 We report per-language reward deltas with bootstrap 95\% confidence intervals, comparing pre-training baselines against post-training performance.
 
 \subsection{Per-Language Results}\label{subsec:rq3-results}
@@ -313,4 +314,6 @@ Our comprehensive experimental evaluation yields several important conclusions:
 Performance)}: \todoinline{Report test-verified success rate improvements on SWE-Bench-Verified comparing pre-training vs.
 post-GSPO with references to Section~\ref{sec:rq2-swebench}.}
 
-\textbf{RQ3 (Execution-Free Multilingual Curriculum Generalization)}: \todoinline{Summarize per-language reward improvements on the 50-task multilingual holdout with references to Section~\ref{sec:rq3-multilingual}.}
+\textbf{RQ3 (Language-Agnostic Training Effectiveness)}: \todoinline{Summarize per-language reward improvements on the 50-task multilingual holdout, demonstrating that execution-free RL enables effective multilingual training without language-specific engineering.
+Reference Section~\ref{sec:rq3-multilingual}.
+}

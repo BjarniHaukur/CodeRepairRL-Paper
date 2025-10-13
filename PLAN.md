@@ -7,24 +7,26 @@ This plan tracks the restructuring of the thesis to follow the KTH template with
 ### Completed Items
 - [x] **Acknowledgements section** - Enhanced from draft to polished 5-paragraph structure with NAISS infrastructure, ASSERT-KTH book club, open-source ecosystem, and personal thanks
 - [x] **Abstract rewrite** - Complete publication-quality abstract with clear structure (problem → solution → method → results → impact), data placeholders ready for fill-in
-- [x] **Keywords finalized** - 7-term list including GSPO, online learning, tool-augmented LMs
+- [x] **Keywords finalized** - 8-term list including GSPO, online learning, tool-augmented LMs, multilingual generalization
 - [x] **Chapter 4 title change** - "The Work" → "Implementation" for better clarity
 - [x] **Section 3.10 title cleanup** - Removed "(brief)" from "Evaluation Protocol"
 - [x] **Chapter reference fix** - Fixed "Chapter Chapter 3" to "\cref{ch:method}" in Chapter 4 opening
 - [x] **Code overflow fix (page 29)** - Broke long `subprocess.check_output()` line into multiple lines in verbatim block
+- [x] **RQ3 rephrasing** - Updated RQ3 throughout all chapters from "Does the execution-free multilingual curriculum generalize beyond Python?" to "Does execution-free RL enable effective multilingual training without language-specific engineering?" to better reflect the language-agnostic design principle
+- [x] **Removed scaffold transfer references** - Cleaned up stray reference to cross-scaffold experiments in Chapter 1 that no longer exists
 
-### Outstanding Questions
-- [ ] **Aider/OpenHands ablation** - Need to confirm with supervisor: are we still planning full ablation on Aider and OpenHands scaffolds? (Currently removed from main RQs, could be appendix-only if data exists)
+### Confirmed Exclusions
+- [x] **No multi-scaffold experiments in thesis** - Aider/OpenHands/Mini-SWE-Agent transfer experiments moved to subsequent paper (confirmed with supervisor)
 
 ---
 
 ## ✅ Recent Session (RQ Restructuring & Prose Polish)
 
 ### Research Question Restructuring
-- [x] **Removed RQ3 (Scaffold Transfer)** - moved to concurrent conference paper
+- [x] **Removed old RQ3 (Scaffold Transfer)** - moved to concurrent conference paper
 - [x] **Redefined RQ1**: "How does GSPO training improve Nano harness adaptation?" (harness-level efficiency metrics, command usage evolution)
 - [x] **Redefined RQ2**: "Does execution-free patch-similarity RL training improve SWE-Bench-Verified performance?" (test-verified success rates)
-- [x] **Redefined RQ3**: "Does the execution-free multilingual curriculum generalize beyond Python?" (50-task holdout, per-language rewards)
+- [x] **Redefined RQ3**: "Does execution-free RL enable effective multilingual training without language-specific engineering?" (language-agnostic training validation, 50-task holdout, per-language rewards)
 - [x] Updated RQ formulations throughout: Ch 1 (Introduction), Ch 3 (Methodology), Ch 5 (Results), Ch 6 (Conclusions)
 - [x] Adjusted analysis claims in RQ1 from "statistical significance testing" to "qualitative examination of command usage patterns" (honest about data limitations)
 
@@ -218,10 +220,11 @@ Cannot proceed without training results:
   - "execution-free" vs. "test-free" vs. "patch-similarity-based"
   - "online RL" vs. "experiential learning" - when to use which?
 
-- [ ] **Bibliography completeness check** - Verify all cited works exist in references.bib
-  - Check all `\cite{}` commands have entries
-  - Add missing citations flagged in compile warnings
-  - Ensure GSPO, Dr.GRPO, DAPO papers are cited
+- [x] **Bibliography completeness check** - Verify all cited works exist in references.bib
+  - ✅ All 39 active citation keys present in references.bib
+  - ✅ 0 undefined citations
+  - ✅ GSPO (7×), GRPO (3×), Dr.GRPO (2×), DAPO (1×) all cited correctly
+  - ✅ Biber runs cleanly with no warnings
 
 - [ ] **Figure and table caption review** - Ensure captions are descriptive and self-contained
   - Each caption should explain what the figure shows without reading main text

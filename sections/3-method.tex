@@ -152,7 +152,10 @@ Git ensures the final patch is properly formatted and deterministically computab
 We adopt \ac{GSPO}~\cite{gspo2025} as our policy optimization algorithm.
 \ac{GSPO} extends the group-relative baseline principle from \ac{GRPO} with sequence-level importance weighting, proving particularly effective for variable-length, multi-turn agent trajectories.
 The algorithm demonstrates superior robustness and stability compared to earlier group-relative methods (\ac{GRPO}, DAPO), making it well-suited for the small effective batch sizes and high-variance reward distributions inherent in academic-scale coding agent training.
-We include a modest \ac{KL} penalty term ($\beta_{\text{KL}}=0.01$) to counteract increased gradient variance from limited batch sizes.
+
+Our training objective combines \ac{GSPO} with a modest \ac{KL} penalty to counteract gradient variance from limited batch sizes: \begin{equation}
+J(\theta) = J_{\mathrm{GSPO}}(\theta) - \beta_{\text{KL}} \cdot \mathbb{E}_{x \sim \mathcal{D}} \left[ D_{\text{KL}}\!\big(\pi_\theta(\cdot \mid x) \,\|\, \pi_{\theta_{\text{ref}}}(\cdot \mid x)\big) \right],
+\end{equation} where $J_{\mathrm{GSPO}}(\theta)$ denotes the sequence-level clipped surrogate objective detailed in \S\ref{subsubsec:gspo}, $\beta_{\text{KL}}=0.01$ controls regularization strength, and $\pi_{\theta_{\text{ref}}}$ is the initial pre-trained checkpoint frozen at training start.
 
 A critical technical challenge in online agent training is logit divergence between inference-time generation and training-time log-probability computation.
 During rollout collection, the model generates trajectories using optimized inference kernels (vLLM) with KV-cache management and continuous batching.
@@ -165,7 +168,8 @@ For each prompt, we sample multiple responses and normalize rewards within the g
 Sequence-level importance weighting naturally accommodates variable-length episodes characteristic of multi-turn agent interactions.
 This group-relative approach provides variance reduction without separate value network training, simplifying the optimization pipeline and reducing memory overhead.
 
-Unless noted otherwise, we use group size $G=8$ responses per prompt, temperature 1.0 (no top-p/top-k sampling), importance ratio clipping $\varepsilon=0.2$, and \ac{KL} penalty coefficient $\beta_{\text{KL}}=0.01$.
+\todoinline{this information should be moved elsewhere / to appendix}
+Unless noted otherwise, we use group size $G=8$ responses per prompt, temperature 1.0 (no top-p/top-k sampling), and importance ratio clipping $\varepsilon=0.2$.
 Optimization uses AdamW with learning rate $10^{-4}$ (linear warmup over 10\% of steps), weight decay 0.0, and $\beta=(0.9,0.95)$; gradient clipping threshold 1.0; gradient accumulation to achieve effective batch sizes of 16--32 responses post-masking.
 We enable gradient checkpointing and use DeepSpeed ZeRO-2 for models up to 14B parameters, ZeRO-3 for larger models.
 Sampling is purely on-policy; no replay buffer or \ac{EMA} policy is employed.
@@ -276,8 +280,8 @@ Command usage evolution is analyzed qualitatively across training runs to identi
 \textbf{RQ2 (Execution-Free Patch-Similarity \ac{RL}
 Performance):} We measure test-verified success rates on SWE-Bench-Verified (approximately 500 Python debugging tasks), comparing pre-training baseline to post-training performance using identical evaluation protocol.
 
-\textbf{RQ3 (Execution-Free Multilingual Curriculum Generalization):}
-We evaluate per-language reward trends on the 50-task SWE-Bench-Multilingual held-out set with bootstrap confidence intervals, comparing pre-training and post-training checkpoints across nine programming languages.
+\textbf{RQ3 (Language-Agnostic Training Effectiveness):}
+We evaluate whether execution-free \ac{RL} enables effective multilingual training without language-specific engineering by measuring per-language reward trends on the 50-task SWE-Bench-Multilingual held-out set with bootstrap confidence intervals, comparing pre-training and post-training checkpoints across nine programming languages.
 
 Test-verified success rates on SWE-Bench-Verified serve as the primary metric for functional correctness.
 Secondary metrics include patch-similarity rates and per-language reward deltas on the multilingual holdout.

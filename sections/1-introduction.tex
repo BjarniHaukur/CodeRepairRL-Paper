@@ -52,7 +52,7 @@ This thesis instantiates exactly one such harness (the Nano agent) and conducts 
 
 When equipped with appropriate harnesses, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
 This capability transformation makes it practical to apply \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
-Terminal-oriented agency benchmarks such as TauBench~\cite{taubench2024} provide standardized evaluation frameworks for such capabilities; our cross-scaffold transfer experiments (\cref{sec:rq3-scaffold}) further explore generalization across different harness interfaces.
+Terminal-oriented agency benchmarks such as TauBench~\cite{taubench2024} provide standardized evaluation frameworks for such capabilities.
 
 Training adopts an execution-free approach: the agent executes shell commands to explore repositories but does not run test suites or build systems.
 Rewards derive solely from comparing the agent's final repository modifications to ground-truth patches via static string similarity.
@@ -146,11 +146,11 @@ The overarching goal is to develop and empirically validate an online \ac{RL} tr
 	\item Hypothesis: training on static patch-similarity rewards improves functional bug-fixing success despite not directly optimizing for test passage.
 \end{itemize}
 
-\textbf{RQ3: Does the execution-free multilingual curriculum generalize beyond Python?}
+\textbf{RQ3: Does execution-free \ac{RL} enable effective multilingual training without language-specific engineering?}
 \begin{itemize}
 	\item Primary evaluation: per-language reward improvements on a 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
 	\item Analysis: bootstrap confidence intervals for per-language reward deltas, comparing pre-training and post-training checkpoints.
-	\item Hypothesis: execution-free patch-similarity rewards generalize across programming languages, with measurable improvements on held-out multilingual tasks despite limited non-Python training data.
+	\item Hypothesis: execution-free patch-similarity rewards enable unified training across programming languages without language-specific adaptations, with measurable improvements on held-out multilingual tasks despite limited non-Python training data.
 \end{itemize}
 
 \section{Benefits, Ethics and Sustainability}
@@ -233,6 +233,6 @@ agentic approaches to motivate our execution-free, agent-integrated training met
 
 \textbf{Chapter 4: Implementation} documents the practical realization: vLLM-based serving with tool calling, live adapter synchronization via \ac{NCCL}, trainer extensions for multi-turn \ac{GSPO}, SLURM orchestration, compute-efficient infrastructure (\ac{LoRA}, DeepSpeed ZeRO, gradient checkpointing, BF16), and training protocol execution.
 
-\textbf{Chapter 5: Results} presents experimental findings: harness adaptation metrics and behavioral changes (RQ1), performance comparisons on SWE-Bench-Verified (RQ2), multilingual generalization on the held-out subset (RQ3), training dynamics and convergence, and qualitative trajectory examination with statistical analyses.
+\textbf{Chapter 5: Results} presents experimental findings: harness adaptation metrics and behavioral changes (RQ1), performance comparisons on SWE-Bench-Verified (RQ2), language-agnostic training effectiveness on the multilingual held-out subset (RQ3), training dynamics and convergence, and qualitative trajectory examination with statistical analyses.
 
 \textbf{Chapter 6: Conclusions} synthesizes findings, discusses design philosophy and lessons learned (system complexity, reward misspecification, infrastructure challenges), examines broader implications for agentic \ac{AI}, identifies limitations, and proposes future research directions for \ac{RL}-trained coding agents.
