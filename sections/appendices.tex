@@ -13,6 +13,30 @@
 
 This appendix contains interactive Sankey diagrams that visualize command flow patterns during training.
 
+\chapter{Model Comparison: Capacity and Architecture}
+\label{app:model-comparison}
+
+This appendix presents limited comparisons to illustrate capacity scaling and architectural effects.
+We compare Qwen3-8B vs.
+Llama3.1-8B (8B architectural comparison) and conduct limited scaling analysis across Qwen3 model sizes (8B, 14B, 30B-A3B, 32B).
+These experiments are not central to the thesis investigation but provide insight into model selection and capacity effects.
+
+\section{8B Architectural Comparison: Qwen3-8B vs.
+  Llama3.1-8B} \label{app:8b-comparison}
+
+\todoinline{Present head-to-head comparison of Qwen3-8B and Llama3.1-8B training results, showing substantially lower reward progression for Llama (~3x lower than Qwen3-8B).
+Illustrate that tool-calling capability is critical for this training regime.
+Discuss implications for model selection in agentic RL settings.
+}
+
+\section{Limited Scaling Analysis}
+\label{app:scaling}
+
+\todoinline{Present limited scaling analysis across Qwen3 model sizes: 8B, 14B (primary), 30B-A3B, and 32B.
+Show capacity scaling trends in tool-call success rates, reward progression, and SWE-Bench-Verified performance if available.
+Note infrastructure differences (e.g., ZeRO-3 requirement for larger models, GPU count scaling).
+}
+
 \chapter{Additional Experimental Data}
 \label{app:data}
 

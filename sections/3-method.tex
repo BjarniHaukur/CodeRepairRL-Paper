@@ -1,10 +1,10 @@
 \chapter{Methodology and System Design}
 \label{ch:method}
 
-This chapter presents an execution-free \acs{RL} method for repository-level \acs{APR}.
-The approach embeds a minimalist terminal agent (Nano) directly into training and uses patch similarity as an outcome reward, enabling language-agnostic learning without executable test harnesses.
-We first formalize the Nano interface (observations, actions, termination, reward), then specify data, optimization, and infrastructure choices.
-Evaluation details are summarized briefly here and expanded in the Evaluation chapter.
+This chapter presents an execution-free \acs{RL} methodology for repository-level \acs{APR}.
+The approach integrates a minimalist terminal agent (Nano) directly into the training loop, using terminal patch-similarity rewards computed deterministically on canonical diffs to enable language-agnostic learning without executable test harnesses.
+We first formalize the Nano agent specification (observation space, action space, termination conditions, reward function), then detail training data, policy optimization, and infrastructure requirements.
+Evaluation protocols are summarized in \S\ref{sec:eval-brief} and expanded with complete results in Chapter~\ref{ch:results}.
 
 \section{Overview and Scope}
 
@@ -21,10 +21,10 @@ This specification provides the foundation for the \ac{RL} training methodology 
 
 \subsection{Observations}
 
-All interaction occurs through a terminal transcript.
-The agent observes system input/output/error as they appear in the dialogue.
-Each tool invocation (including repository reads and search) returns at most 2{,}000 characters, followed by a clear ``\ldots{} output truncated \ldots{}'' marker if longer.
-No additional out-of-band metadata is required for learning beyond what is visible in the transcript.
+All interaction occurs through a terminal transcript maintained as a structured conversation history.
+The agent observes system messages, issue descriptions, tool outputs, and error messages as they appear in the dialogue.
+Each tool invocation returns at most 2{,}000 characters; outputs exceeding this limit are truncated deterministically with an explicit ``\ldots{} output truncated \ldots{}'' marker appended.
+No out-of-band metadata (e.g., file tree summaries, test results, or repository statistics) is provided beyond what appears in the visible transcript.
 
 \subsection*{Action Space}
 
@@ -36,29 +36,28 @@ In addition, a ``null action'' is defined: if the agent emits no further tool ca
 \subsection{Formal Interaction Loop}
 
 The agent operates through a structured cycle that formalizes the relationship between observations, actions, and environmental feedback.
-At each timestep $t$, the agent maintains a conversation history $h_t$ comprising of the system message, issue description, and all prior agent and environment interactions.
+At each timestep $t$, the agent maintains a conversation history $h_t$ comprising the system message, issue description, and all prior agent-environment interactions.
 Given this history, the model generates an assistant response $y_t$ containing tool invocations expressed as \ac{JSON} function calls.
-The harness extracts the first tool call through a deterministic parser $c_t = \psi(y_t)$, executes it within the isolated repository environment, and returns the resulting output $o_t$—which may include command results, file contents, or error messages subject to the 2{,}000-character truncation policy.
+The harness extracts the first tool call through a deterministic parser $c_t = \psi(y_t)$, executes it within the isolated repository environment, and returns the resulting output $o_t$—command results, file contents, or error messages—subject to the 2{,}000-character truncation policy.
 
-The history then advances to $h_{t+1} = \text{append}(h_t, y_t, o_t)$, incorporating both the assistant's generation and the environment's response.
-This cycle continues until the agent produces repository changes without issuing further tool calls, exhausts the tool-call budget, exceeds the token limit, or reaches the wall-clock timeout.
+The history advances to $h_{t+1} = \text{append}(h_t, y_t, o_t)$, incorporating both the assistant's generation and the environment's response.
+This cycle continues until a termination condition is met: the agent submits by producing repository changes without further tool calls, the tool-call budget is exhausted, the token limit is exceeded, or the wall-clock timeout is reached.
 Upon termination, the episode yields a complete trajectory $\tau = (h_0, y_0, o_0, h_1, \ldots, h_T)$ where $T$ denotes the final timestep.
 
-The terminal return $R(\tau)$ evaluates the trajectory based on the similarity between the canonical diff resulting from the agent's repository modifications and the ground-truth solution, as detailed in \S\ref{sec:reward}.
-This outcome-based reward provides the learning signal that drives policy improvement through \ac{RL} optimization.
-The formalism ensures that the agent learns from both successful debugging strategies that receive high returns and unsuccessful attempts that yield lower rewards, gradually refining its ability to navigate repositories and identify correct fixes through repeated environmental interaction.
+The terminal reward $R(\tau) \in [0,1]$ evaluates the trajectory based on the similarity between the canonical diff resulting from the agent's repository modifications and the ground-truth patch, as detailed in \S\ref{sec:reward}.
+This outcome-based reward provides the learning signal for policy improvement through \ac{GSPO} updates, allowing the agent to refine repository navigation and debugging strategies through repeated environmental interaction.
 
 \subsection{Termination and Limits}
 
-Episodes terminate when any of the following holds: the agent completes its task and has produced changes to the repository; a maximum number of tool calls has been issued; a token budget has been exhausted; or a wall-clock timeout is reached.
-These limits are set deliberately on the lower side of typical agent deployments to encourage efficient problem-solving strategies during training (see \Cref{tab:termination-parameters} for exact values).
-Reaching any cap implies immediate termination.
+Episodes terminate when any of the following conditions is met: (i) the agent produces repository changes and emits no further tool calls (successful submission), (ii) the tool-call budget is exhausted, (iii) the token budget is exceeded, or (iv) the wall-clock timeout is reached.
+These limits are set conservatively below typical agent deployment budgets to encourage efficient problem-solving during training (exact values in \Cref{tab:termination-parameters}).
+Reaching any cap triggers immediate termination.
 
-The Nano agent is designed with explicit compute awareness, recognizing that multi-turn agent interactions impose substantially higher computational costs than single-turn generation—often requiring 10-30 model forward passes per episode.
-Token limits guarantee that conversation histories remain within \ac{GPU} memory constraints during both training and inference, preventing out-of-memory failures that would otherwise occur as episodes accumulate extensive tool outputs across dozens of turns.
-Tool call budgets prevent runaway episodes where agents enter exploration loops or repetitive failure patterns, ensuring predictable resource utilization across the training distribution.
-Wall-clock timeouts provide a hard upper bound on compute allocation per episode, enabling reliable throughput estimation and preventing individual problematic episodes from monopolizing training resources.
-These constraints shape the optimization landscape: agents must learn to solve problems efficiently within fixed budgets rather than relying on unbounded exploration, encouraging the development of focused debugging strategies that generalize better to deployment scenarios.
+The Nano agent incorporates explicit compute awareness, recognizing that multi-turn agent interactions impose substantially higher computational costs than single-turn generation—typically 10--30 forward passes per episode.
+Token limits ensure conversation histories remain within \ac{GPU} memory constraints during training and inference, preventing out-of-memory failures as episodes accumulate tool outputs across dozens of turns.
+Tool-call budgets prevent runaway episodes where agents enter unproductive exploration loops or repetitive failure patterns, ensuring predictable resource utilization across the training distribution.
+Wall-clock timeouts provide a hard upper bound on per-episode compute allocation, enabling reliable throughput estimation and preventing individual pathological episodes from monopolizing training resources.
+These constraints shape the optimization landscape: agents must learn to solve problems efficiently within fixed budgets, encouraging focused debugging strategies that generalize to deployment scenarios where compute resources are similarly bounded.
 
 \subsection{Isolation and Safety Measures}
 
@@ -67,11 +66,11 @@ This ensures reproducible inputs and constrains side effects to the per-episode 
 
 \subsection{Sidestepping the Diff Generation Problem}
 
-Generating valid unified diffs is a brittle output-formatting task for language models: line numbers must reflect current file state, context lines must exactly match existing content, and headers must carry correct paths and chunk sizes.
-Even state-of-the-art models frequently produce malformed diffs with misaligned line numbers or incorrect context that prevent patch application.
+Generating syntactically valid unified diffs presents a high-dimensional formatting challenge for language models: line numbers must accurately reflect current file state, context lines must match existing content exactly character-for-character, and headers must specify correct paths, offsets, and chunk sizes.
+State-of-the-art models frequently produce malformed diffs with misaligned line numbers, incorrect context, or invalid headers that fail during patch application, introducing a brittle failure mode orthogonal to the semantic debugging task.
 
-The Nano agent sidesteps this failure mode by exposing a simple search-and-replace interface.
-Instead of emitting unified diffs, the agent calls:
+The Nano agent sidesteps this issue entirely by exposing a search-and-replace interface rather than requiring unified diff generation.
+The agent invokes:
 
 \begin{verbatim}
 apply_patch(
@@ -81,24 +80,24 @@ apply_patch(
 )
 \end{verbatim}
 
-This format matches \ac{LLM} strengths: the model specifies edits in clear semantic terms without coordinating line numbers or offsets.
+This format aligns with \ac{LLM} strengths: the model specifies edits in clear semantic terms (old string, new string) without coordinating line numbers, offsets, or diff syntax.
 
-After interaction terminates, the canonical diff is computed with git:
+After interaction terminates, the canonical diff is computed deterministically via git:
 
 \begin{verbatim}
 subprocess.check_output(["git", "-C", str(repo_root), "diff"], text=True, errors="ignore")
 \end{verbatim}
 
-This diff is deterministic under a fixed repository state ensuring deterministic reward computation while eliminating a major class of formatting errors.
+This diff is deterministic under a fixed repository state and consistent git configuration, ensuring reproducible reward computation while eliminating the entire class of diff formatting errors that would otherwise corrupt the learning signal.
 
 \subsection{Illustrative Rollout}
 
 Figure~\Cref{fig:nano-rollout} shows a representative Nano episode captured from the command-line interface during training.
-The agent navigates the repository using directory listings and ripgrep searches, inspects candidate files, and modifies the codebase through its available tools as evidence accumulates.
-Interactions are served asynchronously and episode length is adaptive, matching the multi-turn nature of repository-level repair.
+The agent navigates the repository using directory listings and ripgrep searches, inspects candidate files, and applies patches through the available tools.
+Interactions are served asynchronously and episode length is variable, reflecting the multi-turn nature of repository-level debugging.
 
 \begin{figure}[htbp]
-    \centering
+	\centering
     \includegraphics[width=0.95\textwidth]{plotting/figures/nano_cli.png}
     \caption{Illustrative rollout of the Nano agent during training. The agent navigates the repository via shell, inspects files, and applies a minimal patch. The serving stack remains asynchronous across turns, aligning with multi-turn \ac{APR}.}
     \label{fig:nano-rollout}
@@ -107,95 +106,90 @@ Interactions are served asynchronously and episode length is adaptive, matching 
 \section{Training Data and Environment}
 \label{sec:data-env}
 
-The training methodology is execution-free and relies on ground-truth patches as supervision signals.
+The training methodology is execution-free, relying solely on ground-truth patches as terminal supervision signals.
 
-\paragraph{Python-only regime.}
-Initial development used Python exclusively, training on the full SWE-Gym dataset (approximately 2{,}400 tasks).
+\paragraph{Python-Only Development Phase}
+Initial development and prototyping used Python exclusively, training on the full SWE-Gym dataset (approximately 2{,}400 tasks) to establish baselines and validate infrastructure.
 
-\paragraph{Mixed 1k curriculum.}
-Repository-level, instruction-formatted debugging datasets exist predominantly for Python, with limited coverage of other languages.
-To explore multilingual transfer despite this scarcity, we train on a compact 1{,}000-example curriculum that repeats epochs over the same task set, balancing language diversity against computational efficiency.
+\paragraph{Mixed 1,000-Task Curriculum}
+Instruction-driven, repository-level debugging datasets exist predominantly for Python, with substantially sparser coverage of other programming languages.
+To investigate multilingual transfer despite this data scarcity, we train on a compact 1{,}000-task curriculum that cycles through repeated epochs over a fixed task set, balancing language diversity against computational efficiency.
 This mixed curriculum comprises 750 Python tasks sampled from SWE-Gym and 250 tasks drawn from SWE-Bench-Multilingual spanning nine programming languages: Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++.
-An additional 50 multilingual tasks are held out from training to serve as a validation set for monitoring reward trends and detecting potential overfitting to the training language distribution.
+An additional 50 multilingual tasks are withheld from training to serve as a held-out evaluation set for assessing cross-language generalization and detecting overfitting to the training language distribution.
 
-The language distribution exposes the model to diverse syntactic and semantic patterns across different programming paradigms, potentially enabling transfer to held-out languages or improved general debugging reasoning.
+The language distribution exposes the model to diverse syntactic and semantic patterns across programming paradigms, potentially enabling cross-language transfer or improved general debugging reasoning.
 
-Our evaluation strategy assesses both within-language and cross-language generalization.
-The primary metrics track whether multilingual exposure degrades performance on Python tasks—the majority language—relative to Python-only training.
-Secondary analysis examines per-language reward deltas on the 50-task validation holdout to quantify whether the model improves on languages represented in training and whether any transfer occurs to language families sharing syntactic or semantic properties.
-This execution-free approach exploits the language-agnostic nature of patch-similarity rewards to incorporate diverse programming languages without maintaining the complex infrastructure required for multi-language test execution, dramatically reducing engineering overhead while enabling exploration of cross-language transfer learning.
-
-\todoinline{Insert precise dataset versions and any repository filtering used (e.g., exclude tasks with non-reproducible file histories).}
+Evaluation strategy assesses both within-language improvement and cross-language generalization.
+Primary metrics track whether multilingual exposure degrades Python performance—the majority language—relative to Python-only baselines.
+Secondary analysis examines per-language reward deltas on the 50-task held-out set to quantify improvements on training languages and potential transfer to related language families.
+This execution-free approach exploits the language-agnostic nature of patch-similarity rewards to incorporate diverse programming languages without maintaining language-specific test infrastructure, substantially reducing engineering overhead while enabling multilingual transfer investigation.
 
 \section{Reward Design}
 \label{sec:reward}
 
-Training uses an execution-free, outcome-based reward computed on the canonical diff.
-After an episode terminates, we compute the diff of all repository changes via \texttt{git diff}, then measure similarity between this canonical diff and the ground-truth diff using Python's \texttt{difflib.SequenceMatcher.ratio} per affected file.
-We aggregate across files with a normalization factor of \(\max(\text{\#agent files},\, \text{\#ground-truth files})\), yielding a reward in \([0,1]\).
-Exact match is defined by a score of 1.0; a partial match label is reported for scores at or above 0.3 (a non-guaranteed signal of similarity).
+Training uses an execution-free, terminal reward computed deterministically on the canonical diff.
+After an episode terminates, we compute the diff of all repository changes via \texttt{git diff}, then measure similarity between this canonical diff and the ground-truth diff using Python's \texttt{difflib.SequenceMatcher.ratio()} applied per affected file.
+Per-file similarities are aggregated using a normalization factor of \(\max(\text{\#agent files},\, \text{\#ground-truth files})\), yielding a final reward in \([0,1]\).
+Exact match is defined as a score of 1.0; partial match is reported for scores $\geq 0.3$ (a heuristic threshold, not a guarantee of semantic equivalence).
 
-We experimented with additional shaping signals (e.g., similarity on test-suite changes and a breadcrumb reward for modifying the correct files with incorrect edits), but ultimately retained only the primary patch-similarity reward.
+Preliminary experiments explored additional shaping signals—test-suite diff similarity and a ``breadcrumb'' reward for modifying correct files with incorrect edits—but these provided no measurable training benefit and were removed to maintain reward simplicity.
 
 \subsection*{Outcome-Based Patch Similarity (Rationale)}
 
-Following SWE-RL~\cite{wei2025swerladvancingllmreasoning}, we treat the final patch as the outcome and compare it against ground truth with a deterministic string similarity.
-Evaluating the terminal patch keeps training simple and avoids brittle intermediate shaping, while allowing diverse problem-solving strategies that converge to the same end state.
-Most importantly, the reward targets what we ultimately care about: correct bug fixes.
+Building on SWE-RL~\cite{wei2025swerladvancingllmreasoning}, we treat the terminal patch as the sole outcome and compare it against ground truth via deterministic string similarity.
+Terminal reward evaluation keeps training simple, avoids brittle intermediate shaping, permits diverse problem-solving trajectories, and directly targets the ultimate objective: correct bug fixes.
 
-This approach also separates semantic intent from syntactic formatting.
-During interaction, the agent issues any number of \texttt{apply\_patch} calls; only after termination do we compute the unified diff for evaluation.
-Models therefore cannot fail on diff formatting, focusing learning on identifying and fixing bugs rather than producing syntactically valid diffs.
-Git ensures patches are properly formatted and applicable, and every intended modification is captured for reward computation.
-
-\todoinline{Add a small table or equation box summarizing the per-file aggregation once finalized.}
+This design separates semantic intent from syntactic formatting.
+During interaction, the agent issues any number of \texttt{apply\_patch} calls; only after termination is the unified diff computed for reward evaluation.
+The agent cannot fail due to diff formatting errors—learning focuses on identifying and fixing bugs rather than mastering diff syntax.
+Git ensures the final patch is properly formatted and deterministically computable, capturing every intended modification for reward computation.
 
 \section{Policy Optimization} \label{sec:rl}
 
 We adopt \ac{GSPO}~\cite{gspo2025} as our policy optimization algorithm.
-\ac{GSPO} extends the group-relative baseline principle from \ac{GRPO} with improved sequence-level importance weighting that proves particularly effective for variable-length, multi-turn agent trajectories.
-The algorithm has demonstrated superior robustness and stability compared to earlier group-relative methods, making it well-suited for the small effective batch sizes and high-variance reward distributions inherent in coding agent training under academic compute constraints.
-We include a small \ac{KL} penalty term in the objective to maintain training stability, counteracting the increased variance from limited batch sizes.
+\ac{GSPO} extends the group-relative baseline principle from \ac{GRPO} with sequence-level importance weighting, proving particularly effective for variable-length, multi-turn agent trajectories.
+The algorithm demonstrates superior robustness and stability compared to earlier group-relative methods (\ac{GRPO}, DAPO), making it well-suited for the small effective batch sizes and high-variance reward distributions inherent in academic-scale coding agent training.
+We include a modest \ac{KL} penalty term ($\beta_{\text{KL}}=0.01$) to counteract increased gradient variance from limited batch sizes.
 
-A critical technical challenge in online agent training involves logit divergence between inference-time generation and training-time computation.
-During rollout collection, the model generates actions using optimized inference kernels with KV-cache management and continuous batching.
-During training, the same sequences are reprocessed through standard training passes where numerical precision, kernel implementations, and attention patterns may differ subtly from the serving configuration.
-These discrepancies manifest as mismatches between the log probabilities used for importance weighting—computed during training—and the actual sampling distributions that produced the actions.
-\ac{GSPO}'s robust sequence-level importance sampling mechanism proves particularly effective at handling these logit divergence issues, maintaining stable learning even when inference and training logits diverge by small amounts due to implementation differences in the serving stack.
+A critical technical challenge in online agent training is logit divergence between inference-time generation and training-time log-probability computation.
+During rollout collection, the model generates trajectories using optimized inference kernels (vLLM) with KV-cache management and continuous batching.
+During training, the same sequences are reprocessed through standard training passes where numerical precision, kernel implementations, and attention patterns differ subtly.
+These discrepancies manifest as mismatches between the log probabilities used for importance weighting and the actual sampling distributions that generated the actions.
+\ac{GSPO}'s sequence-level importance sampling maintains stable learning despite these small logit divergences, avoiding the fragility of token-level importance ratios that can diverge catastrophically across long sequences when inference and training stacks differ.
 
-\ac{GSPO} computes advantages using relative performance within groups of trajectories rather than learned value estimates.
-For each prompt, we sample multiple responses and normalize rewards within the group to obtain advantages.
-The algorithm applies sequence-level importance weighting, which naturally accommodates the variable-length episodes characteristic of multi-turn agent interactions.
-This group-relative approach provides variance reduction without requiring separate value network training, simplifying the optimization pipeline.
+\ac{GSPO} computes advantages via relative performance within groups of trajectories sampled from the same prompt, eliminating the need for learned value estimates.
+For each prompt, we sample multiple responses and normalize rewards within the group to obtain standardized advantages.
+Sequence-level importance weighting naturally accommodates variable-length episodes characteristic of multi-turn agent interactions.
+This group-relative approach provides variance reduction without separate value network training, simplifying the optimization pipeline and reducing memory overhead.
 
-Unless noted otherwise, we use a group size of eight responses per prompt, temperature 1.0 (no top-p/top-k), ratio clipping with \(\varepsilon=0.2\), and a \ac{KL} penalty coefficient \(\beta_{\text{KL}}=0.01\) to stabilize training under small effective batch sizes.
-Optimization uses AdamW (learning rate \(10^{-4}\) with warmup; weight decay 0.0; \(\beta=(0.9,0.95)\)); gradient clipping at 1.0; and gradient accumulation to reach an effective batch size of roughly 16--32 responses post-masking.
-We enable gradient checkpointing and use DeepSpeed ZeRO-2 for models up to 14B parameters and ZeRO-3 beyond that.
-Sampling is purely on-policy; no replay buffer or EMA policy is used.
+Unless noted otherwise, we use group size $G=8$ responses per prompt, temperature 1.0 (no top-p/top-k sampling), importance ratio clipping $\varepsilon=0.2$, and \ac{KL} penalty coefficient $\beta_{\text{KL}}=0.01$.
+Optimization uses AdamW with learning rate $10^{-4}$ (linear warmup over 10\% of steps), weight decay 0.0, and $\beta=(0.9,0.95)$; gradient clipping threshold 1.0; gradient accumulation to achieve effective batch sizes of 16--32 responses post-masking.
+We enable gradient checkpointing and use DeepSpeed ZeRO-2 for models up to 14B parameters, ZeRO-3 for larger models.
+Sampling is purely on-policy; no replay buffer or \ac{EMA} policy is employed.
 
-This section states algorithmic choices and their rationale; implementation details appear in Chapter~\cref{ch:work}.
+This section specifies algorithmic choices and their rationale; implementation details appear in Chapter~\cref{ch:work}.
 
 \todoinline{Insert exact effective batch size and total update count for the main runs.}
 
-To focus optimization on agent behavior, we mask tool outputs from the loss computation while preserving them in the attention context.
-This standard practice in tool-augmented training concentrates gradient updates on agent decisions—tool invocations, reasoning steps, and edit operations—rather than dispersing them across prediction of external environment responses such as shell output or file contents.
-The model processes the complete trajectory during the forward pass with full causal attention, ensuring access to all tool responses when computing log probabilities for subsequent agent actions, but the loss mask zeroes gradients for tokens originating from tool outputs.
-A modest \ac{KL} penalty is included in the objective to maintain stability, particularly important given the small effective batch sizes typical of academic compute settings where variance in advantage estimates would otherwise destabilize training.
+To focus optimization on agent behavior, we mask tool outputs from loss computation while preserving them in the attention context.
+This standard practice in tool-augmented training concentrates gradient updates on agent decisions (tool invocations, reasoning, edits) rather than dispersing them across prediction of deterministic environment responses (shell output, file contents).
+The model processes complete trajectories during forward passes with full causal attention, accessing all tool responses when computing log probabilities for subsequent agent actions, but the loss mask zeros gradients for tokens originating from tool outputs.
 Complete mathematical formulation of the masking strategy appears in Appendix~\ref{app:masked-loss}.
 
 \section{Training Environment}
 \label{sec:train-env}
 
 Online training operates as a coupled system of serving and optimization.
-The inference side uses vLLM's OpenAI-compatible \ac{API} server with continuous batching and asynchronous request handling to execute multi-turn episodes, while the trainer collects completed trajectories, computes execution-free rewards on canonical diffs, and applies \ac{GSPO} updates under the masked objective.
-Policy improvements propagate to the running \ac{API} server via \ac{NCCL}-based weight broadcasts without service interruption, enabling true online learning where serving agents benefit immediately from training updates.
+The inference subsystem uses vLLM's OpenAI-compatible \ac{API} server with continuous batching and asynchronous request handling to execute multi-turn episodes.
+The training subsystem collects completed trajectories, computes execution-free rewards via canonical diff comparison, and applies \ac{GSPO} updates under the masked loss objective.
+Policy improvements propagate to the running \ac{API} server via \ac{NCCL}-based adapter broadcasts without service interruption, enabling true online learning where deployed agents benefit immediately from training updates.
 
-Conceptually, the system advances through cycles of asynchronous interaction, reward computation, and policy improvement; concrete mechanisms are detailed in Chapter~\cref{ch:work}.
+Conceptually, the system cycles through asynchronous interaction, reward computation, and policy improvement; concrete mechanisms are detailed in Chapter~\cref{ch:work}.
 
-The trainer builds on TRL but required substantial extensions to support multi-turn, tool-augmented \ac{GSPO} at scale: we added masked loss over assistant-authored tokens, sequence-level importance ratios computed after masking, and rollout collection that preserves turn boundaries while remaining stream- and batch-friendly under variable-length episodes.
-We further reconciled optimizer state partitioning with \ac{LoRA}-only updates under ZeRO and ensured compatibility with gradient checkpointing and accumulation.
-These changes allow the agentic \ac{RL} loop to run with the same stability and throughput as single-turn recipes while honoring tool I/O semantics.
-Implementation details, including modifications to TRL's trainer and data collator modules, are described in \cref{ch:work} with complete source code released for reproducibility.
+The trainer builds on TRL but required substantial extensions for multi-turn, tool-augmented \ac{GSPO}: masked loss over assistant-authored tokens, sequence-level importance ratios computed post-masking, and rollout collection that preserves turn boundaries while remaining stream- and batch-compatible under variable-length episodes.
+We further reconciled optimizer state partitioning with \ac{LoRA}-only updates under DeepSpeed ZeRO and ensured compatibility with gradient checkpointing and accumulation.
+These modifications enable the agentic \ac{RL} loop to match the stability and throughput of single-turn training while correctly handling tool I/O semantics.
+Implementation details, including modifications to TRL's trainer and data collator modules, are documented in \cref{ch:work} with complete source code released for reproducibility.
 
 Figure~\ref{fig:training-sequence-diagram} depicts the end-to-end control and data flow: requests enter the vLLM scheduler; episodes interleave tool calls and model generations; diffs are computed upon termination; rewards are produced without execution; and adapter updates are broadcast back to servers with bounded memory.
 
@@ -208,81 +202,86 @@ Implementation details appear in Chapter~\cref{ch:work}.}
 \end{figure}
 
 Two technical requirements shaped the implementation.
-First, we implemented live weight synchronization to deployed OpenAI-compatible \ac{API} servers through \ac{NCCL}-based adapter broadcasting that transmits only deltas with tight memory bounds, reducing peak \ac{VRAM} during weight collection from 50+ GiB to approximately 100 MiB while achieving 150-300ms update latency.
-This addresses the mismatch between traditional batched inference (where requests finish synchronously) and asynchronous multi-turn agents (where episodes progress independently within turns, completing at heterogeneous rates).
-Second, we reconciled a complex execution schedule in which inference optimizations, gradient accumulation, gradient checkpointing, \ac{LoRA} adaptation, and ZeRO partitioning operate concurrently without sacrificing stability.
+First, we implemented live adapter synchronization to deployed OpenAI-compatible \ac{API} servers via \ac{NCCL}-based broadcasting that transmits only \ac{LoRA} deltas with bounded memory consumption, reducing peak \ac{VRAM} during weight collection from 50+ GiB to approximately 100 MiB while achieving 150--300ms update latency.
+This addresses the mismatch between traditional batched inference (requests finish synchronously) and asynchronous multi-turn agents (episodes progress independently, completing at heterogeneous rates).
+Second, we reconciled a complex execution schedule where inference optimizations, gradient accumulation, gradient checkpointing, \ac{LoRA} adaptation, and DeepSpeed ZeRO partitioning operate concurrently without sacrificing training stability.
 
-Complete \ac{LoRA}, sampling, and episode termination configurations are documented in \cref{app:lora-config,app:sampling-params,app:termination-parameters}.
-The implementation optimizes intra-group asynchronous behavior while treating episode groups synchronously; future work might optimize across groups to eliminate cross-group walltime dependencies.
+Complete \ac{LoRA}, sampling, and termination configurations are documented in \cref{app:lora-config,app:sampling-params,app:termination-parameters}.
+The implementation optimizes intra-group asynchronous behavior while treating episode groups synchronously; future work could optimize across groups to eliminate cross-group walltime dependencies.
 
 \section{Model Choice and Adaptation}
 \label{sec:models}
 
-We base our experiments on the Qwen3 family—a hybrid reasoning model series that combines strong coding capabilities with native tool-calling support—primarily training Qwen3-14B and including limited ablations with Qwen3-8B and Llama3.1-8B by transferring the best 14B setup.
+We base our experiments on Qwen3-14B—a hybrid reasoning model combining strong coding capabilities with native tool-calling support.
 Note that we use the base Qwen3 series, not the specialized Qwen3-Coder variant.
-The selection of Qwen3 as our foundation model stems from extensive empirical evidence demonstrating its exceptional suitability for tool-augmented agent applications.
+This selection stems from empirical evidence of exceptional suitability for tool-augmented agent applications.
+Limited comparisons with Qwen3-8B and Llama3.1-8B appear in Appendix~\ref{app:model-comparison} to illustrate capacity and architectural effects, but are not central to our investigation.
 
-The model exhibits superior tool-calling capabilities that prove critical for reliable agent behavior in our multi-turn setting.
-Qwen3 consistently generates valid \ac{JSON} function calls with correct parameter types, maintains robust context retention across extended tool interaction sequences, and demonstrates effective error recovery when tool executions fail or return unexpected outputs.
-These characteristics ensure that the agent can reliably invoke the \texttt{shell} and \texttt{apply\_patch} tools without systematic formatting failures that would otherwise corrupt the learning signal.
-The model's adherence to function signatures and parameter constraints remains stable even as episodes extend across dozens of turns, a property essential for training on realistic debugging scenarios.
+The model exhibits superior tool-calling capabilities critical for reliable agent behavior in our multi-turn setting.
+Qwen3 consistently generates valid \ac{JSON} function calls with correct parameter types, maintains context retention across extended tool interaction sequences, and demonstrates effective error recovery when tool executions fail or return unexpected outputs.
+These characteristics ensure reliable invocation of \texttt{shell} and \texttt{apply\_patch} tools without systematic formatting failures that would corrupt the learning signal.
+Function signature adherence remains stable even as episodes extend across dozens of turns, essential for training on realistic debugging scenarios.
 
-Beyond tool-calling proficiency, Qwen3 demonstrates strong foundational coding abilities across standard benchmarks.
-The model achieves competitive performance on HumanEval, MBPP, and related code generation tasks, indicating robust understanding of programming concepts and idioms.
-Its repository-level reasoning capabilities—evidenced by strong performance on multi-file code comprehension tasks—align well with our debugging scenarios where understanding cross-file dependencies often proves essential for identifying correct fixes.
-The model's training on diverse codebases provides broad exposure to programming patterns, error types, and repair strategies that transfer effectively to the bug-fixing domain.
+Beyond tool-calling proficiency, Qwen3 demonstrates strong foundational coding abilities across standard benchmarks: competitive performance on HumanEval, MBPP, and related code generation tasks indicates robust understanding of programming concepts.
+Repository-level reasoning capabilities—evidenced by multi-file code comprehension performance—align well with debugging scenarios requiring understanding of cross-file dependencies.
+Training on diverse codebases provides broad exposure to programming patterns, error types, and repair strategies transferring effectively to bug-fixing.
 
-As a hybrid reasoning model, Qwen3 supports explicit chain-of-thought reasoning traces, but we deliberately disable this capability to control token expenditure in our multi-turn tool-augmented loop—explicit reasoning would rapidly exhaust the context window budget across extended debugging episodes.
-Parameter-efficient adaptation uses \ac{LoRA} with rank \(r=32\) and \(\alpha=64\) applied to attention and \ac{MLP} projections while keeping base weights frozen, balancing adaptation capacity against memory efficiency.
+As a hybrid reasoning model, Qwen3 supports explicit chain-of-thought traces, but we disable this capability to control token expenditure in multi-turn tool-augmented episodes—explicit reasoning would rapidly exhaust the context window budget across extended debugging sessions.
+Parameter-efficient adaptation uses \ac{LoRA} with rank $r=32$ and scaling $\alpha=64$ applied to attention and \ac{MLP} projections while keeping base weights frozen, balancing adaptation capacity against memory efficiency.
 We operate within a 12k-token context window, sufficient for typical debugging episodes while remaining tractable for training.
-Tool-calling uses an OpenAI-compatible function-calling schema with strict \ac{JSON} validation; malformed calls return deterministic errors that the agent learns to avoid through repeated interaction.
+Tool calls use an OpenAI-compatible function-calling schema with strict \ac{JSON} validation; malformed calls return deterministic error messages that the agent learns to avoid through repeated interaction.
 
 \section{Infrastructure Summary}
 \label{sec:infrastructure}
 
-Complementing \S\ref{sec:train-env}, we summarize the principal infrastructure choices and their rationale; complete details reside in the Appendix.
+Complementing \S\ref{sec:train-env}, we summarize principal infrastructure choices and their rationale; complete details appear in the Appendix.
 During rollouts, models are served with vLLM for high throughput via continuous batching and KV-cache reuse; an OpenAI-compatible \ac{API} server exposes the function-calling interface.
-Live weight synchronization employs an \ac{NCCL}-based mechanism that transmits \ac{LoRA} adapters without interrupting service.
-Jobs are scheduled under SLURM; isolation uses per-job user accounts, cgroups, rbash, and workspace-scoped filesystems, with optional Apptainer/Singularity images for pinning dependencies.
-Each episode runs in an ephemeral working copy that is reset between attempts.
-Determinism is promoted via fixed seeds and pinned library versions (PyTorch/\ac{CUDA}/\ac{NCCL}/vLLM), while acknowledging minor variation from fused \ac{CUDA} kernels.
+Live adapter synchronization employs an \ac{NCCL}-based mechanism transmitting \ac{LoRA} deltas without service interruption.
+Jobs are scheduled under SLURM; isolation uses per-job user accounts, cgroups, rbash, and workspace-scoped filesystems, with optional Apptainer/Singularity containerization for dependency pinning.
+Each episode executes in an ephemeral repository working copy reset between episodes.
+Determinism is promoted via fixed random seeds and pinned library versions (PyTorch, \ac{CUDA}, \ac{NCCL}, vLLM), while acknowledging minor variation from fused \ac{CUDA} kernels.
 
-We made extensive engineering modifications to the serving stack.
-First, we extended the \ac{NCCL} weight synchronization and redesigned the distributed parameter gathering strategy inside vLLM so that only adapter deltas are collected and broadcast with tight memory bounds.
-\vspace{0.25em}
-Implementation-specific engineering choices and measurements (e.g., adapter synchronization and serving optimizations) are summarized in Chapter~\cref{ch:work} and detailed in the Appendix.
+We made extensive engineering modifications to the serving stack: extending \ac{NCCL} weight synchronization and redesigning distributed parameter gathering inside vLLM so that only adapter deltas are collected and broadcast with bounded memory consumption.
+Implementation-specific engineering details and measurements (adapter synchronization latencies, serving throughput) are documented in Chapter~\cref{ch:work} and the Appendix.
 
 \section{Decoding and Exploration Policy}
 \label{sec:decoding}
 
-The temperature parameter in language model sampling directly controls the exploration-exploitation tradeoff during agent operation, making it a critical hyperparameter for \ac{RL} training.
-Higher temperatures increase randomness in token selection, promoting exploration of diverse debugging strategies and alternative solution paths.
-Lower temperatures favor exploitation of high-probability actions, concentrating probability mass on tokens the model deems most likely.
-Critically, deterministic sampling with temperature approaching zero eliminates exploration entirely, making it fundamentally unsuitable for \ac{RL} where the agent must discover novel strategies through environmental interaction and stochastic trial.
+The temperature parameter controls the exploration-exploitation tradeoff during agent operation, making it a critical hyperparameter for \ac{RL} training.
+Higher temperatures increase token selection randomness, promoting exploration of diverse debugging strategies and alternative solution paths.
+Lower temperatures favor exploitation of high-probability actions, concentrating probability mass on likely tokens.
+Deterministic sampling (temperature $\to 0$) eliminates exploration entirely, making it fundamentally unsuitable for \ac{RL} where agents must discover novel strategies through environmental interaction.
 
-During training, we decode with temperature 1.0 without top-p or top-k filtering, providing substantial exploration of the action space under the episode budgets stated in \S\ref{sec:nano-agent}.
-This configuration allows the model to sample from the full distribution over tool calls and arguments, occasionally selecting lower-probability actions that may reveal unexpected but effective debugging approaches.
-The stochasticity proves essential for \ac{RL} learning dynamics: without exploration, the agent cannot discover behaviors beyond its initial policy, preventing the iterative improvement that \ac{RL} optimization enables.
-The choice of temperature 1.0 balances adequate exploration against maintaining reasonable coherence in generated tool calls, avoiding the extreme randomness of higher temperatures that would produce predominantly invalid actions.
+During training, we decode with temperature 1.0 without top-p or top-k filtering, providing substantial exploration under the episode budgets stated in \S\ref{sec:nano-agent}.
+This configuration allows sampling from the full distribution over tool calls and arguments, occasionally selecting lower-probability actions that may reveal unexpected but effective debugging approaches.
+Stochasticity is essential for \ac{RL} learning: without exploration, agents cannot discover behaviors beyond their initial policy, preventing iterative improvement.
+Temperature 1.0 balances adequate exploration against reasonable tool-call coherence, avoiding the extreme randomness of higher temperatures that would produce predominantly invalid actions.
 
-During evaluation, we shift to temperature 0.2 with top-p 0.9, exploiting the learned policy to maximize expected performance rather than exploring alternatives.
-This lower temperature concentrates sampling on high-probability actions that training has identified as effective, while mild top-p filtering prevents occasional sampling of extremely low-probability tokens.
-Tool-call formatting remains deterministic through strict \ac{JSON} schema validation regardless of temperature setting.
+During evaluation, we use temperature 0.2 with top-p 0.9, exploiting the learned policy to maximize expected performance rather than exploring alternatives.
+Lower temperature concentrates sampling on high-probability actions identified as effective during training, while mild top-p filtering prevents occasional sampling of extremely low-probability tokens.
+Tool-call formatting remains deterministic through strict \ac{JSON} schema validation regardless of temperature.
 
 \section{Evaluation Protocol (brief)}
 \label{sec:eval-brief}
 
 Our evaluation protocol addresses the three research questions established in Chapter~\ref{ch:introduction}.
-For \textbf{RQ1} (harness adaptation and model scaling), we measure SWE-Bench-Verified success rates alongside harness-efficiency metrics (tool-call success, invalid-call rate, action efficiency) across the Qwen3 model family (8B/14B/30B-A3B) and Llama3.1-8B.
-For \textbf{RQ2} (multilingual holdout performance), we evaluate per-language reward trends on the 50-task SWE-Bench-Multilingual holdout with bootstrap confidence intervals, comparing pre-training and post-training checkpoints.
-For \textbf{RQ3} (scaffold transfer), we replay trained checkpoints on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to measure zero-shot and few-shot generalization without retraining.
 
-We report test-verified success rates on SWE-Bench-Verified as the primary metric.
-Secondary analysis covers patch-similarity rates on SWE-Bench-Verified, per-language reward trends on the SWE-Bench-Multilingual holdout, and harness-efficiency metrics.
-Tertiary metrics quantify cross-scaffold transfer using the protocol shared with the accompanying conference draft.
-\todoinline{Confirm final harness list and evaluation attempt budgets.}
-Baselines include each base Qwen3 model with Nano (no \ac{RL}) plus the Llama3.1-8B reference run.
-We use one attempt per bug subject to the stated budgets, report bootstrap 95\% confidence intervals, and surface per-harness confidence intervals for transfer experiments.
+\textbf{RQ1 (Nano Harness Adaptation):}
+We measure harness-level efficiency metrics (tool-call success rate, invalid-call rate, action efficiency) comparing pre-training and post-training behavior.
+Command usage evolution is analyzed qualitatively across training runs to identify observable shifts in debugging strategies.
 
-\todoinline{Add dataset versions, seeds, and bug subsets used for the primary evaluation once finalized.}
+\textbf{RQ2 (Execution-Free Patch-Similarity \ac{RL}
+Performance):} We measure test-verified success rates on SWE-Bench-Verified (approximately 500 Python debugging tasks), comparing pre-training baseline to post-training performance using identical evaluation protocol.
+
+\textbf{RQ3 (Execution-Free Multilingual Curriculum Generalization):}
+We evaluate per-language reward trends on the 50-task SWE-Bench-Multilingual held-out set with bootstrap confidence intervals, comparing pre-training and post-training checkpoints across nine programming languages.
+
+Test-verified success rates on SWE-Bench-Verified serve as the primary metric for functional correctness.
+Secondary metrics include patch-similarity rates and per-language reward deltas on the multilingual holdout.
+Tertiary metrics quantify harness-efficiency indicators and behavioral patterns through command usage analysis.
+\todoinline{Confirm final evaluation attempt budgets and exact dataset versions.}
+Baselines consist of the Qwen3-14B checkpoint with Nano (no \ac{RL}).
+We use one attempt per task subject to stated budgets and report bootstrap 95\% confidence intervals where applicable.
+
+\todoinline{Add dataset commit hashes, seeds, and task subsets used for primary evaluation once finalized.}
 

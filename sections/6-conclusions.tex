@@ -44,31 +44,31 @@ The training pipeline remains application-agnostic, suggesting potential applica
 
 Our methodology development and preliminary investigations provide insights into the research questions, with comprehensive experimental validation ongoing:
 
-\subsection{RQ1: Adaptation to the Harness} \label{subsec:rq1-answer}
+\subsection{RQ1: Nano Harness Adaptation} \label{subsec:rq1-answer}
 
-\textbf{Theoretical Foundation}: Interactive \ac{RL} should improve adaptation to the Nano harness through reinforcement of effective tool-usage patterns and reduction of invalid actions.
+\textbf{Theoretical Foundation}: Interactive \ac{RL} should improve Nano harness adaptation through reinforcement of effective tool-usage patterns and reduction of invalid actions.
 
 \textbf{Evidence}: \todoinline{Experimental validation pending: measure tool success rate improvements, invalid call rate reduction, and actions per solved task across training iterations.}
 
 \textbf{Mechanism}: Policy updates should reinforce effective tool-usage sequences and prompt adherence, yielding co-adaptation between model and harness.
 
-\subsection{RQ2: Multilingual Holdout}
-\label{subsec:rq2-answer}
+\subsection{RQ2: Execution-Free Patch-Similarity \ac{RL}
+Performance} \label{subsec:rq2-answer}
 
-\textbf{Theoretical Foundation}: Exposure to the multilingual curriculum should raise average reward on the 50-sample SWE-Bench-Multilingual holdout without overfitting to the training languages.
+\textbf{Theoretical Foundation}: Training on static patch-similarity rewards should improve functional bug-fixing success on SWE-Bench-Verified despite not directly optimizing for test passage.
 
-\textbf{Evidence}: \todoinline{Experimental validation pending: measure pre/post holdout rewards with bootstrap confidence intervals and highlight language-specific shifts.}
+\textbf{Evidence}: \todoinline{Experimental validation pending: measure test-verified success rate improvements comparing pre-training baseline vs. post-GSPO training with bootstrap confidence intervals.}
 
-\textbf{Significance}: Positive holdout gains would indicate that execution-free rewards enable multilingual transfer without bespoke per-language infrastructure.
+\textbf{Significance}: Positive test-verified improvements would validate that execution-free patch-similarity rewards serve as effective proxies for functional correctness, enabling tractable multilingual training.
 
-\subsection{RQ3: Scaffold Transfer}
+\subsection{RQ3: Execution-Free Multilingual Curriculum Generalization}
 \label{subsec:rq3-answer}
 
-\textbf{Theoretical Foundation}: Behaviours learned in the minimalist Nano scaffold should persist when the policy interacts with richer tool suites.\todoinline{Capture zero-shot vs few-shot expectations for each harness.}
+\textbf{Theoretical Foundation}: Exposure to the multilingual curriculum should raise average reward on the 50-task SWE-Bench-Multilingual holdout without overfitting to the training languages.
 
-\textbf{Evidence}: \todoinline{Experimental validation pending: report zero-shot and few-shot performance on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses relative to Nano baselines.}
+\textbf{Evidence}: \todoinline{Experimental validation pending: measure per-language reward improvements on the 50-task multilingual holdout with bootstrap confidence intervals, highlighting language-specific patterns.}
 
-\textbf{Significance}: Demonstrating transfer would show that Nano-based training yields reusable interaction routines, reducing the need for scaffold-specific retraining.
+\textbf{Significance}: Positive multilingual holdout gains would demonstrate that execution-free rewards enable cross-language transfer without bespoke per-language infrastructure, validating the language-agnostic training approach.
 
 \section{Broader Implications}
 \label{sec:broader-implications}
@@ -113,7 +113,7 @@ Analyze whether learned behaviors from minimal interfaces outperform hand-crafte
 }
 
 The minimalist Nano agent design—deliberately simple tools combined with extensive \ac{RL} training—represents a test of whether learning-based approaches can match or exceed carefully engineered systems.
-The empirical evidence from our training dynamics and transfer experiments provides insight into the relative merits of learning versus engineering for coding agent capabilities.
+The empirical evidence from our training dynamics provides insight into the relative merits of learning versus engineering for coding agent capabilities.
 
 \subsection{Continued Improvement Potential}
 \label{subsec:improvement-potential}

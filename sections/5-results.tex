@@ -2,7 +2,7 @@
 \label{ch:results}
 
 This chapter presents experimental results addressing the three research questions established in Chapter~\ref{ch:introduction}.
-Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we report test-verified success rates on SWE-Bench-Verified as the primary metric, supplemented by patch-similarity rates, per-language reward trends on the SWE-Bench-Multilingual holdout, harness-efficiency metrics (tool-call success, invalid-call rate, action efficiency), and cross-scaffold transfer performance.
+Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we report harness adaptation metrics (RQ1), test-verified success rates on SWE-Bench-Verified (RQ2), and per-language reward trends on the SWE-Bench-Multilingual holdout (RQ3), supplemented by patch-similarity rates and training dynamics analysis.
 
 \todoinline{Insert comprehensive experimental results tables and statistical analyses once training runs complete, demonstrating improvements over baseline approaches.}
 
@@ -92,12 +92,12 @@ Beyond quantitative metrics, agent-trained models demonstrate qualitatively diff
 
 \textbf{Tool Usage Efficiency}: Trained agents develop efficient command usage patterns, avoiding redundant operations and focusing on information-gathering commands that maximize debugging insight.
 
-\section{RQ1: Harness Adaptation and Model Scaling}
+\section{RQ1: Nano Harness Adaptation}
 \label{sec:rq1-harness}
 
-\textbf{Research Question 1}: How does \ac{GSPO} training reshape Nano harness adaptation and SWE-Bench-Verified success across model sizes?
+\textbf{Research Question 1}: How does \ac{GSPO} training improve Nano harness adaptation?
 
-Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we measured harness adaptation through tool success rates, invalid-call reduction, and action efficiency across the Qwen3 model family.
+Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we measured harness adaptation through tool-call success rates, invalid-call reduction, and action efficiency, supplemented by qualitative analysis of command usage evolution over training.
 
 \subsection{Harness Adaptation Results} \label{subsec:rq1-results}
 
@@ -125,53 +125,32 @@ Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we measure
 \subsection{Key Findings} \label{subsec:rq1-findings} \todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for \ac{RL} training success.
 }
 
-\subsection{Model Size Scaling Results}
-\label{subsec:rq1-model-size}
+\section{RQ2: Execution-Free Patch-Similarity \ac{RL}
+  Performance} \label{sec:rq2-swebench}
 
-We compare pre-training versus post-\ac{GSPO} performance across Qwen3-8B, Qwen3-14B, Qwen3-30B-A3B, and the Llama3.1-8B reference run, applying identical training procedures as described in \S\ref{sec:models}.
+\textbf{Research Question 2}: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?
 
-\subsubsection{Quantitative Results} \label{subsubsec:rq1b-results} \todoinline{Insert comprehensive comparison table including: \begin{itemize}
-\item Performance on SWE-Bench-Verified across different base models
-\item Tool success metrics for each model
-\item Training convergence characteristics
-\item Computational efficiency comparisons
-\item Statistical significance of cross-model consistency
-\end{itemize}}
+Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we compare pre-training Qwen3-14B baseline performance with post-\ac{GSPO} training results on SWE-Bench-Verified (approximately 500 Python debugging tasks).
+We report test-verified success rates with bootstrap 95\% confidence intervals.
 
-\subsubsection{Analysis} \label{subsubsec:rq1b-analysis} \todoinline{Analyze training recipe portability, identify model-specific adaptations required, and discuss implications for scaling to new architectures.
-}
+\subsection{SWE-Bench-Verified Results} \label{subsec:rq2-performance} \todoinline{Insert table comparing pre-training baseline vs. post-GSPO test-verified success rates on SWE-Bench-Verified with bootstrap confidence intervals.}
 
-\section{RQ2: Multilingual Holdout Performance} \label{sec:rq2-multilingual}
+\subsection{Analysis} \label{subsec:rq2-analysis} \todoinline{Interpret success rate improvements, discuss error modes and failure cases, and relate patch-similarity training rewards to test-verified success.}
 
-\textbf{Research Question 2}: Does the 750/250 multilingual curriculum improve held-out performance across languages?
+\section{RQ3: Execution-Free Multilingual Curriculum Generalization} \label{sec:rq3-multilingual}
 
-Using the mixed curriculum described in \S\ref{sec:data-env}, we evaluate \ac{GSPO}-trained checkpoints on the reserved 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
-We report reward deltas per language with bootstrap 95\% confidence intervals, comparing pre-training baselines against post-training performance.
+\textbf{Research Question 3}: Does the execution-free multilingual curriculum generalize beyond Python?
 
-\subsection{Per-Language Results} \label{subsec:rq2-performance} \todoinline{Insert table/plot of multilingual holdout rewards before vs. after training, including per-language breakdown and confidence intervals.}
+Using the mixed 1,000-task curriculum described in \S\ref{sec:data-env} (750 Python + 250 multilingual training tasks), we evaluate \ac{GSPO}-trained checkpoints on the reserved 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
+We report per-language reward deltas with bootstrap 95\% confidence intervals, comparing pre-training baselines against post-training performance.
 
-\subsection{Generalization Analysis} \label{subsec:rq2-analysis} \todoinline{Interpret multilingual holdout reward shifts, highlight languages with notable changes, and discuss remaining limitations.}
+\subsection{Per-Language Results}\label{subsec:rq3-results}
+\todoinline{Insert table/plot of multilingual holdout rewards before vs. after training, including per-language breakdown (Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, C++) and bootstrap confidence intervals.}
 
-\section{RQ3: Scaffold Transfer Results} \label{sec:rq3-scaffold}
-
-\textbf{Research Question 3}: To what extent do behaviours learned on Nano transfer to alternative scaffolds?
-
-Following the evaluation protocol in \S\ref{sec:eval-brief}, we evaluate Nano-trained checkpoints on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses.
-We measure success rates, tool validity, and scaffold-adherence metrics for both zero-shot and few-shot (five demonstrations) conditions.
-
-\subsection{Zero-Shot Transfer Results}\label{subsec:rq3-zeroshot}
-\todoinline{Insert table comparing Nano performance with zero-shot transfer success rates, tool validity, and episode length across harnesses.}
-Preliminary dry runs mirror the trends described in the ICLR submission: GSPO-trained checkpoints maintain non-trivial success on Mini-SWE-Agent despite schema differences, whereas untrained baselines collapse to near-zero performance.
-\todoinline{Replace with measured numbers and cite Appendix once finalized.}
-
-\subsection{Few-Shot Adaptation}\label{subsec:rq3-fewshot}
-We measure adaptation speed by supplying five annotated trajectories for each harness and evaluating improvement over ten tasks.
-\todoinline{Add learning-curve plot once experiments complete.}
-Early results suggest the GSPO policy adapts within two demonstrations, while the pretrained baseline requires substantially more guidance, supporting the hypothesis that Nano-trained routines persist under interface changes.
-\todoinline{Quantify adaptation delta (success + tool validity).}
-
-\subsection{Behavioural Analysis}\label{subsec:rq3-behaviour}
-\todoinline{Document qualitative differences in command sequencing, error recovery, and prompt adherence during transfer, referencing transcript samples from each scaffold.}
+\subsection{Cross-Language Generalization Analysis}\label{subsec:rq3-analysis}
+\todoinline{Interpret per-language reward shifts, highlight languages with notable improvements, discuss languages with limited gains, and analyze whether execution-free patch-similarity rewards generalize across programming paradigms.
+Consider language family effects (e.g., C-family vs.
+functional languages).}
 
 \section{Ablation Studies}
 \label{sec:ablations}
@@ -327,9 +306,11 @@ Our comprehensive experimental evaluation yields several important conclusions:
 
 \subsection{Research Question Answers} \label{subsec:research-answers}
 
-\textbf{RQ1 (Harness Adaptation)}: \todoinline{Summarize GSPO improvements in tool success, invalid calls, action efficiency, and success rates per model size using Sections~\ref{sec:rq1-harness} and \ref{subsec:rq1-model-size}.
+\textbf{RQ1 (Nano Harness Adaptation)}: \todoinline{Summarize GSPO improvements in tool-call success, invalid-call reduction, action efficiency, and observable shifts in command usage patterns with references to Section~\ref{sec:rq1-harness}.
 }
 
-\textbf{RQ2 (Multilingual Holdout)}: \todoinline{Report average reward improvements per language with references to Section~\ref{sec:rq2-multilingual}.}
+\textbf{RQ2 (Execution-Free Patch-Similarity \ac{RL}
+Performance)}: \todoinline{Report test-verified success rate improvements on SWE-Bench-Verified comparing pre-training vs.
+post-GSPO with references to Section~\ref{sec:rq2-swebench}.}
 
-\textbf{RQ3 (Scaffold Transfer)}: \todoinline{Summarize zero-shot and few-shot transfer outcomes across alternative harnesses with references to Section~\ref{sec:rq3-scaffold}.}
+\textbf{RQ3 (Execution-Free Multilingual Curriculum Generalization)}: \todoinline{Summarize per-language reward improvements on the 50-task multilingual holdout with references to Section~\ref{sec:rq3-multilingual}.}

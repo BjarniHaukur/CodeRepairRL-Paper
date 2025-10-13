@@ -11,8 +11,6 @@ The serving layer is a vLLM-based \ac{API} server with function-calling extensio
 Live adapter synchronization propagates \ac{LoRA} updates to inference without downtime, while the trainer realizes \ac{GSPO} with masked loss and on-policy collection for variable-turn episodes.
 Experiments are orchestrated by SLURM with per-episode ephemeral repositories and workspace isolation; comprehensive logging stores tool traces, canonical diffs, rewards, token counts, timings, and RNG seeds.
 
-\todoinline{Insert repository layout diagram or concise bullet map of major packages/modules.}
-
 \section{Scope and Objectives}
 
 Our objective was to realize an online, repository-grounded training environment in which a single terminal-based agent learns via execution-free, outcome rewards.
@@ -20,12 +18,6 @@ Achieving this required cohesive changes across serving, training, and orchestra
 
 \section{Training Environment Implementation}
 \label{sec:training-environment-implementation}
-
-\subsection{Serving and Function Calling}
-
-We extended the vLLM \ac{API} server with strict function-calling enforcement and deterministic error messages for invalid \ac{JSON} tool calls.
-Continuous batching and KV-cache reuse are configured for multi-turn episodes.
-Specific server configurations are documented in \cref{app:vllm-config}.
 
 \subsection{Live Adapter Synchronization to Deployed API Servers}
 
@@ -53,7 +45,6 @@ This selective transmission dramatically reduces network traffic compared to ful
 
 A critical optimization addresses memory consumption during parameter gathering under ZeRO-3, where naive all-gather operations would materialize the full model simultaneously, adding 50+ GiB of peak \ac{VRAM}.
 We instead gather adapter modules sequentially one layer at a time, reducing peak memory overhead to approximately 100 MiB while introducing negligible latency.
-This memory-bounded gathering strategy enables weight synchronization to coexist with ongoing inference and training operations without triggering out-of-memory failures, even on memory-constrained accelerators.
 
 Asynchronous broadcast operations allow training to proceed while synchronization completes, preventing pipeline stalls.
 The system maintains separate \ac{NCCL} communication groups: one for gradient synchronization within the distributed training cluster and another for policy broadcasting to inference servers, enabling concurrent operation without interference.
@@ -85,17 +76,17 @@ SLURM submission templates and environment configurations are documented in \cre
 With the training environment infrastructure established, we now describe the concrete experimental protocol and parameter choices for the runs conducted.
 
 We conducted runs on Python-only SWE-Gym (\(\sim\)2{,}400 tasks) and on a compact 1k curriculum (750 SWE-Gym Python + 250 SWE-Bench-Multilingual across nine languages; 50 multilingual tasks held out for validation), repeating epochs over the latter to maximize sample reuse.
-Episodes are bounded by 30 tool calls, 12{,}288 generated tokens, and 60\,s wall-clock per bug (\(\pm\)20\,s for smaller/larger than the 14B reference).
+Episodes are bounded by 30 tool calls, 12{,}288 generated tokens, and 60\,s wall-clock per task.
 Training uses temperature 1.0 without top-k/top-p; evaluation uses temperature 0.2 with top-p 0.9.
-Optimization follows \ac{GSPO} with group size eight and ratio clipping \(\varepsilon=0.2\), AdamW on \ac{LoRA} parameters, gradient accumulation and checkpointing, and DeepSpeed ZeRO (2 for \(\leq\)14B; 3 for \(>\)14B).
-We primarily use Qwen3-14B and repeat best settings on Qwen3-8B and Qwen3-30B-A3B.
+Optimization follows \ac{GSPO} with group size eight and ratio clipping \(\varepsilon=0.2\), AdamW on \ac{LoRA} parameters, gradient accumulation and checkpointing, and DeepSpeed ZeRO-2.
+All primary experiments use Qwen3-14B; limited comparisons with Qwen3-8B, Qwen3-30B-A3B, Qwen3-32B, and Llama3.1-8B appear in Appendix~\ref{app:model-comparison}.
 
 \todoinline{Add concrete counts: updates, epochs over the 1k curriculum, compute hours, and cluster details.}
 
 \section{Compute-Efficient Infrastructure Implementation}
 
 A central objective of this work was demonstrating that online \ac{RL} for coding agents remains tractable within academic compute budgets.
-We achieved this through systematic application of memory and computational optimizations that, when composed carefully, enable training of models up to 30B parameters on modest \ac{GPU} clusters.
+We achieved this through systematic application of memory and computational optimizations that, when composed carefully, enable training of 14B parameter models on modest \ac{GPU} clusters.
 
 \subsection{Parameter-Efficient Adaptation with \ac{LoRA}}
 Rather than fine-tuning complete model weights, we restrict updates to low-rank adapter matrices applied to attention and \ac{MLP} projections.
@@ -107,10 +98,10 @@ Adapter-only updates integrate naturally with our differential weight synchroniz
 
 \subsection{Memory Management Through DeepSpeed ZeRO}
 Training multi-billion parameter models requires distributing optimizer states, gradients, and parameters across multiple \acp{GPU}.
-We employ DeepSpeed ZeRO-2 partitioning for models up to 14B parameters and ZeRO-3 for larger configurations.
+We employ DeepSpeed ZeRO-2 partitioning for Qwen3-14B training.
 ZeRO-2 shards optimizer states and gradients while replicating model parameters across devices, balancing communication overhead against memory savings.
-This configuration suffices for 8B and 14B models where parameter memory remains manageable but optimizer states—particularly for AdamW with its first and second moment estimates—would otherwise exceed available \ac{VRAM}.
-For the 30B-class models, ZeRO-3 extends sharding to include model parameters themselves, gathering required parameters on demand during forward and backward passes while keeping per-device memory consumption bounded.
+This configuration enables 14B parameter training where parameter memory remains manageable but optimizer states—particularly for AdamW with its first and second moment estimates—would otherwise exceed available \ac{VRAM}.
+The choice of ZeRO-2 over ZeRO-3 avoids the additional parameter-gathering latency required when sharding model weights, as 14B model parameters fit comfortably within aggregate \ac{GPU} memory when replicated across two devices.
 
 \subsection{Gradient Checkpointing for Activation Memory}
 Multi-turn agent episodes generate long sequence lengths that accumulate substantial activation memory during backward passes.
@@ -139,10 +130,11 @@ Continuous batching dynamically assembles requests into batches as they arrive, 
 While FlashAttention provides kernel-level speedups for attention computation, our primary gains come from algorithmic improvements in cache management and batching rather than raw arithmetic throughput.
 
 \subsection{Resource Requirements and Scalability}
-The composed optimizations yield manageable resource requirements across model scales.
-Qwen3-8B trains comfortably on 2-3 A100 \acp{GPU} with ZeRO-2 and \ac{LoRA}, Qwen3-14B on 3-4 \acp{GPU} with the same configuration, and Qwen3-30B-A3B on 6-8 \acp{GPU} with ZeRO-3.
-Inference serving requires 1-2 \acp{GPU} depending on model size and desired throughput.
-These requirements remain within the reach of academic research groups, demonstrating that sophisticated online \ac{RL} training need not demand industrial-scale compute infrastructure when careful optimization and architectural choices reduce overhead systematically.
+The composed optimizations yield manageable resource requirements for Qwen3-14B training.
+Training operates on 2 A100 \acp{GPU} with ZeRO-2 and \ac{LoRA}, while inference serving requires 1 A100 \ac{GPU}.
+Both training and inference configurations require power-of-2 \ac{GPU} counts for efficient tensor parallelism and collective communication operations.
+These modest requirements—3 \acp{GPU} total for a complete training pipeline—remain well within reach of academic research groups, demonstrating that sophisticated online \ac{RL} training need not demand industrial-scale compute infrastructure when careful optimization and architectural choices reduce overhead systematically.
+Limited experiments with other model sizes are documented in Appendix~\ref{app:model-comparison}.
 
 \section{Performance Characterization and Achieved Metrics}
 
@@ -163,16 +155,14 @@ Weight broadcasts complete within the 150-300ms range established in \S\ref{sec:
 \ac{NCCL} bandwidth consumption remains well below network capacity limits even during synchronized updates across multiple inference servers.
 \todoinline{Insert measured sync latencies with percentiles (p50/p95) and network bandwidth utilization.}
 
-\subsection{Scalability and Resource Requirements}
+\subsection{System Utilization and Efficiency}
 
-The composed infrastructure scales across model sizes while maintaining consistent training dynamics.
-Qwen3-8B training proceeds efficiently on 2-3 A100 \acp{GPU}, Qwen3-14B on 3-4 \acp{GPU}, and Qwen3-30B-A3B on 6-8 \acp{GPU} as detailed in \S4.6.
-\ac{GPU} utilization remains high throughout training through continuous batching and overlapped computation-communication patterns.
-\todoinline{Document \acp{GPU} scaling linearity, memory utilization efficiency, fault tolerance characteristics, and performance bottlenecks identified during extended training runs.}
+The composed infrastructure maintains high \ac{GPU} utilization throughout training through continuous batching and overlapped computation-communication patterns.
+\todoinline{Document memory utilization efficiency, fault tolerance characteristics, and performance bottlenecks identified during extended training runs.}
 
 \subsection{Cost-Effectiveness for Academic Research}
 
 Total training costs remain accessible for academic research groups.
-\todoinline{Insert cost analysis table with total A100 \ac{GPU}-hours per run for each model size, per-episode cost comparisons, development cost implications, and infrastructure maintenance requirements.}
+\todoinline{Insert cost analysis table with total A100 \ac{GPU}-hours per run, per-episode cost comparisons, development cost implications, and infrastructure maintenance requirements.}
 These requirements demonstrate that sophisticated online \ac{RL} training need not demand industrial-scale compute budgets when systematic optimization and careful architectural choices reduce overhead efficiently.
 

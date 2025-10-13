@@ -12,12 +12,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 latexmk -pdf -xelatex main.tex
 ```
 
-**Dependencies (Ubuntu/WSL):**
-```bash
-sudo apt update && sudo apt install texlive-full latexmk biber ttf-mscorefonts-installer
-fc-cache -fv  # refresh fontconfig for XeLaTeX fonts
-```
-
 ## Repository Architecture
 
 ### Core Structure
@@ -40,23 +34,80 @@ Use `\todoinline{}` commands to mark sections needing development with instructi
 - Target venue: KTH thesis, potentially adapted for academic conference
 - Emphasize novel "hill-climbing the coding agent gradient" experiment
 
-## Plotting Overview
+# Academic Writing Assistant for LaTeX Thesis
 
-The `plotting/` directory contains Python scripts for generating thesis figures using the WandB API. The directory follows a structured organization:
+## Core Writing Philosophy
+* Write continuous, flowing academic prose that prioritizes clarity and precision over unnecessary complexity
+* Build arguments progressively through connected paragraphs, not bullet points or lists
+* Choose simple, precise words over jargon unless technical terms are essential
+* Maintain formal academic tone without being unnecessarily verbose or obscure
 
-- **scripts/**: Core plotting scripts organized by purpose
-  - Main directory: Primary thesis figure generation scripts
-  - `analysis/`: Research analysis scripts (patterns, behaviors)
-  - `exploration/`: Data exploration and discovery
-  - `debugging/`: Temporary debugging scripts
-- **utils/**: Shared utilities (table parsing, data processing)
-- **figures/plots/**: Auto-organized output by plot type (analysis, temporal, sankey, comparison)
-- **cache/**: Cached WandB table downloads for faster re-runs
+## Prose Style and Flow
+* **Paragraph Structure**: Each paragraph develops one clear idea with 4-7 sentences typically
+  - Topic sentence states the main point
+  - Supporting sentences provide evidence, explanation, or analysis
+  - Transitional elements connect to previous and following paragraphs
+* **Sentence Variety**: Mix sentence lengths and structures for readability
+  - Combine short, punchy statements with longer, complex sentences
+  - Use active voice when possible; passive voice only when conventional or necessary
+* **Transitions**: Explicitly connect ideas using transitional phrases
+  - Between paragraphs: "Building on this foundation...", "In contrast to...", "This approach reveals..."
+  - Within paragraphs: "moreover", "however", "consequently", "specifically"
+* **Academic Hedging**: Calibrate certainty appropriately
+  - Strong evidence: "demonstrates", "establishes", "confirms"
+  - Moderate evidence: "suggests", "indicates", "appears to"
+  - Limited evidence: "may", "could potentially", "preliminary findings suggest"
 
-### Key principles:
-- All plots include run IDs in filenames for reproducibility
-- Use existing utilities (especially TableExtractor for HTML parsing)
-- Scripts are executed with `uv run -m scripts.script_name`
-- Output automatically organized by plot type
+## LaTeX Technical Requirements
+* **Math**: Use `\( ... \)` for inline, `\[ ... \]` or `equation` environment for display
+* **Equations**: Number only when referenced; use `\label{eq:descriptive-name}` and `\eqref{eq:descriptive-name}`
+* **Quotes**: Use LaTeX quotes ``like this'' not straight quotes
+* **Cross-references**: Always use `\cref{label}` or `\Cref{label}` at sentence start
+* **Line breaks**: Preserve existing line wrapping patterns in the source
 
-**For detailed plotting guidelines and creating new plots, use the `thesis-plot-manager` agent.**
+## Acronyms and Terminology
+* **ALWAYS use `\ac{}`** for acronyms - the package handles expansion automatically
+  - First use: `\ac{CNN}` (renders as "Convolutional Neural Network (CNN)")
+  - Subsequent uses: `\ac{CNN}` (renders as "CNN")
+  - Plural forms: `\acp{CNN}` when needed
+  - Never manually write "Convolutional Neural Network (CNN)"
+* **Define all symbols** immediately upon introduction: "where $\alpha$ denotes the learning rate"
+* **Introduce technical terms** with brief, clear explanations on first use
+
+## Citations and Evidence
+* **Citation commands**: Use existing macros like `\citep{}`, `\citet{}`, `\citealp{}`
+* **Citation placement**: 
+  - End of sentence: "...as shown in previous work \citep{key1,key2}."
+  - Integrated: "\citet{key1} demonstrated that..."
+* **Supporting claims**: Every claim needs either:
+  - Citation to published work
+  - Reference to your own results (with section/figure/table reference)
+  - Explicit acknowledgment of speculation: "We hypothesize that..."
+* **Quantitative claims**: Always include specific numbers, metrics, and datasets
+
+## Writing Process Instructions
+* **Generate continuous text**: Write complete paragraphs that flow naturally
+* **Maintain momentum**: Don't interrupt prose with meta-comments or questions
+* **Missing information**: Insert `\todoinline{need: specific detail}` and continue writing
+* **Build on existing text**: Read surrounding context and ensure smooth integration
+* **Preserve technical accuracy**: Never sacrifice precision for style
+
+## Methods and Results Specifics
+* **Experimental details**: Include model versions, hyperparameters, hardware, training time
+* **Statistical reporting**: "achieving 92.3\% accuracy (σ=1.2, n=5 runs)"
+* **Dataset description**: Name, version, split sizes, preprocessing steps
+* **Reproducibility**: Enough detail for another researcher to replicate
+
+## Editing Principles
+* **Minimal changes**: When editing, preserve original structure and labels
+* **Never modify**: Citation keys, label names, macro definitions, preamble
+* **Improve clarity**: Simplify convoluted sentences, fix ambiguous pronouns, strengthen transitions
+
+## Quality Checklist Before Returning Text
+- [ ] Text flows as continuous prose, not fragments or lists
+- [ ] All acronyms use `\ac{}` commands exclusively  
+- [ ] Transitions connect paragraphs and ideas smoothly
+- [ ] Technical terms are clear to a graduate student in the field
+- [ ] Claims have appropriate evidence and hedging
+- [ ] Cross-references use `\cref` not hard-coded numbers
+- [ ] LaTeX compiles without errors

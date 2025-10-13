@@ -4,8 +4,8 @@
 Automated program repair has rapidly transformed from a nascent research area to one of the most promising applications of agentic \ac{AI} systems.
 By ``agentic,'' we refer to systems that can autonomously interact with environments through tool use, make sequential decisions based on observations, and iteratively refine their approach based on feedback, as opposed to single-pass generation models that produce outputs without environmental interaction.
 Recent advances in autonomous software engineering have achieved remarkable performance milestones, with systems like Claude~4 now exceeding 70\% success rates on SWE-Bench-Verified \cite{claude4_2025}.
-This rapid progress underscores the critical importance of maintaining open research that can achieve near-parity understanding with frontier capabilities.
-Across diverse perspectives, there emerges a common recognition that researchers must maintain competitive access to the tools and methodologies driving these advances, ensuring that critical insights remain accessible to the broader scientific community rather than concentrated within proprietary systems.
+This rapid progress underscores the critical importance of maintaining open research capable of understanding frontier capabilities.
+A broad consensus has emerged among researchers: competitive access to training methodologies is essential to ensure that critical insights remain within the scientific community rather than concentrated in proprietary systems.
 Recent open weight releases such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\cite{qwen3CoderBlog2025} follow closely behind frontier performance, but do not include full training recipes.
 This reinforces the need for open, reproducible methods and analysis.
 \todoinline{Verify SWE-Bench-Verified SOTA numbers at submission time as frontier performance continues to evolve rapidly.}
@@ -13,11 +13,11 @@ This reinforces the need for open, reproducible methods and analysis.
 This thesis directly addresses this need by investigating how a single, minimalist agent—Nano—enables a model to acquire agentic behavior through experiential \ac{RL} feedback occurring entirely within the agent's interactive loop.
 By situating all learning and adaptation within the Nano harness, we provide clear, reproducible insights into the mechanisms by which \ac{RL} cultivates autonomy and effective tool use in repository-level code repair.
 
-An important contemporaneous effort is SWE-RL~\cite{wei2025swerladvancingllmreasoning}, which applies \ac{GRPO} with a rule-based reward based on patch similarity (Python's \texttt{difflib.SequenceMatcher}) to train models in a static, single-turn setting where the full file contexts are provided and the model directly outputs a patch that is compared to ground truth.
-Our work is complementary: we also use execution-free patch-similarity rewards, but combine them with \ac{GSPO}—a more robust sequence-level variant—in an agentic, multi-step regime where the model must first acquire its own context through tool use before proposing edits.
-This distinction (static one-shot patch generation versus interactive context acquisition and repair) motivates our focus on agent-integrated training with a single minimalist harness (the Nano agent), rather than on prompt-time scaffolding.
+An important contemporaneous effort is SWE-RL~\cite{wei2025swerladvancingllmreasoning}, which applies \ac{GRPO} with patch-similarity rewards (using Python's \texttt{difflib.SequenceMatcher}) in a static, single-turn setting: full file contexts are provided, the model outputs a patch directly, and similarity to ground truth defines the reward signal.
+Our work is complementary: we also use execution-free patch-similarity rewards but combine them with \ac{GSPO}—a more robust sequence-level variant—in an agentic, multi-turn regime where the model must first acquire relevant context through tool use before proposing edits.
+This distinction between static one-shot patch generation and interactive context acquisition motivates our focus on agent-integrated training within a single minimalist harness rather than prompt-time scaffolding engineering.
 
-To understand why this shift to agentic training is both necessary and transformative, we must first examine the historical context and theoretical foundations that have led to this approach.
+The necessity and transformative potential of agentic training emerge from examining the historical limitations of supervised learning for code repair and the foundational role of \acp{LLM} in enabling \ac{RL} for complex tasks.
 
 \section{Background}
 \label{sec:intro-background}
@@ -42,27 +42,27 @@ When equipped with appropriate interfaces, these models can navigate file system
 This capability foundation transforms previously intractable problems into domains where \ac{RL} becomes feasible.
 In effect, \acp{LLM} provide the first rung on the ladder that makes applying \ac{RL} to software engineering feasible.
 
-However, unlike traditional game playing \ac{RL} agents, which directly produce actions from observations (e.g., selecting chess moves or joystick inputs), \acp{LLM} fundamentally operate as token generators.
-They cannot directly perceive environments or execute actions; instead, they require an intermediary translation layer that converts their generated tokens into executable actions and translates environmental responses back into text.
+However, unlike traditional \ac{RL} agents that directly produce discrete actions from observations (e.g., chess moves, joystick inputs), \acp{LLM} fundamentally operate as text generators.
+They cannot directly perceive environments or execute actions; they require an intermediary translation layer that converts generated text into executable actions and translates environmental responses into textual observations.
 
-This critical distinction necessitates a fundamentally different approach to \ac{RL}.
-In this paradigm, a lightweight harness interprets tool calls from the \ac{LLM}, executes these as actions in the environment, and returns textual observations that the \ac{LLM} can process.
-The entire system (\ac{LLM} plus harness) forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
-In this thesis we instantiate exactly one such harness—the Nano agent—and conduct all training strictly within this single-agent setting.
+This architectural distinction necessitates a different approach to \ac{RL}.
+In this paradigm, a lightweight harness interprets tool calls from the \ac{LLM}, executes corresponding actions in the environment, and returns textual observations for processing.
+The entire system—\ac{LLM} plus harness—forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
+This thesis instantiates exactly one such harness (the Nano agent) and conducts all training strictly within this single-agent setting.
 
 When equipped with appropriate harnesses, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
 This capability transformation makes it practical to apply \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
-Terminal-oriented agency benchmarks such as TauBench~\cite{taubench2024} provide standardized evaluation frameworks for such capabilities; our cross-scaffold transfer experiments (\cref{sec:rq3-scaffold}) further explore generalization across different interaction interfaces.
+Terminal-oriented agency benchmarks such as TauBench~\cite{taubench2024} provide standardized evaluation frameworks for such capabilities; our cross-scaffold transfer experiments (\cref{sec:rq3-scaffold}) further explore generalization across different harness interfaces.
 
-In this thesis, training adopts an execution-free agentic setup: the agent does not run builds or tests during training.
-Instead, it receives static, repository-local feedback obtained exclusively through shell commands, without executing tests or builds.
-This trades direct functional signals for infrastructure simplicity and determinism, enabling scale and multilingual coverage while keeping optimization aligned with interaction quality (valid tool use, efficiency) and end-task success.
+Training adopts an execution-free approach: the agent executes shell commands to explore repositories but does not run test suites or build systems.
+Rewards derive solely from comparing the agent's final repository modifications to ground-truth patches via static string similarity.
+This trades direct functional verification for infrastructure simplicity and determinism, enabling scalable multilingual training while maintaining alignment with valid tool use, efficiency, and ultimately, repair success.
 Concrete observation, action, and reward definitions are specified in \cref{ch:method}.
 
-The significance of this paradigm shift extends beyond mere technical feasibility.
-Human software developers do not repair bugs through single-shot pattern matching; rather, they engage in sophisticated exploratory processes involving hypothesis formation, incremental information gathering, and iterative solution refinement.
-They navigate complex codebases, examine multiple interconnected components, execute diagnostic commands, and progressively construct mental models of system behavior.
-This active learning process, fundamentally different from passive pattern recognition, suggests that training models through interactive experience could yield qualitatively superior debugging capabilities.
+The significance of this paradigm shift extends beyond technical feasibility.
+Human software developers do not repair bugs through single-shot pattern matching; they engage in exploratory processes involving hypothesis formation, incremental information gathering, and iterative refinement.
+They navigate complex codebases, examine interconnected components, execute diagnostic commands, and progressively construct mental models of system behavior.
+This active learning process differs fundamentally from passive pattern recognition, suggesting that training models through interactive experience may yield qualitatively superior debugging capabilities.
 
 %The current landscape of automated program repair reflects an artificial fragmentation: separate models for Python, distinct approaches for Java, isolated systems for JavaScript.
 %This language-specific isolation stems not from fundamental differences in debugging strategies but from the practical constraints of execution-based evaluation.
@@ -82,19 +82,19 @@ Our work addresses this need by studying \ac{RL} with interactive coding agents 
 \section{Problem}
 \label{sec:intro-problem}
 
-Tool-using coding agents already exist; what is largely missing in the open scientific community is an open, reproducible training pipeline to surface that agentic behavior.
-Concretely, we target a minimalist, execution-free \ac{RL} recipe for repository-level \ac{APR} that (i) optimizes terminal interaction quality in live repositories using static, execution-free feedback, (ii) scales beyond a single language without bespoke test infrastructure or heavy dataset engineering, and (iii) demonstrates generalization from training suites to external evaluations and across base models.
+Tool-using coding agents already exist; what remains largely unavailable to the open scientific community is a reproducible training pipeline that develops agentic behavior through interaction.
+We target a minimalist, execution-free \ac{RL} recipe for repository-level \ac{APR} that (i) optimizes shell-based repository interaction using static patch-similarity rewards, (ii) scales across programming languages without test infrastructure or language-specific engineering, and (iii) demonstrates transfer from training benchmarks to held-out evaluations and across base model families.
 
-We therefore frame execution-free \ac{RL} as a pragmatic compromise: by trading direct functional signals for deterministic, static feedback, it becomes feasible to run large-scale and multilingual experiments with tight control over variance and reproducibility.
-The scientific question is whether such a recipe can adapt a single minimalist agent to repositories, reduce invalid actions, and improve action efficiency while transferring across datasets and model families.
+Execution-free \ac{RL} represents a pragmatic trade-off: by replacing test execution with deterministic patch comparison, large-scale multilingual experiments become feasible with controlled variance and full reproducibility.
+The scientific question becomes whether such training can improve repository navigation, reduce invalid tool calls, and enhance repair efficiency while transferring across datasets and model architectures.
 
 \section{Purpose}
 \label{sec:intro-purpose}
 
 This thesis develops and evaluates an open, execution-free \ac{RL} training recipe for a single minimalist coding agent (Nano).
-Our emphasis is on training practice and evidence, not on introducing a new scaffold or algorithm: we document a transparent procedure and analyze its effects on interaction behavior.
-We show that static, repository-local rewards can improve agent interaction without executing tests or builds, and that the same recipe transfers across base models and from training suites to external benchmarks.
-We prioritize methodological clarity and reproducibility: all configurations and harness interfaces are specified, and the approach is designed to scale to multilingual settings without bespoke per-language engineering.
+The emphasis lies on training practice and empirical evidence rather than novel scaffolding or algorithmic contributions: we document a complete, transparent training procedure and analyze its effects on interactive behavior.
+We demonstrate that static patch-similarity rewards can improve repository navigation and repair attempts without test execution, and that the resulting behaviors transfer across base models and from training benchmarks to held-out evaluations.
+Methodological clarity and reproducibility guide all design choices: complete configurations, harness specifications, and evaluation protocols are provided, with multilingual scalability achieved through language-agnostic reward formulation rather than per-language engineering.
 
 \todoinline{Tighten scope/claims to match finalized results; add pointers to Sections/Figures once numbers are fixed.}
 
@@ -129,33 +129,29 @@ We prioritize methodological clarity and reproducibility: all configurations and
 % \textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community.
 % This includes the Nano agent implementation and the \ac{RL} training pipeline.
 
-The overarching goal of this thesis is to develop and empirically validate an online \ac{RL} training paradigm for automated program repair.
-%Through rigorous experimentation with our minimalist Nano agent, we demonstrate that models can learn effective debugging strategies through environmental interaction rather than passive observation of bug-fix pairs.
-%Our comprehensive evaluation addresses harness adaptation, cross-model generalization, dataset transfer, and task generalization as outlined in our research questions above.
+The overarching goal is to develop and empirically validate an online \ac{RL} training paradigm for automated program repair, organized around three research questions that structure the investigation:
 
-To make this investigation concrete, we organize the work around three learnings (RQ1-RQ3) that arise from building an open-source agentic model in a single minimalist harness (Nano).
-
-\textbf{RQ1: How does GSPO training reshape Nano harness adaptation and SWE-Bench-Verified success across model sizes?}
+\textbf{RQ1: How does \ac{GSPO} training improve Nano harness adaptation?
+}
 \begin{itemize}
-	\item Primary indicators: success rate uplift, tool success, invalid-call reduction, and action efficiency reported per Qwen3 size.
-	\item Hypothesis: consistent behavioural improvements emerge across capacities, with qualitative differences captured in the model-size training curves.\todoinline{Ensure each size has comparable logging for tool metrics.}
+	\item Primary indicators: tool-call success rate, invalid-call reduction, action efficiency, and command usage evolution over training.
+	\item Analysis: pre-training vs. post-training comparison of harness-level efficiency metrics and qualitative examination of changes in command usage patterns.
+	\item Hypothesis: \ac{RL} training improves harness interaction efficiency and tool-use reliability, with observable shifts in command patterns toward more focused debugging strategies.
 \end{itemize}
 
-\textbf{RQ2: Does the 750/250 multilingual curriculum improve held-out performance across languages?}
+\textbf{RQ2: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?}
 \begin{itemize}
-	\item Core contribution: quantify reward deltas per language on the 50-task SWE-Bench-Multilingual holdout.\todoinline{Confirm language buckets and sample counts after final data export.}
-	\item Evaluation: pre/post reward comparison with bootstrap confidence intervals and per-language breakdowns.
-	\item Hypothesis: execution-free rewards deliver non-trivial gains beyond English-centric training.
+	\item Primary metric: test-verified success rate on SWE-Bench-Verified (approximately 500 Python debugging tasks).
+	\item Comparison: pre-training baseline vs. post-training performance using identical evaluation protocol.
+	\item Hypothesis: training on static patch-similarity rewards improves functional bug-fixing success despite not directly optimizing for test passage.
 \end{itemize}
 
-\textbf{RQ3: To what extent do behaviours learned on Nano transfer to alternative scaffolds?}
+\textbf{RQ3: Does the execution-free multilingual curriculum generalize beyond Python?}
 \begin{itemize}
-	\item Core contribution: evaluate zero-shot and few-shot transfer on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses without retraining.\todoinline{Specify exact harness configurations once experiments finish.}
-	\item Evaluation: measure success rate, tool validity, and scaffold-adherence metrics relative to Nano baselines.
-	\item Hypothesis: training within a minimalist scaffold yields transferable routines that survive interface shifts.
+	\item Primary evaluation: per-language reward improvements on a 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
+	\item Analysis: bootstrap confidence intervals for per-language reward deltas, comparing pre-training and post-training checkpoints.
+	\item Hypothesis: execution-free patch-similarity rewards generalize across programming languages, with measurable improvements on held-out multilingual tasks despite limited non-Python training data.
 \end{itemize}
-
-With these research questions guiding our investigation, we now articulate the specific purpose and contributions of this thesis.
 
 \section{Benefits, Ethics and Sustainability}
 \label{sec:intro-benefits}
@@ -166,43 +162,37 @@ We use standard datasets with clear licensing and provide exact commit hashes fo
 To enable critical scrutiny, we specify evaluation scripts and random seeds, and we will archive artifacts to ensure long-term accessibility.
 By reducing barriers to entry and facilitating independent replication, the project strengthens transparency and community-driven progress in automated program repair.
 
-Ethical considerations arise from the potential misuse of agentic systems and the provenance of training data.
-We restrict experiments to permissively licensed repositories and avoid exposing sensitive credentials or private data within environments.
-We employ restricted file access and process-level isolation to ensure safe episode execution without compromising host system integrity.
+Ethical considerations include potential misuse of agentic systems and training data provenance.
+Experiments use only permissively licensed repositories, avoiding exposure of sensitive credentials or private data.
+Episodes execute with restricted file access and process-level isolation mechanisms to prevent host system compromise, though future work should explore stronger containerization for enhanced security.
 
-We closely monitor the amount of compute per experiment and report tokens processed and \ac{GPU}-hours to support reproducibility and minimize unnecessary energy use.
-We adopt efficiency practices such as mixed-precision training, reuse of checkpoints and shared inference servers via training-inference duality, and targeted ablations to avoid redundant runs.
+Compute utilization per experiment is monitored and reported (tokens processed, \ac{GPU}-hours) to support reproducibility and minimize unnecessary energy consumption.
+Efficiency practices include mixed-precision training (BF16), checkpoint reuse, shared inference servers through training-inference duality, and targeted ablations to eliminate redundant experiments.
 
 \section{Methodology}
 \label{sec:intro-methodology}
-This research employs a rigorous experimental methodology designed to systematically evaluate \ac{RL} for repository-level bug fixing.
-% Our approach combines theoretical insights from \ac{RL} with practical engineering solutions to create a comprehensive experimental framework.
+This research employs a rigorous experimental methodology to systematically evaluate \ac{RL} for repository-level bug repair through online agent training.
 
-We employ \ac{GSPO}~\cite{gspo2025}, a sequence-level policy optimization algorithm that extends the group-relative baseline principle with improved importance weighting.
-\ac{GSPO} demonstrates superior robustness and stability compared to earlier group-relative methods, proving particularly effective for the small effective batch sizes and high-variance rewards inherent in multi-turn agent training under academic compute constraints.
+We employ \ac{GSPO}~\cite{gspo2025}, a sequence-level policy optimization algorithm that extends the group-relative baseline principle with improved importance weighting for variable-length sequences.
+\ac{GSPO} demonstrates superior robustness compared to earlier group-relative methods (\ac{GRPO}, DAPO), proving particularly effective for small effective batch sizes and high-variance rewards characteristic of multi-turn agent training under academic compute constraints.
 
-During this stage, agents actively interact with software repositories, attempting repairs and receiving rewards based on patch similarity.
+Training proceeds through iterative online interaction: agents explore repositories, attempt repairs, and receive rewards based on static patch-similarity comparison between their repository modifications and ground-truth patches.
 
-Our experimental design keeps training conditions constant across model sizes: each Qwen3 checkpoint (8B/14B/30B) and the Llama3.1-8B reference share identical data streams, optimization hyperparameters, and compute budgets.
-The primary comparison reports pre/post SWE-Bench-Verified success rates after GSPO training; we do not rely on supervised fine-tuning baselines.
-Dependent variables include repair success rate, reward trajectory, and harness-efficiency metrics.
+Primary comparisons report pre-training baseline vs.
+post-training performance on SWE-Bench-Verified using the same Nano harness for both evaluations, eliminating confounds from supervised fine-tuning or prompt engineering.
+Measured outcomes include repair success rates, reward progression, tool-call validity, action efficiency, and command usage patterns.
 
-Data collection encompasses detailed logs of agent-environment interactions capturing exploration patterns, reward signals computed via canonical diff comparison to ground-truth patches, and aggregated metrics on SWE-Bench-Verified plus a 50-sample SWE-Bench-Multilingual holdout for multilingual probing.
-We train on a 1,000-task curriculum composed of 750 SWE-Gym Python bugs and 250 SWE-Bench-Multilingual samples, evaluate primary performance on SWE-Bench-Verified, probe multilingual transfer on the 50-task holdout, and test scaffold transfer on Mini-SWE-Agent- and Aider-style harnesses without additional fine-tuning.
-\todoinline{Double-check the exact scaffold suite before freezing the draft.}
+Data collection captures complete agent-environment interactions: tool invocations, repository states, reward signals computed via patch-similarity comparison, training dynamics, and aggregated evaluation metrics.
+Training uses a 1,000-task curriculum (750 SWE-Gym Python tasks + 250 SWE-Bench-Multilingual tasks), with primary evaluation on SWE-Bench-Verified and multilingual generalization assessed on a 50-task held-out subset.
 
-Statistical analysis includes significance testing for performance differences, learning curve analysis to understand training dynamics, and qualitative examination of agent behaviors to identify emergent strategies.
-
-In coordination with the forthcoming conference submission on scaffold transfer, we reuse the protocol drafted there: Nano-trained checkpoints are replayed on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses to probe zero-shot and few-shot transfer characteristics.
-\todoinline{Add citation once the conference paper is public and ensure alignment with Chapter~\ref{sec:rq3-scaffold}.}
-This multi-faceted approach enables both quantitative validation of our hypotheses and deeper insights into the mechanisms driving performance improvements.
+This methodology enables quantitative validation and mechanistic insights into how \ac{RL} shapes interactive debugging behavior through the Nano agent.
 
 \section{Stakeholders}
 \label{sec:intro-stakeholders}
 
-Primary stakeholders include \ac{ML} and software engineering researchers interested in \ac{APR}, open-source maintainers whose repositories inform benchmarks and evaluation, and practitioners seeking reliable automated debugging tools.
-Secondary stakeholders include infrastructure providers supporting large-scale training and serving, and the broader \ac{AI} community working on agentic systems.
-We design our methods and releases to maximize utility for these groups while balancing privacy, security, and sustainability concerns.
+Primary stakeholders include researchers investigating \ac{RL} training for coding agents, those seeking reproducible methodologies for agentic \ac{LLM} training, and the open-source community advancing alternatives to proprietary training recipes.
+Secondary stakeholders include infrastructure providers supporting large-scale academic training, and benchmark maintainers whose repositories enable evaluation.
+Methods and releases prioritize utility for open research while addressing privacy, security, and sustainability considerations.
 
 \section{Delimitations}
 \label{sec:intro-delimitations}
@@ -210,50 +200,39 @@ We design our methods and releases to maximize utility for these groups while ba
 This investigation operates within carefully defined boundaries that balance scientific rigor with practical constraints.
 Understanding these delimitations is essential for interpreting our findings and their applicability to broader contexts.
 
-\textbf{Task Scope}: We focus specifically on automated bug repair tasks where a known error exists in the codebase and the goal is to generate a corrective patch.
-We extend evaluation beyond Nano only to assess cross-scaffold transfer on Mini-SWE-Agent-, Aider-, and OpenHands-style harnesses (Chapter~\ref{sec:rq3-scaffold}), but do not explore broader code-generation benchmarks.
-This focus enables deep investigation of debugging behaviour while acknowledging that specification-based synthesis remains outside scope.
-\todoinline{Keep the task scope sentence aligned with the final evaluation lineup.}
+\textbf{Task Scope}: This work addresses automated bug repair where known errors exist and the objective is patch generation.
+Evaluation focuses on the Nano agent operating within its native harness, while broader code-generation benchmarks (HumanEval, MBPP) remain out of scope.
+This focused investigation enables deep analysis of interactive debugging behavior while acknowledging that specification-based program synthesis constitutes orthogonal research.
 
 \textbf{Language and Environment Constraints}: Training uses a 1,000-task curriculum (750 SWE-Gym Python issues + 250 SWE-Bench-Multilingual issues) curated to take advantage of our programming language agnostic approach.
 
-\textbf{Compute Environment Constraints}: Experiments were conducted on the Berzelius and Alvis Swedish national \ac{GPU} clusters, which use SLURM scheduling and do not support horizontal scalability via Docker-based container orchestration.
-This constraint informed the design of both the Nano agent and the training pipeline, leading us to adopt parallelization and isolation mechanisms compatible with SLURM scheduling.
+\textbf{Compute Environment Constraints}: Experiments execute on Berzelius and Alvis Swedish national \ac{GPU} clusters using SLURM scheduling without Docker-based container orchestration support.
+This infrastructure constraint shaped both Nano agent design and training pipeline architecture, favoring SLURM-compatible parallelization and process-level isolation over container-based approaches.
 
-\textbf{Model Architecture Scope}: Our primary development and analysis focuses on the base Qwen3 model family—hybrid reasoning models with strong tool-calling capabilities—with reasoning explicitly disabled to conserve context window budget in multi-turn episodes.
-We use Qwen3 (not the specialized Qwen3-Coder variant) for its superior tool-calling reliability and open availability.
-We also evaluate our approach on Llama3.1-8B alongside the Qwen3 series.
+\textbf{Model Architecture Scope}: Our primary development and analysis focuses on Qwen3-14B—a hybrid reasoning model with strong tool-calling capabilities—with reasoning explicitly disabled to conserve context window budget in multi-turn episodes.
+Limited comparisons with Qwen3-8B, Qwen3-30B-A3B, Qwen3-32B, and Llama3.1-8B appear in the Appendix to illustrate capacity and architecture effects, but full model ablation studies are left for future work.
 
-\textbf{Evaluation Protocol Boundaries}: Our reward function relies on automated patch comparison rather than full test suite execution, trading perfect functional correctness assessment for computational tractability.
-While this approach aligns with established benchmarks and enables large-scale experiments, it may occasionally miss functionally equivalent but syntactically different solutions.
-Additionally, our evaluation emphasizes single-commit bug fixes rather than complex multi-stage refactoring or architectural changes.
+\textbf{Evaluation Protocol Boundaries}: Rewards derive from automated patch-similarity comparison rather than test suite execution, trading functional verification for computational tractability and reproducibility.
+This approach aligns with established benchmarks and enables large-scale multilingual training, though it may undervalue functionally equivalent patches with syntactic divergence from ground truth.
+Evaluation emphasizes single-commit bug repairs; multi-stage refactoring and architectural changes remain out of scope.
 
-\textbf{Agent Implementation}: Our Nano agent represents a deliberately minimalist approach to agent design, providing only essential terminal commands and file operations.
-While this simplicity enables clean experimental validation of the \ac{RL} approach, more sophisticated tool sets could potentially yield different performance characteristics.
+\textbf{Agent Implementation}: The Nano agent adopts a deliberately minimalist design, exposing only essential shell commands and file patching operations (two tools: \texttt{shell}, \texttt{apply\_patch}).
+This simplicity enables clean experimental isolation of \ac{RL} effects, though richer tool sets might exhibit different performance-complexity trade-offs.
 
-\textbf{Methodological Boundaries}: We briefly explored distillation via \ac{SFT}, but did not pursue it further due to limited empirical benefit and because reliance on proprietary teacher models would run counter to the thesis objective of advancing open \ac{RL} training for agentic coding behaviour.
+\textbf{Methodological Boundaries}: We briefly explored distillation from proprietary models via \ac{SFT} but abandoned this direction due to limited empirical gains and philosophical misalignment with open research objectives focused on training from environmental interaction rather than imitating closed systems.
 
 \section{Outline}
 \label{sec:intro-outline}
 
-The remainder of this thesis is structured to provide a comprehensive treatment of \ac{RL} for automated program repair, progressing from theoretical foundations through empirical validation.
+The remainder of this thesis progresses from theoretical foundations through empirical validation to conclusions:
 
-\todoinline{fix these names}
+\textbf{Chapter 2: Background and Related Work} reviews policy optimization algorithms for language models (\ac{PPO}, \ac{GRPO}, DAPO, \ac{GSPO}), situates \ac{APR} within repository-level evaluation paradigms, and contrasts agentless vs.
+agentic approaches to motivate our execution-free, agent-integrated training methodology.
 
-\textbf{Chapter 2: Theoretical Background and Related Work} establishes the theoretical context for our work, reviewing \ac{RL} algorithms for language models (e.g., \ac{GRPO}/\acs{GSPO}) and situating \ac{APR} within repository-grounded, agentic evaluation.
-It introduces the Nano agent in relation to broader agent ecosystems and motivates execution-free rewards.
+\textbf{Chapter 3: Methodology} formalizes the Nano agent (observation/action spaces, interaction loop, termination), specifies training data (SWE-Gym, SWE-Bench-Multilingual), defines the patch-similarity reward formulation, describes \ac{GSPO} policy optimization with masked loss, and outlines the evaluation protocol addressing RQ1-RQ3.
 
-\textbf{Chapter 3: Methodology and System Design} presents our technical approach in detail, beginning with the Nano agent interface and its implementation.
-We describe design decisions supporting the minimalist approach, the training pipeline, reward formulation, and engineering choices that enable efficient large-scale training and evaluation.
+\textbf{Chapter 4: Implementation} documents the practical realization: vLLM-based serving with tool calling, live adapter synchronization via \ac{NCCL}, trainer extensions for multi-turn \ac{GSPO}, SLURM orchestration, compute-efficient infrastructure (\ac{LoRA}, DeepSpeed ZeRO, gradient checkpointing, BF16), and training protocol execution.
 
-\textbf{Chapter 4: The work} what was done.
-\todoinline{write this shit}
+\textbf{Chapter 5: Results} presents experimental findings: harness adaptation metrics and behavioral changes (RQ1), performance comparisons on SWE-Bench-Verified (RQ2), multilingual generalization on the held-out subset (RQ3), training dynamics and convergence, and qualitative trajectory examination with statistical analyses.
 
-\textbf{Chapter 5: Experimental Results and Analysis} presents comprehensive empirical evaluation addressing our research questions.
-We report performance metrics on SWE-Bench-Verified, analyze learning curves and training dynamics, and examine the effectiveness of our approach.
-The chapter includes detailed ablation studies, error analysis, and investigation of transfer to general code generation tasks.
-Statistical significance testing and qualitative analysis of agent behaviors provide deeper insights into the mechanisms driving performance improvements.
-
-\textbf{Chapter 6: Conclusions and Future Directions} synthesizes our findings, explicitly answering each research question based on empirical evidence.
-We discuss the broader implications for automated software engineering, identify limitations of the current approach, and outline promising directions for future research.
-The chapter concludes with reflections on the potential impact of applying \ac{RL} to \acp{LLM} and the future of software development tools.
+\textbf{Chapter 6: Conclusions} synthesizes findings, discusses design philosophy and lessons learned (system complexity, reward misspecification, infrastructure challenges), examines broader implications for agentic \ac{AI}, identifies limitations, and proposes future research directions for \ac{RL}-trained coding agents.

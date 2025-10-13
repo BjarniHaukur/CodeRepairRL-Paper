@@ -2,6 +2,34 @@
 
 This plan tracks the restructuring of the thesis to follow the KTH template with clear separation between methodology (Ch 3), implementation (Ch 4), and results (Ch 5).
 
+## ✅ Recent Session (RQ Restructuring & Prose Polish)
+
+### Research Question Restructuring
+- [x] **Removed RQ3 (Scaffold Transfer)** - moved to concurrent conference paper
+- [x] **Redefined RQ1**: "How does GSPO training improve Nano harness adaptation?" (harness-level efficiency metrics, command usage evolution)
+- [x] **Redefined RQ2**: "Does execution-free patch-similarity RL training improve SWE-Bench-Verified performance?" (test-verified success rates)
+- [x] **Redefined RQ3**: "Does the execution-free multilingual curriculum generalize beyond Python?" (50-task holdout, per-language rewards)
+- [x] Updated RQ formulations throughout: Ch 1 (Introduction), Ch 3 (Methodology), Ch 5 (Results), Ch 6 (Conclusions)
+- [x] Adjusted analysis claims in RQ1 from "statistical significance testing" to "qualitative examination of command usage patterns" (honest about data limitations)
+
+### Model Scope Simplification
+- [x] **Primary focus: Qwen3-14B only** in all main chapters
+- [x] Moved Qwen3-8B and Llama3.1-8B comparisons to Appendix B (`app:model-comparison`)
+- [x] Added appendix section documenting: Qwen3-8B (capacity scaling) and Llama3.1-8B (~3x lower rewards, illustrating importance of tool-calling capability)
+- [x] Updated all "model scaling" references to focus on 14B
+- [x] Removed 30B references from Ch 3, Ch 4, Ch 5
+- [x] Updated ZeRO discussion: ZeRO-2 only (removed ZeRO-3 content)
+- [x] Updated resource requirements to reflect 14B focus
+
+### Prose Polishing (Chapters 1, 2, 3)
+- [x] **Chapter 1 (Introduction)**: Improved technical precision, removed redundancy, clarified execution-free approach
+- [x] **Chapter 2 (Background)**: Enhanced technical language, credited GitBug-Java, improved APR taxonomy clarity, updated dataset descriptions (750/250 split motivation)
+- [x] **Chapter 3 (Methodology)**: Tightened technical descriptions, improved observation/action space clarity, refined reward design explanation, clarified GSPO adoption rationale
+
+### Holistic Review
+- [x] Reviewed Chapters 1 & 2 holistically for quality (assessed as "quite good" for master's thesis standard)
+- [x] Removed awkward "constant training conditions across experiments" sentence (no longer relevant with single-model focus)
+
 ## ✅ Completed Major Items
 
 ### Chapter 3: Methods (NEW)
@@ -70,6 +98,37 @@ This plan tracks the restructuring of the thesis to follow the KTH template with
   - Ch 4: Training Runs protocol bridge
   - Fixed Ch 6 empty subsection headers
   - Fixed typos ("on of" → "one of")
+- [x] **Todoinline audit and cleanup** - Comprehensive audit of 82 markers
+  - ✅ Phase 1 (Category A): Removed 8 obsolete/completed markers
+  - ✅ Phase 2 (Category C): Completed 15 editorial items (citations, appendix refs, prose additions)
+  - ✅ Phase 3 (Category D): Resolved 2 structural decisions (deleted both)
+  - **Remaining: 56 todoinlines** (26 removed/completed from original 82)
+
+---
+
+## 📝 Todoinline Refinement: ACT NOW vs DO IN THE END
+
+**56 todoinlines remaining** - refined into actionable categories:
+
+### ✏️ ACT NOW (18 items) - Can address without experiments
+These require writing/documentation but no experimental data:
+- **Ch 1 (2)**: Verify SOTA numbers note, add APR citation placeholder
+- **Ch 2 (1)**: Review math notation clarity
+- **Ch 3 (2)**: Document known dataset versions, evaluation seeds/subsets structure
+- **Appendices (4)**: Document config structures (vLLM, TRL, SLURM, NCCL) with value placeholders
+- **Ch 5 (1)**: Write GSPO stability discussion (qualitative, no numbers)
+- **Pre-content (2)**: Delete/integrate specialist comment, keywords already done
+
+### ⏳ DO IN THE END (38 items) - Need experimental completion
+Cannot proceed without training results:
+- **Ch 1 (5)**: Scope tightening, tool metrics, language counts, harness configs, conference alignment
+- **Ch 3 (2)**: Exact batch sizes, update counts, final harness budgets
+- **Ch 4 (5)**: Training counts (updates/epochs/hours), performance tables, sync latencies, GPU scaling, cost analysis
+- **Ch 5 (24)**: All results, tables, comparisons, analyses
+- **Ch 6 (8)**: All conclusion items depend on Ch 5 results
+- **Pre-content (3)**: Abstract numbers, transfer results, efficiency metrics
+
+**Note:** "ACT NOW" items deferred until after current flow-state writing session to avoid context-switching.
 
 ---
 

@@ -1,34 +1,34 @@
 \chapter{Theoretical Background and Related Work}
 \label{ch:background}
 
-This chapter establishes the theoretical and empirical background for online \ac{RL} applied to \ac{APR} with tool-using \acp{LLM}.
-We first situate \ac{APR} historically, from search- and learning-based methods before \acp{LLM} to contemporary, repository-grounded systems, and introduce a simple taxonomy spanning manual, agentless, and agentic workflows.
-We then review optimization methods for training such policies, including \ac{PPO}, \ac{GRPO}, and \acs{GSPO}, as well as practical issues such as variance collapse.
-Complementary techniques for scalable training (parameter-efficient adaptation via \ac{LoRA} and sampling choices that balance exploration and exploitation) are summarized alongside evaluation resources such as SWE-Bench and TauBench.
-We close with related work and limitations that motivate the minimalist agent and online training recipe developed in the following chapters.
+This chapter establishes the theoretical and empirical foundations for applying online \ac{RL} to \ac{APR} with tool-augmented \acp{LLM}.
+We situate \ac{APR} historically, progressing from pre-LLM search- and learning-based methods to contemporary repository-grounded systems, introducing a taxonomy spanning scaffold-free, agentless, and agentic paradigms.
+Policy optimization algorithms (\ac{PPO}, \ac{GRPO}, DAPO, \ac{GSPO}) are reviewed with emphasis on group-relative methods and stability challenges in variable-length trajectories.
+Complementary techniques—parameter-efficient adaptation via \ac{LoRA}, exploration-exploitation balance through sampling—are summarized alongside evaluation benchmarks (SWE-Bench, TauBench).
+We conclude with related work and design constraints that motivate the minimalist Nano agent and execution-free training methodology presented in subsequent chapters.
 
 \section{Automated Program Repair before \acsp{LLM}}\label{sec:apr-pre-llm}
 
-Prior to \acp{LLM}, empirical \ac{APR} often evaluated on test-suite-based Java benchmarks and small algorithmic suites.
-\textit{Defects4J} and the recent \textit{GitBug\textendash Java} provide full projects with reproducible builds and JUnit tests, enabling repository\textendash level reasoning; in practice, many repair systems nevertheless restricted themselves to local search spaces and single\textendash file patches for tractability~\cite{defects4J2014,gitbugJava2024}.
-In contrast, \textit{QuixBugs} is explicitly snippet\textendash level: a collection of small standalone Java/Python programs with single\textendash line defects and accompanying tests~\cite{quixBugs2017}.
+Empirical \ac{APR} research prior to \acp{LLM} evaluated primarily on test-suite-based Java benchmarks and function-level algorithmic benchmarks.
+\textit{Defects4J} established reproducible evaluation with full-project test suites, while \textit{GitBug-Java} expanded repository-level benchmarking with additional real-world projects and build configurations~\cite{defects4J2014,gitbugJava2024}.
+Despite these repository-level resources, repair methods of that era commonly focused on local search spaces and single-file patches, reflecting the computational constraints and prevailing algorithmic approaches of the time.
+\textit{QuixBugs} operates at function granularity: standalone Java/Python programs with a single seeded defect per program and accompanying unit tests~\cite{quixBugs2017}.
 
-Within this setting, three families of approaches dominated.
-\emph{Generate\textendash and\textendash validate} systems search a mutation space and accept candidates that satisfy the tests, with GenProg as a canonical example and PAR illustrating pattern\textendash guided edits~\cite{genProg2012,par2013}.
-\emph{Semantics\textendash based} repair relies on program analysis—symbolic execution and constraint solving—to synthesize expressions at instrumented locations, as in SemFix~\cite{semFix2013}.
-\emph{Learning\textendash guided} methods add statistical priors to prioritize candidates; Prophet learns a patch ranking model from past fixes~\cite{prophet2016}.
-These lines collectively established feasibility on test\textendash suite benchmarks while also exposing the limits of test adequacy as a correctness proxy (overfitting, brittle generalization).
-Those constraints, together with the need to reason beyond local contexts, set the stage for the repository\textendash grounded, model\textendash based approaches reviewed next.
+Three families of approaches dominated this era.
+\emph{Generate-and-validate} systems search mutation spaces, accepting candidates that satisfy test suites; GenProg pioneered this approach, while PAR demonstrated pattern-guided edit selection~\cite{genProg2012,par2013}.
+\emph{Semantics-based} methods employ program analysis (symbolic execution, constraint solving) to synthesize expressions at instrumented program locations, exemplified by SemFix~\cite{semFix2013}.
+\emph{Learning-guided} approaches incorporate statistical priors to prioritize search; Prophet learns patch ranking models from historical fixes~\cite{prophet2016}.
+These methods established feasibility on test-suite benchmarks while revealing limitations of test adequacy as a correctness proxy: overfitting to specific test cases and brittle generalization to untested scenarios.
+These constraints, combined with difficulty reasoning beyond localized contexts, motivated the repository-grounded, model-based approaches that emerged with \acp{LLM}.
 
 \section{Automated Program Repair with \acsp{LLM}}\label{sec:apr-with-llms}
 
-Codex marked an inflection point where large pretrained models on code enabled practical repair and synthesis, shifting \ac{APR} from rules or search to learned edit priors~\cite{codex2021}.
-Since then, frontier labs have converged on repository-grounded evaluation (e.g., SWE-Bench Verified) and increasingly ship first-party \emph{agent harnesses} such as OpenAI's Codex \ac{CLI}, Anthropic's Claude Code, and Google's Gemini \ac{CLI} that orchestrate tool calls over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
+Codex marked an inflection point: large-scale pretraining on code enabled practical repair and synthesis, shifting \ac{APR} from symbolic search to learned edit distributions~\cite{codex2021}.
+Frontier laboratories subsequently converged on repository-grounded evaluation (SWE-Bench, SWE-Bench-Verified) and deployed first-party agent harnesses (OpenAI Codex CLI, Anthropic Claude Code, Google Gemini CLI) that orchestrate tool invocations over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
 
-We therefore organize \ac{LLM}-assisted repair by the degree of autonomy at inference: (i) \emph{scaffold-free} models operating without an execution harness, (ii) \emph{agentless} scaffolds that curate repository context without centralized autonomy, and (iii) \emph{agentic} systems that plan and execute tools end-to-end.
-% This taxonomy clarifies which capabilities are evaluated and how results transfer across settings.
+We organize \ac{LLM}-based repair by inference-time autonomy: (i) \emph{scaffold-free} models that generate patches without tool execution, (ii) \emph{agentless} systems where external scripts curate context and apply edits, and (iii) \emph{agentic} systems where models autonomously plan, invoke tools, and iterate based on observations.
 
-\subsection{Scaffold-free}\label{subsec:scaffold-free}
+\subsection{Scaffold-Free}\label{subsec:scaffold-free}
 Scaffold-free approaches frame repair as translation from buggy code to fixed code.
 The model receives a localized and self-contained context, typically a snippet or a single file with a narrow edit window, and proposes a patch in one interaction turn.
 There is no repository traversal, no tool use during generation, and no execution signal in the loop.
@@ -170,7 +170,7 @@ G_t \;=\; R \quad \text{for all } t \in \{1,\ldots,|y|\}.
 In \ac{LLM} settings, maintaining a separate value model that is comparable in size to the policy substantially increases the overall memory footprint during training.
 This elevated memory demand becomes especially pronounced for long responses, as both the policy and value models must process extended sequences in parallel, leading to significant resource consumption.
 
-\subsection{\acf{GRPO}}
+\subsection{\acl{GRPO}}
 \label{subsec:grpo}
 
 \acs{GRPO} replaces the learned value baseline with a group relative baseline computed from multiple responses to the same query \cite{grpo2024}.
@@ -324,113 +324,20 @@ Effective training and evaluation of code repair agents requires diverse, realis
 \subsection{Training Datasets}
 \label{subsec:training-datasets}
 
-Our training approach utilizes two complementary datasets to enable multilingual debugging capability.
-SWE-Gym~\cite{sweGym2025} provides approximately 2,400 Python bug-fixing tasks derived from real GitHub repositories, offering a substantial foundation for learning core debugging strategies.
-SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} contributes approximately 300 debugging tasks across nine programming languages (Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++), enabling cross-language generalization.
-This combination allows for multilingual training while maintaining sufficient data volume for stable convergence.
+Training employs a 1,000-task curriculum combining Python and multilingual data.
+SWE-Gym~\cite{sweGym2025} provides approximately 2,400 Python bug-fixing tasks extracted from real GitHub repositories.
+We select 750 of these tasks for the training curriculum.
+SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} offers debugging tasks spanning nine programming languages: Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++.
+From this collection, we incorporate 250 tasks into training and reserve 50 as a held-out evaluation set.
+Instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than Python-only resources, constraining the scale of cross-language training currently feasible in the field.
 
 \subsection{Evaluation Benchmarks}
 \label{subsec:evaluation-benchmarks}
 
-The SWE-Bench benchmark series~\cite{sweBench2024} serves as the primary evaluation framework for coding agents on realistic software engineering tasks.
-SWE-Bench-Verified~\cite{sweBenchVerified2024} contains approximately 500 carefully validated Python debugging tasks that eliminate ambiguous descriptions and ensure deterministic outcomes, providing reliable performance measurement.
-For cross-language evaluation, we utilize external benchmarks such as GitBug-Java~\cite{gitbugJava2024} to assess transfer capabilities to languages not seen during training.
-TauBench~\cite{taubench2024} enables broader assessment of how tool-usage skills transfer to adjacent tasks beyond code repair.
-
-% \subsubsection{Evolution of SWE-Bench}
-
-% \textbf{Original \ac{SWE-Bench} (2023)}~\cite{sweBench2024}: The foundational dataset introduced 2,294 task instances drawn from 12 popular Python repositories. Each instance consists of:
-% \begin{itemize}
-% 	\item A GitHub issue describing a bug or feature request
-% 	\item The repository state at issue creation time
-% 	\item The developer-written patch that resolved the issue
-% 	\item Test cases that fail before and pass after the patch
-% \end{itemize}
-
-% This design captures the full complexity of real software development: understanding natural language descriptions, navigating large codebases, and implementing solutions that satisfy existing tests.
-
-% \textbf{\ac{SWE-Bench-Verified} (2024)}~\cite{sweBenchVerified2024}: Addressing quality concerns in the original dataset, this refined version includes 500 carefully validated instances that:
-% \begin{itemize}
-% 	\item Eliminate ambiguous issue descriptions
-% 	\item Ensure deterministic test outcomes
-% 	\item Remove trivial string replacements
-% 	\item Verify patch minimality and correctness
-% 	\item Balance difficulty across different problem types
-% \end{itemize}
-
-% Human annotators achieve 97\% success on \ac{SWE-Bench-Verified} compared to 73\% on the original, confirming the removal of problematic instances while maintaining challenging, realistic tasks.
-
-% \textbf{\ac{SWE-Bench}
-% 	Extensions}: While extensions to other programming languages have been proposed, our work focuses exclusively on the original Python-based benchmark suite, which provides the most mature and extensively validated evaluation framework.
-
-% This diversity demonstrates the complexity and realism of the evaluation framework.
-
-% \subsubsection{Task Format and Complexity}
-
-% Each \ac{SWE-Bench} instance presents a naturalistic debugging scenario:
-
-% \begin{verbatim}
-% ISSUE DESCRIPTION:
-% Title: DataFrame.apply() fails with axis=1 when columns have mixed types
-
-% When calling df.apply(func, axis=1) on a DataFrame with both numeric 
-% and string columns, the function receives Series with incorrect dtypes.
-
-% Example to reproduce:
-% ```python
-% df = pd.DataFrame({'A': [1, 2], 'B': ['x', 'y']})
-% df.apply(lambda row: row['A'] + len(row['B']), axis=1)
-% # Raises TypeError
-% ```
-
-% REPOSITORY STATE:
-% - 847 Python files totaling 284,000 lines
-% - Complex module dependencies
-% - 15,000+ test cases
-% \end{verbatim}
-
-% The evaluation system places the model in this repository state and measures whether it can produce a patch functionally equivalent to the developer's solution.
-% This requires:
-% \begin{itemize}
-% 	\item Understanding the issue from natural language description
-% 	\item Reproducing the bug through code execution
-% 	\item Navigating the codebase to locate relevant modules
-% 	\item Understanding existing implementation patterns
-% 	\item Implementing a fix that maintains backward compatibility
-% 	\item Ensuring the fix passes all existing tests
-% \end{itemize}
-
-% \subsubsection{Evaluation Methodology}
-
-% \ac{SWE-Bench} employs rigorous evaluation protocols:
-
-% \textbf{Functional verification}: Patches are evaluated by running the full test suite, not through textual comparison.
-% This allows semantically equivalent but syntactically different solutions.
-
-% \textbf{Isolated execution}: Each evaluation runs in a fresh Docker container to prevent cross-contamination and ensure reproducibility.
-
-% \textbf{Time limits}: Solutions must complete within 5 minutes, reflecting real-world constraints on automated tools.
-
-% \textbf{Minimal patches}: Credit is given only for patches that don't introduce unnecessary changes, encouraging precise solutions.
-
-% \subsubsection{Why Success Rates Remain Low}
-
-% Despite rapid progress in \ac{LLM} capabilities, even state-of-the-art systems achieve only ~20-25\% success rates on \ac{SWE-Bench}.
-% This persistent challenge stems from several factors:
-
-% \textbf{Repository complexity}: The average task requires understanding code distributed across 6.3 files, with deep call chains and complex dependencies.
-% Current models struggle to maintain coherent understanding across such scales.
-
-% \textbf{Ambiguity in natural language}: Issue descriptions often assume domain knowledge, use project-specific terminology, or describe symptoms rather than root causes.
-% Models must infer substantial context.
-
-% \textbf{Execution feedback requirement}: Unlike code generation tasks solvable through pattern matching, debugging requires iterative hypothesis testing through code execution—a capability most models lack.
-
-% \textbf{Test suite complexity}: Solutions must satisfy not just the reported issue but maintain compatibility with thousands of existing tests, requiring deep understanding of system invariants.
-
-% \textbf{Long-tail distribution}: Many bugs involve rare edge cases or unique project-specific patterns absent from training data, testing true generalization rather than memorization.
-
-% These challenges make \ac{SWE-Bench} an ideal testbed for online training, where models can learn through environmental interaction rather than attempting single-shot solutions to complex, multi-faceted problems.
+SWE-Bench-Verified~\cite{sweBenchVerified2024} serves as the primary evaluation benchmark, containing approximately 500 carefully validated Python debugging tasks with deterministic test outcomes.
+This benchmark provides reliable performance measurement for repository-level repair capabilities.
+Multilingual generalization is assessed on the 50-task SWE-Bench-Multilingual holdout (disjoint from training), reporting patch-similarity metrics per language.
+Scaffold transfer experiments evaluate zero-shot and few-shot performance on Mini-SWE-Agent, Aider, and OpenHands harness interfaces, measuring whether behaviors learned in Nano generalize across different tool-use protocols.
 
 Having examined the theoretical foundations, we now position our work within the broader landscape of concurrent research.
 
