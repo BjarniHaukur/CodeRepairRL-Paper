@@ -1,20 +1,12 @@
-\chapter{Implementation}
+\chapter{Training Infrastructure}
 \label{ch:work}
 
-This chapter provides a practical account of the work performed.
-Where \cref{ch:method} formalizes the methodology, here we describe concretely what was implemented, how components were integrated, and which engineering choices enabled a stable, scalable training environment for a single minimalist agent.
-All implementation artifacts—system prompts, trainer configurations, hyperparameters, data processing scripts, SLURM templates, and per-episode logs—are released to enable full replication; specific configurations are documented in the Appendix.
+Chapter~\ref{ch:method} established the methodology: execution-free patch-similarity rewards, the Nano agent specification, \ac{GSPO} training, and evaluation protocol.
+This chapter documents the practical realization of that methodology, addressing two primary challenges: enabling online \ac{RL} training with live policy updates to deployed inference servers, and making multi-turn agent training tractable within academic compute constraints through systematic optimization.
 
-We implemented an end-to-end training environment that couples a minimalist terminal agent with an OpenAI-compatible serving layer and a scalable trainer.
-The Nano harness exposes only two tools (\texttt{shell}, \texttt{apply\_patch}) and enforces strict truncation (2{,}000 characters per tool call) and episode budgets over tools, tokens, and time.
-The serving layer is a vLLM-based \ac{API} server with function-calling extensions and deterministic \ac{JSON} error handling.
-Live adapter synchronization propagates \ac{LoRA} updates to inference without downtime, while the trainer realizes \ac{GSPO} with masked loss and on-policy collection for variable-turn episodes.
-Experiments are orchestrated by SLURM with per-episode ephemeral repositories and workspace isolation; comprehensive logging stores tool traces, canonical diffs, rewards, token counts, timings, and RNG seeds.
-
-\section{Scope and Objectives}
-
-Our objective was to realize an online, repository-grounded training environment in which a single terminal-based agent learns via execution-free, outcome rewards.
-Achieving this required cohesive changes across serving, training, and orchestration so that multi-turn \ac{RL}, tool I/O, and live policy updates operate concurrently and reliably.
+We detail the training environment implementation, including live adapter synchronization via \ac{NCCL}, trainer extensions for masked loss and variable-turn episodes, and orchestration under SLURM.
+Compute-efficiency optimizations compose parameter-efficient adaptation, memory management, gradient checkpointing, mixed-precision training, and fused kernels to enable 14B parameter training on modest \ac{GPU} clusters.
+Complete implementation artifacts and configurations appear in \cref{app:reproducibility}.
 
 \section{Training Environment Implementation}
 \label{sec:training-environment-implementation}
@@ -151,6 +143,9 @@ Adapter-only updates integrate naturally with our differential weight synchroniz
 
 Doing KL with LoRA is a free win since we can just unmount the adapter to get the original policy.
 We do not need 2x the params.
+
+\subsection{Triton kernel implementation of the \acs{GSPO} kernel}
+\todoinline{write}
 
 \subsection{Memory Management Through DeepSpeed ZeRO}
 Training multi-billion parameter models requires distributing optimizer states, gradients, and parameters across multiple \acp{GPU}.
