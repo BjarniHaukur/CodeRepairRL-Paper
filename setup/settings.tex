@@ -16,6 +16,7 @@ maxbibnames=99, % Make sure we are printing all authors in the appendix
 
 \usepackage{eso-pic}					% Packages for layout and graphics 
 \usepackage{graphicx}
+\usepackage{float}                      % For [H] placement specifier
 \usepackage{tikz}
 \usetikzlibrary{calc}
 \usetikzlibrary{fadings}
@@ -47,6 +48,26 @@ citecolor=blue
 
 \usepackage{tcolorbox}					% Create boxes around content
 \tcbset{colback=white,arc=0mm}
+
+% Code highlighting with minted
+\usepackage{minted}
+\usepackage{xcolor}
+
+% Define a subtle background color for code
+\definecolor{codebg}{RGB}{248,248,250}
+
+% Configure minted style
+\setminted{
+bgcolor=codebg,
+fontsize=\small,
+linenos=false,
+frame=single,
+framesep=5pt,
+breaklines=true,
+breakanywhere=false,
+tabsize=4,
+python3=true
+}
 
 \usepackage{amsmath}
 \usepackage{mathdots}

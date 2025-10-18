@@ -19,6 +19,36 @@ Achieving this required cohesive changes across serving, training, and orchestra
 \section{Training Environment Implementation}
 \label{sec:training-environment-implementation}
 
+Online training operates as a coupled system of serving and optimization.
+The inference system builds on vLLM's asynchronous engine, leveraging its continuous batching and OpenAI-compatible \acs{API} to execute multi-turn episodes.
+We extended vLLM's async engine with \ac{NCCL}-based live adapter synchronization, allowing policy improvements to propagate to the running inference server without interruption.
+The training subsystem collects completed trajectories, computes execution-free rewards via canonical diff comparison, and applies \ac{GSPO} updates under the masked loss objective.
+
+Conceptually, the system cycles through asynchronous interaction, reward computation, and policy improvement; concrete mechanisms are detailed in Chapter~\cref{ch:work}.
+
+The trainer builds on TRL but required substantial extensions for multi-turn, tool-augmented \ac{GSPO}: masked loss over assistant-authored tokens, sequence-level importance ratios computed post-masking, and rollout collection that preserves turn boundaries while remaining stream- and batch-compatible under variable-length episodes.
+We further reconciled optimizer state partitioning with \ac{LoRA}-only updates under DeepSpeed ZeRO and ensured compatibility with gradient checkpointing and accumulation.
+These modifications enable the agentic \ac{RL} loop to match the stability and throughput of single-turn training while correctly handling tool I/O semantics.
+Implementation details, including modifications to TRL's trainer and data collator modules, are documented in \cref{ch:work} with complete source code released for reproducibility.
+
+Figure~\ref{fig:training-sequence-diagram} depicts the end-to-end control and data flow: requests enter the vLLM scheduler; episodes interleave tool calls and model generations; diffs are computed upon termination; rewards are produced without execution; and adapter updates are broadcast back to servers with bounded memory.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.0\textwidth]{plotting/figures/training_sequence_diagram.png}
+\caption{Conceptual training environment integrating asynchronous serving (vLLM) with \ac{GSPO} optimization. Episodes proceed as multi-turn interactions; on termination, canonical diffs yield rewards that drive updates.
+Implementation details appear in Chapter~\cref{ch:work}.}
+\label{fig:training-sequence-diagram}
+\end{figure}
+
+Two technical requirements shaped the implementation.
+First, we implemented live adapter synchronization to deployed OpenAI-compatible \ac{API} servers via \ac{NCCL}-based broadcasting that transmits only \ac{LoRA} deltas with bounded memory consumption, reducing peak \ac{VRAM} during weight collection from 50+ GiB to approximately 100 MiB while achieving 150--300ms update latency.
+This addresses the mismatch between traditional batched inference (requests finish synchronously) and asynchronous multi-turn agents (episodes progress independently, completing at heterogeneous rates).
+Second, we reconciled a complex execution schedule where inference optimizations, gradient accumulation, gradient checkpointing, \ac{LoRA} adaptation, and DeepSpeed ZeRO partitioning operate concurrently without sacrificing training stability.
+
+Complete \ac{LoRA}, sampling, and termination configurations are documented in \cref{app:lora-config,app:sampling-params,app:termination-parameters}.
+The implementation optimizes intra-group asynchronous behavior while treating episode groups synchronously; future work could optimize across groups to eliminate cross-group walltime dependencies.
+
 \subsection{Live Adapter Synchronization to Deployed API Servers}
 
 A key technical requirement for our compute-efficient approach is real-time weight synchronization to deployed OpenAI-compatible \ac{API} servers using \ac{NCCL}.
@@ -71,6 +101,15 @@ Jobs run under SLURM with per-episode ephemeral repositories, workspace-scoped f
 Optionally, Apptainer/Singularity images pin dependencies.
 SLURM submission templates and environment configurations are documented in \cref{app:slurm-config}.
 
+During rollouts, models are served with vLLM for high throughput via continuous batching and KV-cache reuse; an OpenAI-compatible \ac{API} server exposes the function-calling interface.
+Live adapter synchronization employs an \ac{NCCL}-based mechanism transmitting \ac{LoRA} deltas without service interruption.
+Jobs are scheduled under SLURM; isolation uses per-job user accounts, cgroups, rbash, and workspace-scoped filesystems, with optional Apptainer/Singularity containerization for dependency pinning.
+Each episode executes in an ephemeral repository working copy reset between episodes.
+Determinism is promoted via fixed random seeds and pinned library versions (PyTorch, \ac{CUDA}, \ac{NCCL}, vLLM), while acknowledging minor variation from fused \ac{CUDA} kernels.
+
+We made extensive engineering modifications to the serving stack: extending \ac{NCCL} weight synchronization and redesigning distributed parameter gathering inside vLLM so that only adapter deltas are collected and broadcast with bounded memory consumption.
+Implementation-specific engineering details and measurements (adapter synchronization latencies, serving throughput) are documented in Chapter~\cref{ch:work} and the Appendix.
+
 \section{Training Runs and Protocol}
 
 With the training environment infrastructure established, we now describe the concrete experimental protocol and parameter choices for the runs conducted.
@@ -83,10 +122,24 @@ All primary experiments use Qwen3-14B; limited comparisons with Qwen3-8B, Qwen3-
 
 \todoinline{Add concrete counts: updates, epochs over the 1k curriculum, compute hours, and cluster details.}
 
-\section{Compute-Efficient Infrastructure Implementation}
+\section{Compute-Efficiency}
 
 A central objective of this work was demonstrating that online \ac{RL} for coding agents remains tractable within academic compute budgets.
 We achieved this through systematic application of memory and computational optimizations that, when composed carefully, enable training of 14B parameter models on modest \ac{GPU} clusters.
+
+\subsection{Agent Design}
+The Nano agent incorporates explicit resource constraints, recognizing that multi-turn agent interactions impose substantially higher computational demands than many traditional training objectives.
+Episode limits serve two practical purposes: bounding \ac{VRAM} utilization and improving sample efficiency.
+
+Token limits ensure conversation histories remain within \ac{GPU} memory constraints during training and inference, preventing out-of-memory failures as episodes accumulate tool outputs across dozens of turns.
+While we could guard against training \ac{GPU} OOM through aggressive truncation, this risks removing important tokens from the rollouts that contributed to the reward the agent got.
+Instead, we set token budgets that accommodate debugging workflows while remaining within memory constraints.
+
+Tool-call budgets prevent runaway episodes where agents enter unproductive exploration loops or repetitive failure patterns, ensuring predictable resource utilization across the training distribution.
+Wall-clock timeouts provide a hard upper bound on per-episode compute allocation, enabling reliable throughput estimation and preventing individual pathological episodes from monopolizing training resources.
+
+Importantly, the agent receives warnings as it approaches these limits, encouraging it to produce a submission attempt rather than simply timing out without any learning signal.
+This improves sample efficiency by ensuring episodes yield gradient information even when the agent has not fully solved the task.
 
 \subsection{Parameter-Efficient Adaptation with \ac{LoRA}}
 Rather than fine-tuning complete model weights, we restrict updates to low-rank adapter matrices applied to attention and \ac{MLP} projections.
@@ -95,6 +148,9 @@ This architectural choice provides several compounding benefits beyond raw param
 Adapters enable clean separation between the frozen base policy and trainable modifications, simplifying reference policy access during importance weighting without duplicating model memory.
 The restricted parameter space also accelerates convergence on downstream tasks, as optimization focuses on a compact representation rather than attempting to shift billions of frozen pre-training parameters.
 Adapter-only updates integrate naturally with our differential weight synchronization system, as only the small adapter state requires transmission to inference servers rather than the full model.
+
+Doing KL with LoRA is a free win since we can just unmount the adapter to get the original policy.
+We do not need 2x the params.
 
 \subsection{Memory Management Through DeepSpeed ZeRO}
 Training multi-billion parameter models requires distributing optimizer states, gradients, and parameters across multiple \acp{GPU}.

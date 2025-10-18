@@ -235,9 +235,12 @@ w_{i,t}\,A_i,\;
 \operatorname{clip}(w_{i,t},\, 1-\epsilon_{\text{low}},\, 1+\epsilon_{\text{high}})\,A_i
 \big)
 \right].
-\end{equation} Here $A_i$ is the group-standardized advantage as in \ac{GRPO} and the asymmetric clipping uses distinct lower and upper bounds.
+\end{equation} Here $A_i$ is the group-standardized advantage as in \ac{GRPO}.
+Unlike the symmetric clipping used in \ac{PPO}, \ac{GRPO}, and Dr.
+\,\ac{GRPO}, \ac{DAPO} employs asymmetric bounds with $\epsilon_{\text{high}} > \epsilon_{\text{low}}$, allowing stronger positive reinforcement while constraining negative updates more tightly.
+This asymmetry mitigates training collapse, since excessive negative reinforcement can destabilize the policy.
 The algorithm removes the \ac{KL} penalty, uses token-level loss, and adds two stabilizers: \emph{dynamic sampling} with a buffer that enforces a balanced mix of correct and incorrect samples for each query group, and \emph{overlong filtering and shaping} that masks loss on truncated or timed-out generations and downweights overlong failures.
-The higher upper clip encourages exploration and prevents early entropy collapse; the dynamic buffer reduces variance and improves data efficiency; token-level aggregation and overlong filtering make training robust for very long reasoning traces.
+Together, the asymmetric clipping, dynamic buffer, and overlong filtering make training robust for very long reasoning traces while preventing early entropy collapse.
 
 \subsubsection*{\acf{GSPO}}
 \label{subsubsec:gspo}
@@ -248,7 +251,6 @@ Second is handling small logit discrepancies between training and inference engi
 Token-level importance weighting in \ac{GRPO} is fragile at scale: the same set of weights operating on the same input sequences may not produce identical logits between training and inference engines due to accumulated floating-point error and differing kernel implementations.
 In sparse \ac{MoE}, the logit differences are even more apparent, since the set of activated experts can change between $\pi_{\theta_{\text{old}}}$ and $\pi_\theta$, making token-level ratios volatile and invalid as off-policy corrections.
 These effects amplify under clipping and have been observed to trigger irreversible collapse; prior \ac{MoE} work required routing replay to stabilize \ac{GRPO} \cite{gspo2025}.
-
 \emph{\ac{GSPO}} restores a coherent importance sampler by matching the optimization unit to the reward unit: entire responses.
 With the same group-relative advantage $A_i$ as in \ac{GRPO}, define the \emph{length-normalized sequence-level} importance ratio \begin{equation}
 s_i(\theta)
@@ -266,10 +268,11 @@ J_{\mathrm{GSPO}}(\theta)
 \frac{1}{G}\sum_{i=1}^{G}
 \min\big(
 s_i\,A_i,\;
-\operatorname{clip}(s_i)\,A_i
+\operatorname{clip}(s_i, 1{-}\epsilon_{\text{low}}, 1{+}\epsilon_{\text{high}})\,A_i
 \big)
 \right].
 \end{equation} Length normalization in $s_i$ keeps ratios numerically comparable across response lengths and prevents a few token-level logit differences from exploding the sequence weight; the resulting clipping ranges are therefore orders of magnitude smaller than in token-level schemes \cite{gspo2025}.
+Like \ac{DAPO}, \ac{GSPO} employs asymmetric clipping bounds to allow stronger positive reinforcement while constraining negative updates.
 The gradient makes the stability contrast explicit (omitting clipping for brevity): \begin{align}
 \nabla_\theta J_{\mathrm{GSPO}}(\theta)
 \;=\;

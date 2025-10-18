@@ -110,6 +110,12 @@ This suggests different exploration strategies and verbosity levels.
 \section{Sampling parameters}
 \label{app:sampling-params}
 
+\subsection{Decoding and Exploration Policy}
+
+The temperature parameter controls the exploration-exploitation tradeoff during agent operation.
+During training, we decode with temperature 1.0 without top-p or top-k filtering, providing substantial exploration necessary for \ac{RL} learning.
+During evaluation, we use temperature 0.2 with top-p 0.9 to exploit the learned policy.
+
 \begin{table}[htbp]
 \centering
 \caption{Sampling and episode parameters for Nano agent evaluation. Values reflect the main settings used for training and SWE-Bench-Lite evaluation. \todoinline{Fill in concrete values for each model and add additional columns if more models are reported.}}
