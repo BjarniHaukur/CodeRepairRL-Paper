@@ -107,10 +107,14 @@ This suggests different exploration strategies and verbosity levels.
 
 \textbf{Test Similarity Gap}: Most models achieve low test similarity scores, suggesting that generating appropriate test changes alongside code fixes remains challenging even for frontier models.
 
-\section{Reproducibility}
+\section{Reproducibility and Open-Source Release}
 \label{app:reproducibility}
 
-This section documents complete implementation details, configurations, and artifacts necessary for reproducing all experiments reported in this thesis.
+All implementation code, training configurations, evaluation scripts, and infrastructure setup are released as open-source software.
+The repository includes complete SLURM job templates, Apptainer container definitions, vLLM server configurations with our worker extensions, TRL trainer modifications for multi-turn agent training, and all plotting and analysis scripts used to generate figures in this thesis.
+Detailed documentation provides setup instructions for replicating the training environment on \ac{NAISS} clusters or similar HPC infrastructure.
+
+This section documents configuration details and hyperparameters used throughout experimentation.
 
 \subsection{Sampling parameters}
 \label{app:sampling-params}
@@ -186,11 +190,6 @@ These choices balance adapter capacity and efficiency and allow adaptation of bo
 
 \todoinline{Document vLLM server flags, batching settings, scheduler adjustments, continuous batching parameters, KV-cache configuration, function-calling enforcement settings, and JSON error handling configuration.}
 
-\subsection{TRL Modifications}
-\label{app:trl-modifications}
-
-\todoinline{Document modifications to TRL trainer and data collator modules: masked loss integration, sequence-level importance ratio computation, variable-turn rollout collection, LoRA-ZeRO reconciliation, gradient accumulation/checkpointing compatibility, and API extensions.}
-
 \subsection{SLURM Configuration}
 \label{app:slurm-config}
 
@@ -224,9 +223,3 @@ Include both training and evaluation prompt variants.
 \todoinline{Document per-episode logging structure including: tool traces (invocations, arguments, outputs), canonical diffs, reward signals, token counts, timings, RNG states, and training dynamics.
 Describe artifact organization and storage format for reproducibility.
 }
-
-\section{Complete Training Metrics}
-
-This section would contain complete training logs and additional metrics that supplement the main results in Chapter~\cref{ch:results}.
-
-\todoinline{Include additional data tables, extended statistical analyses, and supplementary experimental results once available.}
