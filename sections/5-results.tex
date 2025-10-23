@@ -2,138 +2,105 @@
 \label{ch:results}
 
 This chapter presents experimental results addressing the three research questions established in Chapter~\ref{ch:introduction}.
-Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we report harness adaptation metrics (RQ1), test-verified success rates on SWE-Bench-Verified (RQ2), and language-agnostic training effectiveness on the SWE-Bench-Multilingual holdout (RQ3), supplemented by patch-similarity rates and training dynamics analysis.
+Following the evaluation protocol detailed in \cref{sec:eval-brief}, we report harness adaptation metrics (RQ1), test-verified success rates on SWE-Bench-Verified (RQ2), and language-agnostic training effectiveness on the SWE-Bench-Multilingual holdout (RQ3), supplemented by patch-similarity rates and training dynamics analysis.
+
+The detailed analyses in this chapter focus primarily on run 2m8geyey (Qwen3-14B-Multilingual-GSPO-Clipping), which trained for 212 steps before experiencing a hardware crash.
+Despite its premature termination, this run exhibits particularly instructive characteristics including exceptionally high \ac{KL} divergence reflecting aggressive policy exploration, a dramatic late-stage breakthrough in patch application success reaching 90.6\%, and clear evidence of strategic debugging workflow development.
+The training dynamics and harness adaptation patterns observed in this run illuminate both the promise and challenges of \ac{RL}-based debugging agent training.
 
 \todoinline{Insert comprehensive experimental results tables and statistical analyses once training runs complete, demonstrating improvements over baseline approaches.}
-
-\section{Training Dynamics and Convergence}
-\label{sec:training-dynamics}
-
-\subsection{Learning Curve Analysis}
-\label{subsec:learning-curve}
-
-Our \ac{GSPO}~\cite{gspo2025} training demonstrates clear and consistent learning dynamics across multiple experimental runs.
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/training_loss_ema0.05_tfk08zx2.png}
-	\caption{Training loss evolution over time showing convergence dynamics for run tfk08zx2 with exponential moving average smoothing ($\alpha=0.05$).}
-	\label{fig:training-loss}
-\end{figure}
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/reward_components_ema0.05_tfk08zx2.png}
-	\caption{Evolution of reward components throughout training, showing the progression of different reward signals over training steps.}
-	\label{fig:reward-components}
-\end{figure}
-
-\subsubsection{Reward Progression}
-
-\todoinline{Describe training progression from initial near-zero success rates through rapid improvement phases.
-Include analysis of: \begin{itemize}
-\item Initial Phase: Tool usage pattern acquisition
-\item Intermediate Phase: Strategy development and generalization
-\item Convergence Phase: Refinement and breakthrough improvements
-\end{itemize} Validate hypothesis about \ac{RL} enhancement of coding capabilities.
-}
-
-\subsubsection{Training Stability}
-
-% \begin{figure}[htbp]
-% 	\centering
-% 	\includegraphics[width=1.0\textwidth]{plotting/figures/plots/comparison/training_dynamics_c8qr1evt_vs_tfk08zx2.png}
-% \caption{Comprehensive comparison of training dynamics between \ac{GSPO} (c8qr1evt) and \ac{GRPO} (tfk08zx2) approaches. The comparison shows training loss, mean reward, \ac{KL} divergence, and learning progress across training steps. \ac{GRPO} demonstrates significantly more stable training with faster convergence and better final performance.}
-% 	\label{fig:training-comparison}
-% \end{figure}
-
-\todoinline{Analyze \ac{GSPO} training stability and show failure cases of our \ac{GRPO} runs?}
-
-\subsection{Computational Efficiency}
-\label{subsec:computational-efficiency}
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/kl_divergence_ema0.05_tfk08zx2.png}
-\caption{\ac{KL} divergence between policy and reference model throughout training, showing the degree of policy shift during online learning.}
-	\label{fig:kl-divergence}
-\end{figure}
-
-\todoinline{Report computational efficiency improvements from training-inference duality architecture:
-\begin{itemize}
-\item Wall-clock training time reduction vs traditional approaches
-\item \acp{GPU} utilization metrics across training and inference hardware
-\item Sample efficiency improvements in episodes to target performance
-\end{itemize}
-Analyze \ac{NCCL}-based weight synchronization overhead and contribution to efficiency gains.}
-
-\section{Main Results: \ac{RL} vs.
-  Baselines} \label{sec:main-results}
-
-\subsection{SWE-Bench-Verified Performance} \label{subsec:swe-bench-performance}
-
-Table~\cref{tab:main-results} presents our primary experimental results on SWE-Bench-Verified, comparing online \ac{RL} training against multiple baseline approaches.
-
-\begin{table}[htbp]
-\centering
-\caption{Main experimental results on SWE-Bench-Verified.}
-\label{tab:main-results}
-\todoinline{Insert actual table data: model sizes, pre-training baseline, post-GSPO results, statistical significance}
-\end{table}
-
-\subsection{Qualitative Improvement Analysis}
-
-Beyond quantitative metrics, agent-trained models demonstrate qualitatively different debugging behaviors:
-
-\textbf{Strategic Exploration}: \ac{RL}-trained agents develop systematic repository exploration strategies, typically examining project structure, documentation, and related test files before attempting fixes.
-
-\textbf{Context Awareness}: Agents learn to gather sufficient context about bug locations, including understanding function signatures, variable scopes, and dependency relationships.
-
-\textbf{Iterative Refinement}: Unlike single-shot generation approaches, agents can discover and correct initial mistakes through multi-step interaction patterns.
-
-\textbf{Tool Usage Efficiency}: Trained agents develop efficient command usage patterns, avoiding redundant operations and focusing on information-gathering commands that maximize debugging insight.
 
 \section{RQ1: Nano Harness Adaptation}
 \label{sec:rq1-harness}
 
 \textbf{Research Question 1}: How does \ac{GSPO} training improve Nano harness adaptation?
 
-Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we measured harness adaptation through tool-call success rates, invalid-call reduction, and action efficiency, supplemented by qualitative analysis of command usage evolution over training.
+Following the evaluation protocol detailed in \cref{sec:eval-brief}, we measured harness adaptation through tool-call success rates, invalid-call reduction, and action efficiency, supplemented by qualitative analysis of command usage evolution over training.
 
-\subsection{Harness Adaptation Results} \label{subsec:rq1-results}
+\subsection{Training Dynamics} \label{subsec:training-dynamics}
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/tool_success_rates_ema0.05_tfk08zx2.png}
-	\caption{Tool success rates over training steps, showing the model's improving ability to generate valid tool calls that execute successfully.}
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/reward_components_ema0.05_2m8geyey.png}
+	\caption{Evolution of the Unified Diff Similarity reward component throughout training.}
+	\label{fig:reward-components}
+\end{figure}
+
+\subsection{Harness Adaptation Results} \label{subsec:rq1-results}
+
+The evaluation of harness adaptation reveals how effectively the model learns to interact with the Nano debugging environment through valid tool calls and strategic command selection.
+Run 2m8geyey demonstrates particularly striking patterns in both tool execution success and command usage evolution, culminating in a dramatic late-stage breakthrough that validates the \ac{RL} training approach.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/tool_success_rates_ema0.05_2m8geyey.png}
+	\caption{Tool success rates throughout training.}
 	\label{fig:tool-success}
 \end{figure}
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/command_trend_direct_ema0.05_tfk08zx2.png}
-	\caption{Evolution of command usage patterns throughout training, demonstrating shifts in tool usage strategies.}
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/command_trend_direct_ema0.05_2m8geyey.png}
+	\caption{Evolution of command usage frequencies throughout training.}
 	\label{fig:command-trend}
 \end{figure}
 
-\todoinline{Insert comprehensive analysis including: \begin{itemize}
-\item Quantitative metrics from training logs
-\item Statistical significance of improvements
-\item Comparison with baseline models
-\item Actions-per-episode distribution analysis
-\end{itemize}}
+\subsection{Command Evolution and Specialization} \label{subsec:command-evolution}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/sankey/early_sankey.png}
+	\caption{Evolution of command usage frequencies throughout training.}
+	\label{fig:early-sankey}
+\end{figure}
 
-\subsection{Key Findings} \label{subsec:rq1-findings} \todoinline{Summarize key findings regarding harness adaptation effectiveness, timeline of improvements, and implications for \ac{RL} training success.
-}
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/sankey/late_sankey.png}
+	\caption{Evolution of command usage frequencies throughout training.}
+	\label{fig:late-sankey}
+\end{figure}
+
+\subsection{Key Findings} \label{subsec:rq1-findings}
 
 \section{RQ2: Execution-Free Patch-Similarity \ac{RL}
   Performance} \label{sec:rq2-swebench}
 
 \textbf{Research Question 2}: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?
 
-Following the evaluation protocol detailed in \S\ref{sec:eval-brief}, we compare pre-training Qwen3-14B baseline performance with post-\ac{GSPO} training results on SWE-Bench-Verified (approximately 500 Python debugging tasks).
+Following the evaluation protocol detailed in \cref{sec:eval-brief}, we compare pre-training Qwen3-14B baseline performance with post-\ac{GSPO} training results on SWE-Bench-Verified (approximately 500 Python debugging tasks).
 We report test-verified success rates with bootstrap 95\% confidence intervals.
 
-\subsection{SWE-Bench-Verified Results} \label{subsec:rq2-performance} \todoinline{Insert table comparing pre-training baseline vs. post-GSPO test-verified success rates on SWE-Bench-Verified with bootstrap confidence intervals.}
+\subsection{SWE-Bench-Verified Results} \label{subsec:rq2-performance}
+
+\Cref{tab:swebench-verified-results} presents the baseline performance of Qwen3-14B on SWE-Bench-Verified using the Nano agent before \ac{RL} training.
+The baseline model submitted patches for all 500 instances, with 186 attempts completing the full evaluation pipeline.
+Of these completed attempts, 36 instances were successfully resolved by passing all associated test cases, representing a 7.2\% resolve rate on total instances.
+The high proportion of empty patches (313 instances, 62.6\%) indicates that the baseline model frequently failed to generate valid repository modifications within the episode constraints.
+
+\begin{table}[htbp]
+\centering
+\caption{SWE-Bench-Verified performance comparing pre-training baseline and post-\ac{GSPO} training. The baseline model is Qwen3-14B with the Nano agent before \ac{RL} training. Metrics represent test-verified outcomes on the full 500-instance benchmark.}
+\label{tab:swebench-verified-results}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Baseline} & \textbf{Ours} \\
+\midrule
+Total instances & 500 & 500 \\
+Submitted instances & 500 & --- \\
+Completed instances & 186 & --- \\
+Resolved instances & 36 & --- \\
+Unresolved instances & 150 & --- \\
+Empty patch instances & 313 & --- \\
+\midrule
+Resolve rate (on total) & 7.2\% & --- \\
+Resolve rate (on completed) & 19.4\% & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\todoinline{Fill in trained model results once final evaluation completes.
+Include bootstrap confidence intervals for resolve rates.
+}
 
 \subsection{Analysis} \label{subsec:rq2-analysis} \todoinline{Interpret success rate improvements, discuss error modes and failure cases, and relate patch-similarity training rewards to test-verified success.}
 
@@ -141,7 +108,7 @@ We report test-verified success rates with bootstrap 95\% confidence intervals.
 
 \textbf{Research Question 3}: Does execution-free \ac{RL} enable effective multilingual training without language-specific engineering?
 
-Using the mixed 1,000-task curriculum described in \S\ref{sec:data-env} (750 Python + 250 multilingual training tasks), we evaluate \ac{GSPO}-trained checkpoints on the reserved 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
+Using the mixed 1,000-task curriculum described in \cref{sec:data-env} (750 Python + 250 multilingual training tasks), we evaluate \ac{GSPO}-trained checkpoints on the reserved 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
 This evaluation directly tests whether execution-free patch-similarity rewards enable unified training across diverse languages without language-specific infrastructure.
 We report per-language reward deltas with bootstrap 95\% confidence intervals, comparing pre-training baselines against post-training performance.
 
@@ -152,168 +119,3 @@ We report per-language reward deltas with bootstrap 95\% confidence intervals, c
 \todoinline{Interpret per-language reward shifts, highlight languages with notable improvements, discuss languages with limited gains, and analyze whether execution-free patch-similarity rewards generalize across programming paradigms.
 Consider language family effects (e.g., C-family vs.
 functional languages).}
-
-\section{Ablation Studies}
-\label{sec:ablations}
-
-\subsection{Component-wise Analysis}
-\label{subsec:component-analysis}
-
-To understand the contribution of different system components, we conducted systematic ablation studies:
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/problem_performance_distribution_tfk08zx2.png}
-\caption{Distribution of problem-solving performance across different task categories, showing which types of problems benefit most from \ac{RL} training.}
-	\label{fig:problem-distribution}
-\end{figure}
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/problem_clustering_tfk08zx2.png}
-	\caption{Clustering analysis of problem types based on model performance patterns, revealing systematic strengths and weaknesses.}
-	\label{fig:problem-clustering}
-\end{figure}
-
-\todoinline{Insert ablation study results table comparing system configurations: \begin{itemize}
-\item Full system performance baseline
-\item Impact of removing online updates (evaluation of frozen pre-training checkpoint)
-\item Effect of agent scaffold removal
-\item Multi-step interaction contribution
-\item \ac{GSPO} vs. traditional \ac{PPO} comparison
-\item Real-time updates impact analysis
-\item Statistical significance of each component
-\end{itemize}}
-
-\subsubsection{Critical Component Identification}
-
-The ablation results highlight several critical system components:
-
-\todoinline{Analyze critical component contributions including: \begin{itemize}
-\item Multi-step interaction impact and validation of experiential learning hypothesis
-\item Agent scaffold integration benefits over direct generation
-\item \ac{RL} training advantages over supervised fine-tuning
-\item \ac{GSPO} improvements over traditional \ac{PPO} methods
-\item Real-time updates contribution to sample efficiency
-\item Ranking of component importance and implications
-\end{itemize}}
-
-\subsection{Hyperparameter Sensitivity} \label{subsec:hyperparameter}
-
-We evaluated sensitivity to key hyperparameters to understand training robustness:
-
-\subsubsection{Learning Rate Analysis}
-
-\todoinline{Report learning rate sensitivity analysis including: \begin{itemize}
-\item Tested learning rate ranges
-\item Optimal values for different model sizes
-\item Performance robustness across effective ranges
-\item Model size-specific optimization requirements
-\end{itemize}}
-
-\subsubsection{Trajectory Length Impact}
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/individual_trajectories_tfk08zx2.png}
-	\caption{Individual trajectory analysis showing reward evolution patterns for successful and unsuccessful episodes during training.}
-	\label{fig:trajectories}
-\end{figure}
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/reward_distribution_evolution_tfk08zx2.png}
-	\caption{Evolution of reward distribution throughout training, demonstrating the shift from low-reward episodes early in training to higher-reward episodes as the model learns.}
-	\label{fig:reward-evolution}
-\end{figure}
-
-\todoinline{Analyze trajectory length impact including: \begin{itemize}
-\item Tested trajectory length ranges
-\item Performance plateaus and optimal values
-\item Context sufficiency for debugging tasks
-\item Computational efficiency tradeoffs
-\end{itemize}}
-
-\section{Error Analysis and Failure Modes} \label{sec:error-analysis}
-
-\subsection{Systematic Failure Analysis} \label{subsec:failure-analysis}
-
-To understand current limitations and guide future improvements, we analyzed failed debugging attempts across multiple categories:
-
-\todoinline{Insert failure mode analysis table categorizing failed tasks by: \begin{itemize}
-\item Problem understanding errors and frequency
-\item File identification mistakes
-\item Correct location but wrong fix applications
-\item Incomplete understanding issues
-\item Technical tool usage errors
-\item Context length limitation impacts
-\item Statistical analysis of failure patterns
-\end{itemize}}
-
-\subsubsection{Problem Understanding Challenges}
-
-\todoinline{Analyze most common failure modes and their implications for improvement strategies.
-}
-This suggests areas for improvement:
-
-\begin{itemize}
-	\item \textbf{Enhanced Issue Processing}: Better training on interpreting natural language issue descriptions and mapping them to technical requirements
-	\item \textbf{Clarification Strategies}: Learning to ask clarifying questions or seek additional context when issue descriptions are ambiguous
-	\item \textbf{Domain Knowledge Integration}: Incorporating more domain-specific knowledge about common bug patterns and software engineering practices
-\end{itemize}
-
-\subsubsection{File Localization Accuracy}
-
-\todoinline{Discuss file identification challenges and potential improvements in repository understanding.
-}
-
-\begin{itemize}
-	\item \textbf{Improved Search Strategies}: Learning more effective patterns for locating relevant code through grep and find operations
-	\item \textbf{Dependency Analysis}: Better understanding of code dependencies and import relationships
-	\item \textbf{Project Structure Learning}: Enhanced ability to navigate unfamiliar project architectures and coding conventions
-\end{itemize}
-
-\subsection{Success Pattern Analysis}
-\label{subsec:success-patterns}
-
-Conversely, analyzing successful debugging attempts reveals effective strategies:
-
-\subsubsection{Successful Exploration Patterns}
-
-Successful agents consistently follow effective exploration patterns:
-
-\begin{enumerate}
-	\item \textbf{Initial Reconnaissance}: Examine project structure, README files, and high-level organization
-	\item \textbf{Issue Analysis}: Carefully parse issue descriptions and identify key terms for searching
-	\item \textbf{Systematic Search}: Use grep and find strategically to locate relevant code sections
-	\item \textbf{Context Gathering}: Examine related files, tests, and documentation before attempting fixes
-	\item \textbf{Targeted Modification}: Apply precise, minimal changes that address the root cause
-\end{enumerate}
-
-\subsubsection{Tool Usage Efficiency}
-
-Successful agents develop efficient tool usage patterns:
-
-\begin{itemize}
-	\item \textbf{Strategic Grep Usage}: Effective search terms and patterns that quickly locate relevant code
-	\item \textbf{Minimal File Examination}: Focus on essential files rather than exhaustive exploration
-	\item \textbf{Iterative Refinement}: Start with broad searches and progressively narrow focus
-	\item \textbf{Error-Driven Learning}: Adapt strategies based on command outputs and error messages
-\end{itemize}
-
-\section{Summary of Key Findings} \label{sec:key-findings}
-
-Our comprehensive experimental evaluation yields several important conclusions:
-
-\subsection{Research Question Answers} \label{subsec:research-answers}
-
-\textbf{RQ1 (Nano Harness Adaptation)}: \todoinline{Summarize GSPO improvements in tool-call success, invalid-call reduction, action efficiency, and observable shifts in command usage patterns with references to Section~\ref{sec:rq1-harness}.
-}
-
-\textbf{RQ2 (Execution-Free Patch-Similarity \ac{RL}
-Performance)}: \todoinline{Report test-verified success rate improvements on SWE-Bench-Verified comparing pre-training vs.
-post-GSPO with references to Section~\ref{sec:rq2-swebench}.}
-
-\textbf{RQ3 (Language-Agnostic Training Effectiveness)}: \todoinline{Summarize per-language reward improvements on the 50-task multilingual holdout, demonstrating that execution-free RL enables effective multilingual training without language-specific engineering.
-Reference Section~\ref{sec:rq3-multilingual}.
-}

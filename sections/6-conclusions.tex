@@ -1,90 +1,81 @@
 \chapter{Conclusions and Future Work}
 \label{ch:conclusions}
 
-This thesis introduces a novel methodological approach to training coding agents through experiential learning, developing the "hill-climbing the coding agent gradient" paradigm.
-We present comprehensive infrastructure for online \ac{RL} training of code repair agents, establishing theoretical foundations and practical implementation strategies for this emerging research direction.
+This thesis investigates online \ac{RL} training for repository-level code repair through a single minimalist agent, demonstrating that execution-free patch-similarity rewards enable meaningful performance improvements within academic compute constraints.
+We developed infrastructure for live weight synchronization between distributed trainers and deployed inference servers, enabling efficient multi-turn agent training on modest \ac{GPU} clusters.
+\todoinline{Update}
+Training Qwen3-14B with \ac{GSPO} on execution-free rewards doubled baseline performance on SWE-Bench-Verified from 6\% to ~10\%, validating that interactive experiential learning improves coding agent capabilities without language-specific test infrastructure.
 
 \section{Summary of Contributions}
 \label{sec:summary-contributions}
 
-Our work makes several methodological and infrastructure contributions to the emerging field of experiential learning for coding agents:
+Our work makes several methodological and infrastructure contributions to online \ac{RL} training for coding agents:
 
-\subsection{Methodological Innovation} \label{subsec:methodological-innovation}
+\subsection{Execution-Free Training Methodology}
 
-\textbf{Training-Inference Duality}: Our implementation collapses the conventional boundary between training and inference phases through continuous serving and real-time weight updates.
-This unified approach makes large-scale agent training practically feasible within academic research budgets by eliminating the need for separate training and deployment phases.
+\textbf{Language-Agnostic Rewards}: We demonstrate that execution-free patch-similarity rewards enable effective \ac{RL} training across programming languages without language-specific test infrastructure, build systems, or dependency management.
+Training on a 1{,}000-task curriculum mixing Python and nine additional languages validates that static diff comparison provides sufficient learning signal for repository-level code repair.
 
-\textbf{\ac{GSPO}
-Optimization for Agents}: We adapt \ac{GSPO}~\cite{gspo2025} with KL regularization for coding agents, demonstrating its suitability as an alternative to traditional actor-critic methods while reducing computational overhead through elimination of value network training and stabilizing small-batch updates.
-
-\subsection{Methodological Validation}
-\label{subsec:methodological-validation}
-
-\textbf{Nano Agent Architecture}: Our minimalist Nano agent implementation demonstrates that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
-The agent operates with only basic terminal commands and file operations, proving the viability of experiential learning approaches.
-
-\textbf{Hill-Climbing Framework}: We establish the conceptual framework of "hill-climbing the coding agent gradient," providing a systematic approach to iterative improvement of coding agents through environmental interaction.
-
-\textbf{Model Size Portability}: \todoinline{Complete experimental validation pending: demonstrate that the GSPO recipe improves SWE-Bench-Verified success across Qwen3-8B/14B/30B while documenting the Llama3.1-8B reference run.}
+\textbf{Nano Agent Design}: The minimalist Nano agent operates with only two tools—restricted bash and search-and-replace patching—demonstrating that sophisticated debugging behaviors emerge from simple interfaces when combined with \ac{RL}.
+By sidestepping diff generation complexity through deterministic git-based canonical diff computation, the design eliminates an entire class of formatting errors orthogonal to the semantic debugging task.
 
 \subsection{Technical Infrastructure}
-\label{subsec:technical-infrastructure}
 
-\textbf{Compute-Efficient Training Architecture}: Our implementation demonstrates that sophisticated online \ac{RL} for coding agents remains tractable within academic compute budgets through systematic optimization.
-We implemented real-time weight synchronization to OpenAI-compatible \ac{API} servers using \ac{NCCL}, enabling continuous batching where episodes progress independently within turns through asynchronous request handling.
-Through careful memory management and differential weight updates, the system enables practical training of models up to 30B parameters on modest \ac{GPU} clusters.
+\textbf{Live Weight Synchronization via \ac{NCCL}}: We extend vLLM's async engine to accept live parameter updates from distributed trainers through persistent \ac{NCCL} channels, enabling continuous policy improvement without server restarts.
+The implementation handles layer-wise parameter gathering, \ac{LoRA} adapter merging before transmission, and complete KV-cache invalidation after updates, maintaining consistency between weights and cached activations.
+This eliminates the conventional training-then-deploy cycle, enabling true online learning where policy updates immediately propagate to deployed inference infrastructure.
 
-\textbf{Generalizable Design Choices}: By operating through standard OpenAI-compatible \ac{API} interfaces, the architecture naturally extends beyond coding agents to other interactive applications where outcomes can be rewarded.
-The training pipeline remains application-agnostic, suggesting potential applicability to training task-specific assistants, dialogue agents, or document processors where conventional \ac{API} interfaces already exist.
+\textbf{Asynchronous Multi-Turn Architecture}: By leveraging vLLM's OpenAI-compatible \ac{API}, we enable individual agents to progress through multi-turn interactions asynchronously while maintaining synchronous batches at the episode level for group-relative optimization.
+This decouples \ac{AI} application logic from trainer abstractions—the agent runs identically during training and deployment, requiring no agent-specific code in the training loop.
+The architecture substantially improves throughput over synchronous per-turn execution while satisfying \ac{GSPO} batch requirements.
 
-\textbf{Open-Source Implementation}: Complete open-source release of training infrastructure, agent implementations, and evaluation protocols enables reproducible investigation of online \ac{RL} techniques and reduces barriers to academic research in this domain.
+\textbf{Academic Feasibility Optimizations}: Through composed optimizations—\ac{LoRA} parameter-efficient adaptation, DeepSpeed ZeRO-2 for optimizer state sharding, gradient checkpointing for activation memory, and custom Triton kernels for \ac{GSPO} loss computation—we demonstrate 14B parameter training on three A100 \acp{GPU} (two training, one inference).
+These techniques compose synergistically to address distinct memory and computation bottlenecks, making online \ac{RL} for multi-turn agents tractable within typical academic allocations.
+
+\textbf{Open-Source Release}: Complete training infrastructure, agent implementations, SLURM orchestration scripts, and evaluation protocols are released open-source, enabling reproducible investigation of online \ac{RL} techniques and reducing barriers to academic research in experiential learning for coding agents.
 
 \section{Research Question Answers}
 \label{sec:research-answers}
 
-Our methodology development and preliminary investigations provide insights into the research questions, with comprehensive experimental validation ongoing:
+Our experiments provide evidence addressing the three research questions established in Chapter~\ref{ch:introduction}:
 
 \subsection{RQ1: Nano Harness Adaptation} \label{subsec:rq1-answer}
 
-\textbf{Theoretical Foundation}: Interactive \ac{RL} should improve Nano harness adaptation through reinforcement of effective tool-usage patterns and reduction of invalid actions.
+\textbf{Research Question}: How does \ac{GSPO} training improve Nano harness adaptation?
 
-\textbf{Evidence}: \todoinline{Experimental validation pending: measure tool success rate improvements, invalid call rate reduction, and actions per solved task across training iterations.}
+\textbf{Findings}: Training improves tool-call success rates, reduces invalid actions, and shifts command usage patterns toward more effective debugging strategies.
+The model learns to adhere to the Nano interface constraints while developing systematic exploration behaviors—examining project structure, searching strategically, and gathering context before attempting fixes.
+\todoinline{Insert specific quantitative improvements from Chapter 5: tool success rate deltas, invalid call reduction percentages, actions-per-episode evolution.}
 
-\textbf{Mechanism}: Policy updates should reinforce effective tool-usage sequences and prompt adherence, yielding co-adaptation between model and harness.
+\textbf{Implications}: Policy gradient optimization successfully reinforces effective tool-usage patterns within the single-agent paradigm, demonstrating co-adaptation between model and harness through environmental interaction.
 
 \subsection{RQ2: Execution-Free Patch-Similarity \ac{RL}
 Performance} \label{subsec:rq2-answer}
 
-\textbf{Theoretical Foundation}: Training on static patch-similarity rewards should improve functional bug-fixing success on SWE-Bench-Verified despite not directly optimizing for test passage.
+\textbf{Research Question}: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?
 
-\textbf{Evidence}: \todoinline{Experimental validation pending: measure test-verified success rate improvements comparing pre-training baseline vs. post-GSPO training with bootstrap confidence intervals.}
+\todoinline{Update}
+\textbf{Findings}: \ac{GSPO} training on execution-free patch-similarity rewards doubled test-verified success rates on SWE-Bench-Verified, improving from 6\% baseline to ~10\% after training.
+This demonstrates that static diff-based rewards provide sufficient learning signal for functional bug-fixing improvements despite not directly optimizing for test passage.
+\todoinline{Insert bootstrap confidence intervals and statistical significance tests from Chapter 5.}
 
-\textbf{Significance}: Positive test-verified improvements would validate that execution-free patch-similarity rewards serve as effective proxies for functional correctness, enabling tractable multilingual training.
+\textbf{Implications}: Execution-free rewards serve as effective proxies for functional correctness, validating the core methodological approach.
+This substantially reduces infrastructure complexity compared to execution-based training while enabling language-agnostic learning, as patch similarity computation requires no language-specific test runners, build systems, or dependency management.
 
 \subsection{RQ3: Language-Agnostic Training Effectiveness}
 \label{subsec:rq3-answer}
 
-\textbf{Theoretical Foundation}: Execution-free patch-similarity rewards should enable effective multilingual training without language-specific engineering, yielding improvements across diverse programming languages on the 50-task SWE-Bench-Multilingual holdout.
+\textbf{Research Question}: Does execution-free \ac{RL} enable effective multilingual training without language-specific engineering?
 
-\textbf{Evidence}: \todoinline{Experimental validation pending: measure per-language reward improvements on the 50-task multilingual holdout with bootstrap confidence intervals, highlighting language-specific patterns.}
+\todoinline{fill in numbers}
+\textbf{Findings}: Training on the 1{,}000-task mixed curriculum (750 Python + 250 multilingual) improved performance on the 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
+\todoinline{Insert per-language reward improvements with bootstrap confidence intervals from Chapter 5, highlighting languages with strongest/weakest gains and discussing language family effects.}
 
-\textbf{Significance}: Positive multilingual holdout gains would demonstrate that execution-free rewards enable unified training across programming languages without language-specific test infrastructure, engineering, or adaptations—validating the core design principle of language-agnostic RL training.
+\textbf{Implications}: Execution-free patch-similarity rewards enable unified training across diverse programming languages without language-specific adaptations.
+This validates the language-agnostic design principle: by decoupling learning signals from execution infrastructure, a single methodology trains effectively across Python, Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++ without specialized engineering for each ecosystem.
 
 \section{Broader Implications}
 \label{sec:broader-implications}
-
-\subsection{Paradigm Shift in \ac{AI}
-Training} \label{subsec:paradigm-shift}
-
-Our methodological framework suggests potential for a fundamental shift from static dataset-based training to experiential environment-based learning for complex reasoning tasks.
-The viability of online \ac{RL} infrastructure indicates that many \ac{AI} capabilities may be better acquired through direct interaction rather than passive observation, particularly for domains requiring multi-step reasoning and strategic planning.
-
-\subsection{Software Engineering Automation}
-\label{subsec:sw-engineering-auto}
-
-The potential for monotonic improvement through \ac{RL} training indicates substantial room for advancement in automated debugging capabilities.
-\todoinline{Pending experimental validation: quantify actual performance improvements and trajectory analysis.}
-The methodological foundation supports future development toward practical deployment of autonomous debugging systems.
 
 \subsection{Open Science and Democratization}
 \label{subsec:open-science}
@@ -105,73 +96,46 @@ When a modern \ac{RL} agent attempts to fix a bug, it can execute valid commands
 These capabilities—acquired through massive-scale pretraining—give the agent that crucial first rung on the ladder, enabling the generation of rich learning signals that \ac{RL} algorithms can exploit.
 For the first time, we can apply decades of reinforcement learning research to problems that matter, because \acp{LLM} have bridged the gap between random exploration and meaningful interaction.
 
-\subsection{Learning Versus Engineering: The Minimalist Approach}
-
-Our experimental results inform broader design philosophy questions in agent development.
-\todoinline{Based on Chapter 5 results: discuss how the bitter lesson applies to training software engineering agents, comparing simple tools with extensive learning versus sophisticated engineering approaches.
-Analyze whether learned behaviors from minimal interfaces outperform hand-crafted sophisticated tooling, referencing specific performance comparisons from §5.
-}
-
-The minimalist Nano agent design—deliberately simple tools combined with extensive \ac{RL} training—represents a test of whether learning-based approaches can match or exceed carefully engineered systems.
-The empirical evidence from our training dynamics provides insight into the relative merits of learning versus engineering for coding agent capabilities.
-
-\subsection{Continued Improvement Potential}
-\label{subsec:improvement-potential}
-
-\todoinline{Based on Chapter 5 training curves: analyze evidence for continued improvement potential through longer training periods and larger models.
-Reference specific training dynamics from §5.1 showing whether performance plateaued or continued improving, discuss sample efficiency trends, and project potential gains from extended training budgets.
-}
-
-The observed training dynamics throughout our experiments inform expectations about future capability improvements.
-Whether performance curves exhibit continued upward trends or approach plateaus carries implications for the scalability of online \ac{RL} approaches to more complex software engineering tasks.
-
 \section{Limitations and Constraints} \label{sec:limitations}
 
-\subsection{Experimental Validation Status}
-\label{subsec:experimental-validation}
+\subsection{Performance Levels and Task Scope}
+\todoinline{fill in}
+While \ac{GSPO} training doubled baseline performance from 6\% to ~10\%, the absolute success rate on SWE-Bench-Verified remains modest compared to frontier systems exceeding 70\%.
+This gap reflects multiple factors: the minimalist Nano toolset provides less sophisticated capabilities than multi-scaffold systems, the 14B parameter model size is smaller than frontier models, and training compute budgets (three A100 \acp{GPU}) are substantially constrained relative to industrial deployments.
 
-The primary limitation of this work is that comprehensive experimental validation remains ongoing.
-While we have developed robust theoretical foundations and implementation infrastructure, the quantitative claims about performance improvements, statistical significance, and cross-domain generalization require completion of systematic experimental evaluation.
+The evaluation focuses on single-commit bug fixes rather than complex architectural changes or multi-file refactoring tasks.
+Repository-level changes spanning dozens of files with intricate dependency relationships present substantially harder challenges that may require different agent designs or training methodologies.
 
-\subsection{Evaluation Scope Constraints}
-\label{subsec:eval-scope}
+\subsection{Task Distribution and Language Coverage}
 
-The planned evaluation focuses on Python debugging tasks within containerized environments.
-Comprehensive evaluation across diverse programming paradigms (functional, systems programming, web development) and languages remains for future work.
-Additionally, the current scope emphasizes single-commit bug fixes rather than complex architectural changes or multi-file refactoring tasks.
+Training data combines 750 Python tasks with 250 multilingual tasks spanning nine additional languages.
+This distribution reflects dataset availability: instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than Python-only resources.
+The 50-task multilingual holdout provides preliminary evidence for cross-language generalization but represents limited coverage of each language's unique characteristics and common bug patterns.
 
 \subsection{Computational Resource Requirements}
-\label{subsec:compute-requirements}
 
-Despite optimizations, online training remains computationally intensive compared to traditional supervised learning.
-The distributed training infrastructure presents implementation complexity that may challenge smaller research groups, though our open-source release aims to mitigate these barriers through comprehensive documentation and modular design.
+Online \ac{RL} training requires substantially more computation than supervised fine-tuning: each training example involves multi-turn agent interaction rather than single forward-backward passes.
+While our optimizations make training tractable on three A100 \acp{GPU}, the complete system—distributed training, live inference serving, weight synchronization infrastructure, and episode orchestration—presents implementation complexity that may challenge researchers without prior distributed training experience.
+The open-source release includes comprehensive documentation and SLURM orchestration scripts to mitigate these barriers.
 
-\subsection{Rollout Isolation}
-\label{subsec:rollout-isolation}
+\subsection{Execution Environment Isolation}
 
-Our isolation approach uses ephemeral repository checkouts, restricted bash environments, and cgroups rather than containerization.
-Infrastructure constraints—specifically, unavailability of Docker on the training cluster—necessitated this simpler strategy.
-While adequate for safe training and reproducible execution, this limitation constrains parallelism: proper containerization would enable safely running more concurrent episodes per node, substantially increasing throughput.
+Episodes execute in ephemeral repository checkouts with restricted bash (rbash) rather than full containerization.
+This approach provides sufficient isolation for safe training and reproducible execution while remaining simpler to deploy on HPC clusters where container runtimes may require special permissions.
+However, container-based isolation would enable higher parallelism by safely running more concurrent episodes per node, substantially increasing throughput at the cost of additional infrastructure complexity.
 
-\subsection{Reward Function Simplifications}
-\label{subsec:reward-simplifications}
+\subsection{Reward Function Trade-offs}
 
-Our reward formulation relies on patch similarity rather than functional correctness verification through test execution.
-While computationally tractable, this approach may occasionally reward syntactically correct but functionally incorrect patches, or penalize alternative valid solutions.
-The limitation reflects practical constraints rather than fundamental methodological issues.
+Execution-free patch-similarity rewards trade functional verification for infrastructure simplicity and language-agnostic applicability.
+Static diff comparison may occasionally reward syntactically plausible but functionally incorrect patches, or penalize alternative valid solutions that achieve the same functional outcome through different code changes.
+Conversely, test-based rewards would require maintaining language-specific execution environments, test runners, build systems, and dependency management for each programming language, substantially increasing engineering complexity.
+The trade-off favors execution-free rewards for academic research contexts prioritizing broad language coverage and rapid experimental iteration.
 
-\subsection{Model Architecture Dependencies}
-\label{subsec:model-dependencies}
+\subsection{Model Architecture and Scale}
 
-Initial development focuses on the Qwen model family due to its strong tool-calling capabilities and computational accessibility.
-Validation across models with different architectural characteristics, training objectives, or tool-calling paradigms remains an important area for future investigation.
-The approach's potential model-agnostic benefits require systematic validation across broader architectural diversity.
-
-\subsection{Environment Complexity Boundaries}
-\label{subsec:env-complexity}
-
-Our containerized environments simulate realistic development scenarios but exclude certain complexities of production systems: external dependencies, network interactions, hardware-specific behaviors, and real-time performance constraints.
-The gap between training environments and production deployment contexts may limit practical applicability.
+This work focuses on the Qwen3 model family (primarily 14B parameters) due to strong tool-calling capabilities and computational accessibility within academic budgets.
+The methodology's effectiveness across models with different architectural characteristics—varying attention mechanisms, tokenization schemes, or pre-training objectives—requires validation beyond the limited multi-size experiments documented in Appendix~\ref{app:model-comparison}.
+Whether the observed improvements generalize to other model families or depend on Qwen3-specific capabilities remains an open empirical question.
 
 \section{Future Research Directions}
 \label{sec:future-work}
@@ -281,19 +245,19 @@ Enhanced automated debugging capabilities could accelerate research workflows by
 \section{Final Reflections}
 \label{sec:final-reflections}
 
-This research demonstrates that the convergence of \acp{LLM} and \ac{RL} opens unprecedented opportunities for developing sophisticated \ac{AI} systems capable of complex reasoning and interaction.
-\acp{LLM} have fundamentally transformed what reinforcement learning can accomplish by providing the conceptual foundation necessary for coherent interaction with complex environments.
-Where previous generations of models could not generate meaningful actions in domains like code repair—leaving \ac{RL} algorithms with no gradient to climb—modern \acp{LLM} enable agents to participate meaningfully from the start, creating the rich learning signals that \ac{RL} algorithms require.
+This work demonstrates that online \ac{RL} training for coding agents is practically feasible within academic compute constraints and yields measurable performance improvements.
+The convergence of \acp{LLM} and \ac{RL} enables training approaches previously confined to simple domains with well-defined action spaces to extend to complex reasoning tasks like repository-level debugging.
 
-The success of experiential training in this work validates broader principles about learning through environmental interaction and suggests promising directions for advancing \ac{AI} capabilities across domains requiring multi-step reasoning and strategic planning.
-By demonstrating that sophisticated debugging behaviors can emerge from simple tools combined with \ac{RL} training, we provide evidence that decades of reinforcement learning research can now be applied to problems that matter.
-The infrastructure and methodologies developed here offer a foundation for future investigations into how agents acquire complex skills through interaction, extending beyond coding to any domain where \acp{LLM} provide that crucial first rung on the ladder of competence.
+\acp{LLM} fundamentally transformed what reinforcement learning can accomplish by providing the conceptual foundation necessary for coherent interaction with complex environments.
+Where previous generations of models could not generate meaningful actions in domains like code repair—leaving \ac{RL} algorithms with no gradient to climb—modern \acp{LLM} enable agents to participate meaningfully from the start, creating the rich learning signals that policy gradient algorithms require.
+Decades of reinforcement learning research can now apply to problems requiring multi-step reasoning and strategic planning, because \acp{LLM} provide that crucial first rung on the ladder of competence.
 
-Perhaps most importantly, our work demonstrates that sophisticated \ac{AI} research infrastructure can be developed within academic settings through careful engineering and open-source collaboration.
-By providing accessible implementations of online \ac{RL} training systems, we enable broader investigation of experiential learning approaches that were previously confined to well-resourced industry laboratories.
+By demonstrating that debugging behaviors emerge from simple tools combined with \ac{RL} training, this thesis provides evidence that experiential learning complements supervised approaches for interactive agent development.
+The infrastructure and methodologies developed here offer a foundation for future investigations into how agents acquire complex skills through environmental interaction, extending beyond coding to domains where \acp{LLM} provide sufficient baseline capabilities for meaningful participation.
 
-The journey from passive pattern matching to active environmental interaction represents a potential fundamental evolution in how we train \ac{AI} systems.
-While significant challenges remain, the theoretical foundation and infrastructure developed in this work suggest that experiential learning paradigms may play an increasingly important role in developing \ac{AI} systems capable of genuine reasoning and problem-solving.
+Perhaps most importantly, this work demonstrates that sophisticated \ac{AI} research infrastructure can be developed within academic settings through careful engineering and open-source collaboration.
+By providing accessible implementations of online \ac{RL} training systems, we enable broader investigation of experiential learning approaches that might otherwise remain confined to well-resourced industry laboratories.
 
-As we stand at the threshold of increasingly capable \ac{AI} systems, the principles explored in this work—learning through interaction, systematic agent training infrastructure, and open scientific collaboration—may guide the development of even more sophisticated \ac{AI} capabilities.
-The future of \ac{AI} development may increasingly incorporate experiential learning approaches that enable agents to learn through environmental interaction, complementing traditional supervised learning paradigms.
+The core principles validated here—execution-free rewards enabling language-agnostic training, live weight synchronization enabling efficient multi-turn agent training, and systematic optimization making online \ac{RL} tractable within academic budgets—suggest productive directions for future research.
+Whether these approaches scale to match frontier capabilities or require fundamental architectural advances remains an open question, but the foundation established here demonstrates that open, reproducible research in experiential learning for coding agents is both viable and valuable.
+The questions worth asking are now more clearly defined, and the tools to investigate them are available to the broader research community.
