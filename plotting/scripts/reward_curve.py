@@ -30,7 +30,7 @@ def apply_ema_smoothing(values, alpha=0.05):
         alpha: Smoothing parameter (0 < alpha < 1, lower = more smoothing)
 
     Returns:
-        Smoothed array of same length as input
+        Tuple of (smoothed array with first 0.5% removed, skip_points)
     """
     smoothed = np.zeros_like(values)
     smoothed[0] = values[0]
@@ -38,7 +38,9 @@ def apply_ema_smoothing(values, alpha=0.05):
     for i in range(1, len(values)):
         smoothed[i] = alpha * values[i] + (1 - alpha) * smoothed[i-1]
 
-    return smoothed
+    # Skip first 0.5% to avoid startup bias
+    skip_points = max(1, int(len(smoothed) * 0.005))
+    return smoothed[skip_points:], skip_points
 
 
 def main():
@@ -79,7 +81,8 @@ def main():
 
     print(f"\n3. Computing statistics...")
     # Apply EMA smoothing
-    reward_smoothed = apply_ema_smoothing(reward_values, alpha=args.ema_alpha)
+    reward_smoothed, skip_points = apply_ema_smoothing(reward_values, alpha=args.ema_alpha)
+    steps_smoothed = steps[skip_points:]
 
     # Calculate statistics
     initial_reward = reward_smoothed[0]
@@ -104,7 +107,7 @@ def main():
             label='Raw Data')
 
     # Plot EMA smoothed data
-    ax.plot(steps, reward_smoothed,
+    ax.plot(steps_smoothed, reward_smoothed,
             color=get_color("primary"),
             linewidth=2.5,
             alpha=0.9,
@@ -121,9 +124,8 @@ def main():
     ax.set_axisbelow(True)
     ax.legend(fontsize=11, frameon=True, fancybox=True, shadow=True)
 
-    # Set y-axis limits with margin
-    combined_values = np.concatenate([reward_values, reward_smoothed])
-    y_min, y_max = combined_values.min(), combined_values.max()
+    # Set y-axis limits with margin (use all data for range calculation)
+    y_min, y_max = reward_values.min(), reward_values.max()
     margin = (y_max - y_min) * 0.1  # 10% margin
     ax.set_ylim(max(0, y_min - margin), y_max + margin)
 

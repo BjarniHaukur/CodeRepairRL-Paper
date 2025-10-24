@@ -96,10 +96,10 @@ def apply_ema_smoothing(values, alpha=0.05):
         alpha: Smoothing parameter (0 < alpha < 1, lower = more smoothing)
 
     Returns:
-        Smoothed array of same length as input
+        Tuple of (smoothed array with first 0.5% removed, skip_points)
     """
     if len(values) == 0:
-        return np.array([])
+        return np.array([]), 0
 
     smoothed = np.zeros_like(values)
     smoothed[0] = values[0]
@@ -107,7 +107,9 @@ def apply_ema_smoothing(values, alpha=0.05):
     for i in range(1, len(values)):
         smoothed[i] = alpha * values[i] + (1 - alpha) * smoothed[i-1]
 
-    return smoothed
+    # Skip first 0.5% to avoid startup bias
+    skip_points = max(1, int(len(smoothed) * 0.005))
+    return smoothed[skip_points:], skip_points
 
 
 def main():
@@ -236,8 +238,9 @@ def main():
         color = LANGUAGE_COLORS.get(lang, '#95A5A6')
 
         # Apply EMA smoothing
-        rewards_smooth = apply_ema_smoothing(rewards, alpha=args.ema_alpha)
-        ax.plot(steps, rewards_smooth,
+        rewards_smooth, skip_points = apply_ema_smoothing(rewards, alpha=args.ema_alpha)
+        steps_smooth = steps[skip_points:]
+        ax.plot(steps_smooth, rewards_smooth,
                color=color,
                linewidth=2.5,
                alpha=0.85,

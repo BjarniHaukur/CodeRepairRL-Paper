@@ -377,15 +377,31 @@ section.iframe-slide .smaller {
   flex-shrink: 0;
 }
 
-section.iframe-slide iframe {
+/* Wrapper for iframe to enable internal zoom control */
+section.iframe-slide .iframe-wrapper {
   flex-grow: 1;
-  height: calc(100vh - 180px);
   width: 100%;
+  max-width: none !important;
+  height: calc(100vh - 160px);
+  overflow: hidden;
   border: 1px solid var(--code-border);
-  transform: scale(0.7);
-  transform-origin: top left;
-  width: 142.86%;
-  height: calc((100vh - 180px) * 1.43);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  transform: scale(0.85);
+  transform-origin: center top;
+}
+
+section.iframe-slide iframe {
+  width: 140%;
+  height: 140%;
+  border: none;
+  transform: scale(0.714);
+  transform-origin: top center;
+  max-width: none !important;
+  min-width: none !important;
 }
 
 /* ===== Highlight boxes ===== */

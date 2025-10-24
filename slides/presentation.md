@@ -374,23 +374,22 @@ $$
 
 # Tool Interaction Example
 
-```python
->>> shell(cmd="ls src/")
+<pre><code class="language-python"><span style="color: #333;">&gt;&gt;&gt;</span> <span style="color: #6f42c1;">shell</span>(<span style="color: #032f62;">cmd=</span><span style="color: #032f62;">"ls src/"</span>)
 drwxr-xr-x  utils/
 -rw-r--r--  main.py
 -rw-r--r--  config.py
 
->>> shell(cmd="grep -n 'def process' src/utils.py")
-42:def process_data(data):
-43:    return data.strip().lower()
+<span style="color: #333;">&gt;&gt;&gt;</span> <span style="color: #6f42c1;">shell</span>(<span style="color: #032f62;">cmd=</span><span style="color: #032f62;">"grep -n 'def process' src/utils.py"</span>)
+<span style="color: #005cc5;">42</span>:<span style="color: #d73a49;">def</span> <span style="color: #6f42c1;">process_data</span>(data):
+<span style="color: #005cc5;">43</span>:    <span style="color: #d73a49;">return</span> data.strip().lower()
 
->>> apply_patch(
-...     file_path="src/utils.py",
-...     old_content="return data.strip().lower()",
-...     new_content="return data.strip().lower().replace(' ', '_')"
-... )
+<span style="color: #333;">&gt;&gt;&gt;</span> <span style="color: #6f42c1;">apply_patch</span>(
+<span style="color: #333;">...</span>     <span style="color: #032f62;">file_path=</span><span style="color: #032f62;">"src/utils.py"</span>,
+<span style="color: #333;">...</span>     <span style="color: #032f62;">old_content=</span><span style="color: #032f62;">"return data.strip().lower()"</span>,
+<span style="color: #333;">...</span>     <span style="color: #032f62;">new_content=</span><span style="color: #032f62;">"return data.strip().lower().replace(' ', '_')"</span>
+<span style="color: #333;">...</span> )
 Patch applied successfully.
-```
+</code></pre>
 
 Agent explores → identifies bug → applies targeted fix
 
@@ -650,7 +649,9 @@ $$
 
 # Early Training Dynamics
 
+<div class="iframe-wrapper">
 <iframe src="../plotting/figures/plots/sankey/early_training_sankey_T25_2m8geyey.html"></iframe>
+</div>
 
 <div class="smaller">
 Command distribution and flow patterns during early training phase
@@ -662,7 +663,9 @@ Command distribution and flow patterns during early training phase
 
 # Late Training Dynamics
 
+<div class="iframe-wrapper">
 <iframe src="../plotting/figures/plots/sankey/late_training_sankey_T25_2m8geyey.html"></iframe>
+</div>
 
 <div class="smaller">
 Command distribution and flow patterns after training convergence

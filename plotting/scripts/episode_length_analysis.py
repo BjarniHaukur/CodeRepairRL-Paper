@@ -28,7 +28,7 @@ RUN_ID = "6wkkt1s0"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/6wkkt1s0
 EMA_ALPHA = 0.05
 
 
-def apply_ema(data: pd.Series, alpha: float = 0.05) -> np.ndarray:
+def apply_ema(data: pd.Series, alpha: float = 0.05):
     """
     Apply exponential moving average smoothing.
 
@@ -37,7 +37,7 @@ def apply_ema(data: pd.Series, alpha: float = 0.05) -> np.ndarray:
         alpha: Smoothing parameter (0-1), lower = smoother
 
     Returns:
-        Smoothed data
+        Tuple of (smoothed data with first 0.5% removed, skip_points)
     """
     smoothed = np.zeros_like(data.values, dtype=float)
     smoothed[0] = data.iloc[0]
@@ -48,7 +48,9 @@ def apply_ema(data: pd.Series, alpha: float = 0.05) -> np.ndarray:
         else:
             smoothed[i] = smoothed[i-1]
 
-    return smoothed
+    # Skip first 0.5% to avoid startup bias
+    skip_points = max(1, int(len(smoothed) * 0.005))
+    return smoothed[skip_points:], skip_points
 
 
 def extract_episode_lengths_from_tables(tables: list, early_pct: float = 0.2, late_pct: float = 0.2):
@@ -136,7 +138,9 @@ def main():
 
     # Apply EMA smoothing
     print(f"\n3. Applying EMA smoothing (alpha={EMA_ALPHA})...")
-    smoothed_lengths = apply_ema(history.loc[mask, 'train/completions/mean_length'], alpha=EMA_ALPHA)
+    smoothed_lengths, skip_points = apply_ema(history.loc[mask, 'train/completions/mean_length'], alpha=EMA_ALPHA)
+    steps = steps[skip_points:]
+    mean_lengths = mean_lengths[skip_points:]
 
     # Extract table data for distributions
     print("\n4. Extracting table data for distribution analysis...")

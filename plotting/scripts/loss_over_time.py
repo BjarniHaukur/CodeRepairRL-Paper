@@ -53,23 +53,21 @@ def main():
     # Set up the plot
     setup_plotting_style()
     fig, ax = plt.subplots(figsize=(12, 7))
-    
-    # Apply EMA smoothing (don't skip points for display)
+
+    # Apply EMA smoothing
     loss_values = history['train/loss'].values
     steps = history['_step'].values
-    
-    # Apply EMA to full data
-    loss_smoothed_full = np.zeros_like(loss_values)
-    loss_smoothed_full[0] = loss_values[0]
-    for i in range(1, len(loss_values)):
-        loss_smoothed_full[i] = args.ema_alpha * loss_values[i] + (1 - args.ema_alpha) * loss_smoothed_full[i-1]
-    
+
+    # Apply EMA and skip first 0.5%
+    loss_smoothed, skip_points = apply_ema_smoothing(loss_values, args.ema_alpha)
+    steps_smoothed = steps[skip_points:]
+
     # Plot raw data with lower alpha
-    ax.plot(steps, loss_values, 
+    ax.plot(steps, loss_values,
            color='#E74C3C', linewidth=1, alpha=0.3, label='Raw Data')
-    
-    # Plot EMA smoothed data (full length)
-    ax.plot(steps, loss_smoothed_full, 
+
+    # Plot EMA smoothed data
+    ax.plot(steps_smoothed, loss_smoothed,
            color='#E74C3C', linewidth=2.5, alpha=0.9, label='EMA Smoothed')
     
     # Styling
@@ -83,18 +81,16 @@ def main():
     ax.set_axisbelow(True)
     ax.legend(fontsize=11, frameon=True, fancybox=True, shadow=True)
     
-    # Set y-axis limits considering BOTH raw and smoothed data
-    # Combine both datasets for percentile calculation
-    combined_values = np.concatenate([loss_values, loss_smoothed_full])
-    q10, q90 = np.percentile(combined_values, [10, 90])
+    # Set y-axis limits considering raw data
+    q10, q90 = np.percentile(loss_values, [10, 90])
     margin = (q90 - q10) * 0.2  # 20% margin
     ax.set_ylim(max(0, q10 - margin), q90 + margin)
-    
+
     # Add statistics as text
-    mean_loss = loss_smoothed_full.mean()
-    std_loss = loss_smoothed_full.std()
-    initial_loss = loss_smoothed_full[0]
-    final_loss = loss_smoothed_full[-1]
+    mean_loss = loss_smoothed.mean()
+    std_loss = loss_smoothed.std()
+    initial_loss = loss_smoothed[0]
+    final_loss = loss_smoothed[-1]
     improvement = ((initial_loss - final_loss) / initial_loss) * 100 if initial_loss != 0 else 0
     
     stats_text = f'Mean: {mean_loss:.4f}\nStd: {std_loss:.4f}\nInitial: {initial_loss:.4f}\nFinal: {final_loss:.4f}\nImprovement: {improvement:.1f}%'

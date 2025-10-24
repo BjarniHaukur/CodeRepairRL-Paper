@@ -53,23 +53,21 @@ def main():
     # Set up the plot
     setup_plotting_style()
     fig, ax = plt.subplots(figsize=(12, 7))
-    
-    # Apply EMA smoothing (don't skip points for display)
+
+    # Apply EMA smoothing
     kl_values = history['train/kl'].values
     steps = history['_step'].values
-    
-    # Apply EMA to full data
-    kl_smoothed_full = np.zeros_like(kl_values)
-    kl_smoothed_full[0] = kl_values[0]
-    for i in range(1, len(kl_values)):
-        kl_smoothed_full[i] = args.ema_alpha * kl_values[i] + (1 - args.ema_alpha) * kl_smoothed_full[i-1]
-    
+
+    # Apply EMA and skip first 0.5%
+    kl_smoothed, skip_points = apply_ema_smoothing(kl_values, args.ema_alpha)
+    steps_smoothed = steps[skip_points:]
+
     # Plot raw data with lower alpha
-    ax.plot(steps, kl_values, 
+    ax.plot(steps, kl_values,
            color='#8E44AD', linewidth=1, alpha=0.3, label='Raw Data')
-    
-    # Plot EMA smoothed data (full length)
-    ax.plot(steps, kl_smoothed_full, 
+
+    # Plot EMA smoothed data
+    ax.plot(steps_smoothed, kl_smoothed,
            color='#8E44AD', linewidth=2.5, alpha=0.9, label='EMA Smoothed')
     
     # Styling
@@ -83,17 +81,15 @@ def main():
     ax.set_axisbelow(True)
     ax.legend(fontsize=11, frameon=True, fancybox=True, shadow=True)
     
-    # Set y-axis limits considering BOTH raw and smoothed data
-    # Combine both datasets for percentile calculation
-    combined_values = np.concatenate([kl_values, kl_smoothed_full])
-    q10, q90 = np.percentile(combined_values, [10, 90])
+    # Set y-axis limits considering raw data
+    q10, q90 = np.percentile(kl_values, [10, 90])
     margin = (q90 - q10) * 0.2  # 20% margin
     ax.set_ylim(max(0, q10 - margin), q90 + margin)
-    
+
     # Add statistics as text
-    mean_kl = kl_smoothed_full.mean()
-    std_kl = kl_smoothed_full.std()
-    final_kl = kl_smoothed_full[-1]
+    mean_kl = kl_smoothed.mean()
+    std_kl = kl_smoothed.std()
+    final_kl = kl_smoothed[-1]
     
     stats_text = f'Mean: {mean_kl:.4f}\nStd: {std_kl:.4f}\nFinal: {final_kl:.4f}'
     ax.text(0.02, 0.98, stats_text,
