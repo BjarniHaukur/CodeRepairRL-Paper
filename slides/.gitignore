@@ -1,0 +1,14 @@
+# Build outputs
+*.html
+*.pdf
+*.pptx
+build/
+
+# Marp cache
+.marp/
+
+# Editor files
+.DS_Store
+*.swp
+*~
+

@@ -1,0 +1,435 @@
+/* KTH Royal Institute of Technology Theme for Marp */
+
+/* ===== Color Palette ===== */
+:root {
+  --kth-blue: #1954a6;
+  --kth-blue-light: #4a8fd8;
+  --kth-blue-lighter: #e8f1fa;
+  --kth-accent: #2e7bc6;
+  --text-dark: #2c3e50;
+  --text-medium: #5a6c7d;
+  --text-light: #7f8c9d;
+  --background: #ffffff;
+  --code-bg: #f5f7fa;
+  --code-border: #dce3ec;
+}
+
+/* ===== Base Section Styling ===== */
+section {
+  font-family: Georgia, serif;
+  background-color: var(--background);
+  color: var(--text-dark);
+  font-size: 24px;
+  line-height: 1.5;
+  padding: 50px 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* ===== Headers ===== */
+h1 {
+  font-family: Arial, sans-serif;
+  color: var(--kth-blue);
+  font-size: 44px;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 0.6em;
+  line-height: 1.2;
+  border-bottom: 3px solid var(--kth-blue);
+  padding-bottom: 0.25em;
+}
+
+h2 {
+  font-family: Arial, sans-serif;
+  color: var(--kth-accent);
+  font-size: 32px;
+  font-weight: bold;
+  margin-top: 0.6em;
+  margin-bottom: 0.4em;
+  line-height: 1.3;
+}
+
+h3 {
+  font-family: Arial, sans-serif;
+  color: var(--text-medium);
+  font-size: 26px;
+  font-weight: 600;
+  margin-top: 0.5em;
+  margin-bottom: 0.3em;
+  line-height: 1.3;
+}
+
+/* ===== Paragraphs ===== */
+p {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+}
+
+/* ===== Title Slide (Lead Class) ===== */
+section.lead {
+  background: linear-gradient(135deg, #1954a6 0%, #2e7bc6 50%, #4a8fd8 100%);
+  color: white;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 100px;
+}
+
+section.lead h1 {
+  color: white;
+  font-size: 56px;
+  border-bottom: none;
+  margin-bottom: 0.4em;
+  line-height: 1.15;
+}
+
+section.lead h2 {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 38px;
+  font-weight: normal;
+  margin-top: 0.6em;
+  margin-bottom: 0.3em;
+}
+
+section.lead h3 {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 24px;
+  font-weight: normal;
+  margin-top: 1.5em;
+}
+
+section.lead p {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 22px;
+  margin-top: 0.3em;
+}
+
+section.lead strong {
+  color: white;
+  font-weight: bold;
+}
+
+/* ===== Content Slides ===== */
+section:not(.lead) {
+  background-image: 
+    linear-gradient(to right, var(--kth-blue) 0%, var(--kth-blue) 4px, transparent 4px);
+}
+
+/* Header with page number */
+section::after {
+  font-family: Arial, sans-serif;
+  content: attr(data-marpit-pagination) " / " attr(data-marpit-pagination-total);
+  position: absolute;
+  top: 25px;
+  right: 70px;
+  color: var(--text-light);
+  font-size: 18px;
+}
+
+section.lead::after {
+  content: none;
+}
+
+/* Footer */
+section footer {
+  position: absolute;
+  bottom: 25px;
+  left: 70px;
+  right: 70px;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  color: var(--text-medium);
+  border-top: 1px solid var(--code-border);
+  padding-top: 8px;
+}
+
+/* ===== Lists ===== */
+ul, ol {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+  margin-left: 1.2em;
+  padding-left: 0;
+}
+
+li {
+  margin-bottom: 0.25em;
+  line-height: 1.5;
+}
+
+li::marker {
+  color: var(--kth-accent);
+  font-weight: bold;
+}
+
+/* Nested lists */
+ul ul, ol ol, ul ol, ol ul {
+  font-size: 0.95em;
+  margin-top: 0.15em;
+  margin-bottom: 0.15em;
+}
+
+ul ul li, ol ol li {
+  margin-bottom: 0.2em;
+}
+
+/* Remove excess spacing after lists */
+ul + p, ol + p {
+  margin-top: 0.5em;
+}
+
+/* ===== Code Blocks ===== */
+pre {
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-left: 4px solid var(--kth-accent);
+  border-radius: 4px;
+  padding: 16px;
+  font-size: 19px;
+  line-height: 1.45;
+  overflow-x: auto;
+  margin: 0.6em 0;
+}
+
+code {
+  font-family: 'Courier New', 'Monaco', monospace;
+  background-color: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.88em;
+  color: var(--text-dark);
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 19px;
+}
+
+/* Syntax highlighting improvements */
+pre .hljs-comment {
+  color: #6a737d;
+  font-style: italic;
+}
+
+pre .hljs-string {
+  color: #032f62;
+}
+
+pre .hljs-keyword {
+  color: #d73a49;
+  font-weight: bold;
+}
+
+pre .hljs-function {
+  color: #6f42c1;
+}
+
+pre .hljs-number {
+  color: #005cc5;
+}
+
+/* ===== Math ===== */
+.katex {
+  font-size: 1.05em;
+}
+
+.katex-display {
+  margin: 0.8em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Math in display mode should not overflow */
+section .katex-display {
+  max-width: 100%;
+}
+
+/* ===== Tables ===== */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+  font-size: 21px;
+}
+
+th {
+  background-color: var(--kth-blue);
+  color: white;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  padding: 10px 12px;
+  text-align: left;
+  border: 1px solid var(--kth-accent);
+}
+
+td {
+  padding: 8px 12px;
+  border: 1px solid var(--code-border);
+}
+
+tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+/* ===== Blockquotes ===== */
+blockquote {
+  border-left: 5px solid var(--kth-accent);
+  padding-left: 1em;
+  margin-left: 0;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  font-style: italic;
+  color: var(--text-medium);
+}
+
+/* ===== Images ===== */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0.8em auto;
+}
+
+/* ===== Links ===== */
+a {
+  color: var(--kth-accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--kth-blue-light);
+}
+
+a:hover {
+  color: var(--kth-blue);
+  border-bottom-color: var(--kth-blue);
+}
+
+/* ===== Strong/Bold ===== */
+strong {
+  color: var(--kth-blue);
+  font-weight: bold;
+}
+
+/* ===== Emphasis/Italic ===== */
+em {
+  color: var(--text-medium);
+  font-style: italic;
+}
+
+/* ===== Special Slide Classes ===== */
+section.section-title {
+  background: linear-gradient(135deg, var(--kth-blue) 0%, var(--kth-accent) 100%);
+  color: white;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+section.section-title h1 {
+  color: white;
+  font-size: 58px;
+  border-bottom: none;
+}
+
+section.section-title::after {
+  content: none;
+}
+
+/* ===== Two-column Layout ===== */
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+  align-items: start;
+}
+
+.columns-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5em;
+  align-items: start;
+}
+
+/* ===== Iframe Styling ===== */
+iframe {
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  width: 100%;
+  height: 75vh;
+  margin: 0;
+}
+
+/* ===== Full-screen iframe slides ===== */
+section.iframe-slide {
+  padding: 40px 60px 30px 60px;
+  display: flex;
+  flex-direction: column;
+}
+
+section.iframe-slide h1 {
+  font-size: 36px;
+  margin-bottom: 0.4em;
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+section.iframe-slide .smaller {
+  margin-top: 0.3em;
+  flex-shrink: 0;
+}
+
+section.iframe-slide iframe {
+  flex-grow: 1;
+  height: calc(100vh - 180px);
+  width: 100%;
+  border: 1px solid var(--code-border);
+  transform: scale(0.7);
+  transform-origin: top left;
+  width: 142.86%;
+  height: calc((100vh - 180px) * 1.43);
+}
+
+/* ===== Highlight boxes ===== */
+.highlight {
+  background-color: #fff9e6;
+  border-left: 4px solid #ffc107;
+  padding: 0.8em;
+  margin: 0.6em 0;
+  border-radius: 4px;
+}
+
+.info {
+  background-color: var(--kth-blue-lighter);
+  border-left: 4px solid var(--kth-accent);
+  padding: 0.8em;
+  margin: 0.6em 0;
+  border-radius: 4px;
+}
+
+/* ===== Small text ===== */
+.small {
+  font-size: 20px;
+}
+
+.smaller {
+  font-size: 18px;
+}
+
+/* ===== Compact sections (for dense content) ===== */
+section.compact {
+  padding: 45px 70px;
+  font-size: 22px;
+}
+
+section.compact h1 {
+  font-size: 40px;
+  margin-bottom: 0.5em;
+}
+
+section.compact li {
+  margin-bottom: 0.2em;
+}
+
+section.compact ul, section.compact ol {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
