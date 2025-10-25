@@ -169,7 +169,7 @@ G_t \;=\; R \quad \text{for all } t \in \{1,\ldots,|y|\},
 
 Maintaining a separate value model comparable in size to the policy substantially increases the memory footprint during training; this overhead is exacerbated for long responses, as both models must process extended sequences in parallel.
 
-\subsection{\acl{GRPO}}
+\subsection{\acf{GRPO}}
 \label{subsec:grpo}
 \acs{GRPO} replaces the learned value baseline with a group-relative baseline computed from multiple responses to the same query \cite{grpo2024}.
 For each $x \in \mathcal{D}$, the behavior policy $\pi_{\theta_{\text{old}}}$ samples a group $\{y_i\}_{i=1}^G$ and each response receives an outcome $r(x,y_i)\in[0,1]$.
@@ -291,10 +291,10 @@ The superior robustness of \ac{GSPO} makes it particularly attractive for multi-
 By matching the importance weighting granularity to the reward granularity—both at the sequence level—\ac{GSPO} provides more stable gradients than token-level approaches when training on variable-length trajectories with sparse terminal rewards.
 These properties led to our adoption of \ac{GSPO} as the policy optimization algorithm for the Nano agent training described in Chapter~\ref{ch:method}.
 
-\section{\acl{LoRA} (\acs{LoRA})} \label{sec:lora}
+\section{\acf{LoRA}} \label{sec:lora}
 
 Parameter-efficient adaptation is essential for training large models without the overhead of full fine-tuning.
-\acl{LoRA} learns a low-rank update to frozen weights \cite{lora2021}:
+\acs{LoRA} learns a low-rank update to frozen weights \cite{lora2021}:
 \begin{equation}
 \Delta W = BA,\qquad W = W_0 + \frac{\alpha}{r}\,BA,
 \end{equation}
@@ -303,30 +303,19 @@ Initializing $B{=}0$ preserves the base model at the start ($W{=}W_0$), which st
 For online \acl{RL} with coding agents, \ac{LoRA} reduces trainable state, supports clean policy-reference separation (adapters differ, base is shared), and accelerates iteration.
 Adapter placement is flexible—practitioners select which modules to adapt based on capacity/efficiency goals; rank $r$ and scale $\alpha$ set the capacity-efficiency trade-off.
 
-With the theoretical and practical foundations established, we now examine the benchmarks used to evaluate code repair systems in realistic settings.
+With the theoretical and practical foundations established, we now examine the datasets used to train and evaluate code repair systems in realistic settings.
 
-\section{Training and Evaluation Datasets}
+\section{Instruction-Driven Repository-Level Datasets}
 \label{sec:training-evaluation-datasets}
 
-Effective training and evaluation of code repair agents requires diverse, realistic datasets that capture the complexity of real-world debugging scenarios across multiple programming languages.
+Instruction-driven datasets provide natural language issue descriptions alongside buggy repository states and ground-truth patches.
+Each instance specifies the debugging task through a problem description, enabling agents to learn from how developers communicate bugs rather than from test failure signals alone.
 
-\subsection{Training Datasets}
-\label{subsec:training-datasets}
-
-Training employs a 1,000-task curriculum combining Python and multilingual data.
 SWE-Gym~\cite{sweGym2025} provides approximately 2,400 Python bug-fixing tasks extracted from real GitHub repositories.
-We select 750 of these tasks for the training curriculum.
-SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} offers debugging tasks spanning nine programming languages: Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++.
-From this collection, we incorporate 250 tasks into training and reserve 50 as a held-out evaluation set.
-Instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than Python-only resources, constraining the scale of cross-language training currently feasible in the field.
+SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} extends instruction-driven debugging beyond Python, offering tasks spanning nine programming languages: Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++.
 
-\subsection{Evaluation Benchmarks}
-\label{subsec:evaluation-benchmarks}
-
-SWE-Bench-Verified~\cite{sweBenchVerified2024} serves as the primary evaluation benchmark, containing approximately 500 carefully validated Python debugging tasks with deterministic test outcomes.
-This benchmark provides reliable performance measurement for repository-level repair capabilities.
-Multilingual generalization is assessed on the 50-task SWE-Bench-Multilingual holdout (disjoint from training), reporting patch-similarity metrics per language.
-Scaffold transfer experiments evaluate zero-shot and few-shot performance on Mini-SWE-Agent, Aider, and OpenHands harness interfaces, measuring whether behaviors learned in Nano generalize across different tool-use protocols.
+SWE-Bench-Verified~\cite{sweBenchVerified2024} serves as the community evaluation standard, containing approximately 500 carefully validated Python debugging tasks with deterministic test outcomes.
+The benchmark measures functional correctness through actual test execution, providing ground-truth signals for whether proposed fixes resolve reported issues without introducing regressions.
 
 Having examined the theoretical foundations, we now position our work within the broader landscape of concurrent research.
 

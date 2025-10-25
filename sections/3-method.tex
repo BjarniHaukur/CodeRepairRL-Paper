@@ -15,15 +15,18 @@ This removes the need for language-specific runners during training and permits 
 \section{Training Data}
 \label{sec:data-env}
 
-Unlike traditional supervised learning that trains on static datasets, our \ac{RL} coding agent approach trains on problem instances where the agent interactively debugs repositories through the terminal environment.
-Each training instance consists of a GitHub repository at a specific buggy commit paired with an issue description and a ground-truth patch.
-The agent does not observe the repository contents or ground-truth solution during training; instead, it must learn effective debugging strategies through repeated interaction with these problem instances, receiving terminal rewards based on the correctness of its proposed fixes.
+Unlike traditional supervised learning that trains on static datasets, our approach generates training data through interaction with problem instances.
+Each instance consists of a GitHub repository at a specific buggy commit paired with an issue description and a ground-truth patch.
+The agent produces rollouts by interacting with these repositories through the terminal environment, and training occurs on these generated trajectories.
 
-Training employs a 1{,}000-task curriculum combining Python and multilingual repositories.
-SWE-Gym~\cite{sweGym2025} provides approximately 2{,}400 Python bug-fixing tasks extracted from real GitHub repositories; we select 750 of these for the training curriculum.
-SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} offers debugging tasks spanning nine programming languages: Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++.
-From this collection, we incorporate 250 tasks into training and reserve 50 as a held-out evaluation set.
-Instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than Python-only resources, constraining the scale of cross-language training currently feasible.
+Additionally, repository-level code repair datasets differ fundamentally in how they specify the agent's mission.
+Instruction-driven datasets provide natural language issue descriptions that communicate what to fix, while test-execution datasets provide failing tests that indicate what is broken.
+Our execution-free training approach requires instruction-driven variant.
+
+We employ a 1{,}000-task curriculum combining Python and multilingual repositories.
+From SWE-Gym~\cite{sweGym2025}, we select 750 Python bug-fixing tasks for training.
+From SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025}, we incorporate 250 multilingual tasks into training and reserve 50 as a held-out evaluation set.
+Instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than their test-execution counterparts, constraining the scale of cross-language training currently feasible.
 
 \section{Nano Agent}
 \label{sec:nano-agent}
