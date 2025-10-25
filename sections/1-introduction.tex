@@ -26,7 +26,9 @@ Traditional systems for automated code repair have relied predominantly on super
 In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process.
 While computationally efficient, this approach fundamentally misrepresents the nature of repository-level software debugging, which involves iterative hypothesis refinement, strategic exploration of entire codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation.
 Moreover, the information needed to fix a bug in real-world repositories is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide to navigate and understand the broader codebase context.
-\todoinline{Add citation to traditional APR survey or seminal work (e.g., GenProg, Prophet, or APR survey paper).}
+\todoinline{Add citation to traditional APR survey or seminal work (e.g., GenProg, Prophet, or APR survey paper).
+Per Monperrus guidelines, 30+ references required with recent academic work.
+}
 
 The question becomes: how do we train such agentic systems when the very complexity that necessitates their existence also makes traditional training approaches intractable?
 \ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaGo2016}.
@@ -82,6 +84,10 @@ Our work addresses this need by studying \ac{RL} with interactive coding agents 
 \section{Problem}
 \label{sec:intro-problem}
 
+\todoinline{Per Monperrus guidelines, Problem Statement should have at least two paragraphs: 1. what is the problem you solve? 2. why is it an important problem?
+Consider restructuring to clearly separate problem definition from importance/motivation.
+}
+
 Tool-using coding agents already exist; what remains largely unavailable to the open scientific community is a reproducible training pipeline that develops agentic behavior through interaction.
 We target a minimalist, execution-free \ac{RL} recipe for repository-level \ac{APR} that (i) optimizes shell-based repository interaction using static patch-similarity rewards, (ii) scales across programming languages without test infrastructure or language-specific engineering, and (iii) demonstrates transfer from training benchmarks to held-out evaluations and across base model families.
 
@@ -109,6 +115,8 @@ Methodological clarity and reproducibility guide all design choices: complete co
 
 \section{Goal}
 \label{sec:intro-goal}
+
+\todoinline{Add explicit "Contributions" subsection here with bullet list format per Monperrus guidelines: "Contributions: A bullet list of the contributions to the state-of-the-art, with one novelty explanation per point."}
 
 % This thesis makes several significant contributions to the field of automated program repair and \ac{RL} for code generation:
 

@@ -8,64 +8,44 @@
 \tableofcontents
 \newpage
 
-\chapter{Interactive Sankey Diagrams}
-\label{app:sankey}
-
-This appendix contains interactive Sankey diagrams that visualize command flow patterns during training.
-
-\chapter{Model Comparison: Capacity and Architecture}
+\chapter{Limited Size and Model Family Ablation}
 \label{app:model-comparison}
 
-This appendix presents limited comparisons to illustrate capacity scaling and architectural effects.
-We compare Qwen3-8B vs.
-Llama3.1-8B (8B architectural comparison) and conduct limited scaling analysis across Qwen3 model sizes (8B, 14B, 30B-A3B, 32B).
-These experiments are not central to the thesis investigation but provide insight into model selection and capacity effects.
+The choice of Qwen3-14B as the primary model for this thesis emerged from systematic exploration of multiple model families and sizes, balancing computational constraints with task performance.
+At the time of experimentation, Qwen3 was widely regarded as the strongest open-weight coding model, particularly for tool-augmented tasks.
+Qwen3-14B offered an optimal fit for available resources: Qwen3-8B proved too large for two \acp{GPU} yet too small to justify three, while the 32B and 30B-A3B variants, though promising, imposed prohibitive computational demands for exploratory training runs.
 
-\section{8B Architectural Comparison: Qwen3-8B vs.
-  Llama3.1-8B} \label{app:8b-comparison}
+Beyond capacity considerations, the combination of tool-calling capability and sufficient reasoning ability proved critical for agentic \ac{RL} training.
+Llama3.1-8B, while competent at formatting tool calls, exhibited near-zero rewards throughout preliminary training, suggesting it lacked the problem-solving intelligence necessary to use tools effectively for repository navigation and bug localization.
+Gemma3's tool-calling interface did not adapt well to the structured command sequences required for repository navigation and code editing.
+Ministral substantially underperformed compared to more recent releases.
+GLM4-9B showed promise but suffered from inadequate support in the Transformers and vLLM ecosystems at the time of experimentation.
+Similarly, Llama3.1-Nemotron (Nvidia) demonstrated potential but would have required extensive vLLM refactoring to accommodate its custom tool-calling parser.
 
-\todoinline{Present head-to-head comparison of Qwen3-8B and Llama3.1-8B training results, showing substantially lower reward progression for Llama (~3x lower than Qwen3-8B).
-Illustrate that tool-calling capability is critical for this training regime.
-Discuss implications for model selection in agentic RL settings.
+These constraints narrowed the viable candidates to the Qwen3 family, where robust tool-calling support, strong baseline coding performance, and flexible scaling across 8B, 14B, 30B-A3B and 32B enabled systematic capacity analysis within consistent infrastructure.
+
+\todoinline{Present reward progression curves across Qwen3 model sizes (8B, 14B, 30B-A3B, 32B) and Llama3.1-8B comparison.
+Show capacity scaling trends.
 }
 
-\section{Limited Scaling Analysis}
-\label{app:scaling}
-
-\todoinline{Present limited scaling analysis across Qwen3 model sizes: 8B, 14B (primary), 30B-A3B, and 32B.
-Show capacity scaling trends in tool-call success rates, reward progression, and SWE-Bench-Verified performance if available.
-Note infrastructure differences (e.g., ZeRO-3 requirement for larger models, GPU count scaling).
-}
-
-\chapter{Additional Experimental Data}
-\label{app:data}
-
-\section{Nano Agent Benchmark Results}
+\chapter{Nano Agent Benchmark}
 \label{app:nano-benchmark}
 
-This section presents baseline performance results for the Nano agent across various language models on a subset of SWE-bench Lite.
-The benchmark evaluates models' ability to explore codebases and generate fixes using the Nano agent's minimal terminal-based interface.
+During Nano development, we established this benchmark to track performance improvements across agent versions and design iterations, initially validating changes against GPT-4.1-mini.
+Without systematic evaluation, determining whether alternative tooling strategies or prompt variations improved performance would have been infeasible given the stochastic nature of agent behavior and the lack of deterministic success metrics during development.
 
-\subsection{Methodology}
+The benchmark operates identically to the inference component of our training system: Nano serves as the agent scaffold while hosted language models execute terminal commands to repair buggy GitHub repositories.
+The evaluation set consists of a 10-task subset drawn from SWE-Bench-Lite, with each reported metric representing the average of 1 to 8 runs per model, with run counts determined pragmatically by API cost constraints.
+Solutions are measured against ground truth using code similarity (patch matching with the actual bug fix, serving as the primary ranking metric) and test similarity (alignment of test changes with ground truth test updates).
 
-The benchmark follows this protocol: \begin{itemize}
-	\item \textbf{Input}: GitHub repositories containing bugs with known ground truth solutions
-	\item \textbf{Task}: Models use Nano's tools to explore codebases and generate fixes
-	\item \textbf{Output}: Unified git diffs containing all proposed code changes
-	\item \textbf{Evaluation}: Solutions are measured against ground truth using:
-	      \begin{itemize}
-		      \item Code Similarity: Patch matching with actual bug fix (primary ranking metric)
-		      \item Test Similarity: Test change alignment with ground truth test updates
-	      \end{itemize} \end{itemize}
-
-\subsection{Results}
-
-\ref{tab:nano-benchmark} presents performance results ranked by code similarity.
-Note that these results are subject to noise due to the small test set with limited repetitions.
+Populating the benchmark with frontier model performance provides a useful validation: the resulting rankings align closely with general community consensus on agentic coding performance, with Claude Sonnet 4 achieving the highest code similarity scores (0.394).
+Models exhibit substantial variation in token efficiency, with DeepSeek Chat consuming only 3,297 tokens while Claude Sonnet 4 approaches the 16,384-token limit, reflecting different exploration strategies and verbosity patterns.
+Most models achieve low test similarity scores, suggesting that generating appropriate test modifications alongside code fixes remains challenging even for frontier systems.
+Interestingly, frontier models displayed a tendency to implement test cases despite no such requirement in the task prompt, likely reflecting training practices carefully cultivated in closed-source research labs.
 
 \begin{table}[htbp]
 	\centering
-	\caption{Nano Agent Benchmark Performance on subset of SWE-bench Lite}
+	\caption{Nano Agent Benchmark Performance on subset of SWE-bench Lite. Error bars on these results are substantial given the small evaluation set (10 tasks) and variable run counts (1 to 8 per model).}
 	\label{tab:nano-benchmark}
 	\footnotesize
 	\begin{tabular}{@{}cllcccc@{}}
@@ -94,132 +74,19 @@ Note that these results are subject to noise due to the small test set with limi
 \end{tabular}
 \end{table}
 
-\subsection{Key Observations}
+\chapter{Reproducibility and Contribution} \label{app:reproducibility}
 
-Several patterns emerge from these baseline results:
+All training recipes, infrastructure code, and evaluation pipelines are released as open-source software with accessible documentation and straightforward setup procedures.
+The main repository at \url{https://github.com/ASSERT-KTH/CodeRepairRL} contains complete training scripts, \ac{SLURM} job templates, and episode orchestration logic.
+This thesis repository at \url{https://github.com/BjarniHaukur/CodeRepairRL-Paper} implements all analysis and plotting scripts using the Weights \& Biases API to access logged experimental data and generate figures.
 
-\textbf{Frontier Model Performance}: Claude Sonnet 4 and GPT-4.1 achieve the highest code similarity scores of tested models (0.394 and 0.387 respectively), demonstrating superior ability to understand repository structure and generate appropriate fixes through the Nano interface.
+The Nano agent implementation is available at \url{https://github.com/ASSERT-KTH/nano-agent}, providing the minimal terminal-based scaffold used throughout all experiments.
+Our TRL fork at \url{https://github.com/ASSERT-KTH/trl/tree/main} extends the upstream library with modifications for multi-turn agent trajectories, \ac{GSPO} support, and asynchronous live weight synchronization with vLLM extensions and \ac{NCCL} channels.
+The \ac{GSPO} kernel implementation contributed to Liger-Kernel is documented at \url{https://github.com/linkedin/Liger-Kernel/pull/845}.
 
-\textbf{Token Efficiency}: Models vary significantly in token usage, with some (like DeepSeek Chat) using only 3,297 tokens while others (like Claude Sonnet 4) approach the 16,384 token limit.
-This suggests different exploration strategies and verbosity levels.
+\chapter{Use of AI Assistance}
+\label{app:ai-assistance}
 
-\textbf{Tool Usage Patterns}: Tool usage rates range from 7.5\% (DeepSeek Chat) to 82.6\% (Qwen3-14B), indicating substantial variation in how models leverage the available terminal commands and file operations.
-
-\textbf{Test Similarity Gap}: Most models achieve low test similarity scores, suggesting that generating appropriate test changes alongside code fixes remains challenging even for frontier models.
-
-\section{Reproducibility and Open-Source Release}
-\label{app:reproducibility}
-
-All implementation code, training configurations, evaluation scripts, and infrastructure setup are released as open-source software.
-The repository includes complete SLURM job templates, Apptainer container definitions, vLLM server configurations with our worker extensions, TRL trainer modifications for multi-turn agent training, and all plotting and analysis scripts used to generate figures in this thesis.
-Detailed documentation provides setup instructions for replicating the training environment on \ac{NAISS} clusters or similar HPC infrastructure.
-
-This section documents configuration details and hyperparameters used throughout experimentation.
-
-\subsection{Sampling parameters}
-\label{app:sampling-params}
-
-\subsubsection{Decoding and Exploration Policy}
-
-The temperature parameter controls the exploration-exploitation tradeoff during agent operation.
-During training, we decode with temperature 1.0 without top-p or top-k filtering, providing substantial exploration necessary for \ac{RL} learning.
-During evaluation, we use temperature 0.2 with top-p 0.9 to exploit the learned policy.
-
-\begin{table}[htbp]
-\centering
-\caption{Sampling and episode parameters for Nano agent evaluation. Values reflect the main settings used for training and SWE-Bench-Lite evaluation. \todoinline{Fill in concrete values for each model and add additional columns if more models are reported.}}
-\label{tab:sampling-params}
-\begin{tabular}{lccc}
-\toprule
-\textbf{Parameter} & \textbf{Qwen3-8B} & \textbf{Qwen3-14B} & \textbf{Qwen3-30B-A3B} \\
-\midrule
-Temperature & 1.0 (train), 0.2 (eval) & 1.0 (train), 0.2 (eval) & 1.0 (train), 0.2 (eval) \\
-Top-k & --- & --- & --- \\
-Top-p & 0.9 & 0.9 & 0.9 \\
-Min-p & --- & --- & --- \\
-Token limit & 12,288 & 12,288 & 12,288 \\
-Tool limit & 30 & 30 & 30 \\
-Time limit & 60\,s $\pm$20\,s & 60\,s $\pm$20\,s & 60\,s $\pm$20\,s \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Episode Termination Parameters}
-\label{app:termination-parameters}
-
-\begin{table}[htbp]
-\centering
-\caption{Episode termination parameters for the Nano agent. These values are deliberately set on the lower end of typical agent system budgets to encourage efficient exploration and repair strategies during training.}
-\label{tab:termination-parameters}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Parameter} & \textbf{Value} & \textbf{Notes} \\
-\midrule
-Tool calls & 30 & Maximum number of \texttt{shell} or \texttt{apply\_patch} calls \\
-Token budget & 12{,}288 & Cumulative generation tokens across all turns \\
-Wall-clock timeout & 60 seconds & For 14B reference model \\
-Timeout tolerance & \textpm{}20 seconds & Adjusted for smaller/larger models \\
-Per-call output & 2{,}000 chars & Truncation limit for individual tool returns \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{\ac{LoRA}
-Configuration} \label{app:lora-config}
-
-Unless otherwise stated, we use the following \acl{LoRA} settings:
-
-\begin{verbatim}
-lora: true
-r: 32
-lora_alpha: 64   # ~2x the rank per \cite{lora2021}
-target_modules:
-  - q_proj
-  - k_proj
-  - v_proj
-  - o_proj
-  - gate_proj
-  - up_proj
-  - down_proj
-\end{verbatim}
-
-These choices balance adapter capacity and efficiency and allow adaptation of both attention and MLP projections when needed.
-
-\subsection{vLLM Server Configuration}
-\label{app:vllm-config}
-
-\todoinline{Document vLLM server flags, batching settings, scheduler adjustments, continuous batching parameters, KV-cache configuration, function-calling enforcement settings, and JSON error handling configuration.}
-
-\subsection{SLURM Configuration}
-\label{app:slurm-config}
-
-\todoinline{Document SLURM submission templates, environment modules, ephemeral repository setup, workspace isolation configuration, cgroups settings, rbash configuration, and optional Apptainer/Singularity containerization.}
-
-\subsection{Deepspeed Configuration}
-\label{app:deepspeed-config}
-
-\todoinline{Document NCCL environment variables, communication group setup, gradient synchronization configuration, policy broadcasting setup, async broadcast parameters, memory-bounded gathering implementation, and bandwidth optimization settings.}
-
-\subsection{System Prompts}
-\label{app:system-prompts}
-
-\todoinline{Document complete system prompts used for agent initialization, including task presentation format, tool documentation, repository context, and termination instructions.
-Include both training and evaluation prompt variants.
-}
-
-\subsection{Training Hyperparameters}
-\label{app:training-hyperparameters}
-
-\todoinline{Document complete training hyperparameters: learning rate, warmup schedule, optimizer settings (AdamW betas, weight decay), gradient accumulation steps, gradient clipping, batch size (per-device and effective), group size for GSPO, clipping epsilon, KL penalty coefficient, number of epochs, checkpoint frequency, evaluation frequency, and random seeds.}
-
-\subsection{Data Processing Pipeline}
-\label{app:data-processing}
-
-\todoinline{Document data processing scripts and pipeline: dataset loading, task filtering, repository cloning, diff extraction, canonical diff computation, reward computation implementation, and episode caching strategy.}
-
-\subsection{Logging and Artifact Structure}
-\label{app:logging}
-
-\todoinline{Document per-episode logging structure including: tool traces (invocations, arguments, outputs), canonical diffs, reward signals, token counts, timings, RNG states, and training dynamics.
-Describe artifact organization and storage format for reproducibility.
-}
+\ac{AI} language models, primarily Anthropic's Claude Sonnet (3.5, 4 and 4.5), OpenAI's o3, and GPT-5, were used extensively throughout this research as coding assistants, writing aids, and research tools.
+\ac{AI} assistance included writing and debugging implementation code, improving prose clarity and academic style, organizing research notes, researching background literature and technical documentation, and formatting LaTeX markup.
+All research directions, experimental designs, and scientific interpretations originated with me.

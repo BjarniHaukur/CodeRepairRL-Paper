@@ -11,7 +11,19 @@ Evaluation protocols are summarized in \cref{sec:eval-brief} and expanded with c
 We study whether online \ac{RL} improves a single minimalist coding agent when grounded in real repositories.
 The methodology is programming-language agnostic by design: reward depends only on the canonical diff computed from the repository state after the agent's actions, compared against a ground-truth patch.
 This removes the need for language-specific runners during training and permits controlled data mixing across languages when ground-truth patches exist.
-All results and ablations assume a single-agent paradigm.
+
+\section{Training Data}
+\label{sec:data-env}
+
+Unlike traditional supervised learning that trains on static datasets, our \ac{RL} coding agent approach trains on problem instances where the agent interactively debugs repositories through the terminal environment.
+Each training instance consists of a GitHub repository at a specific buggy commit paired with an issue description and a ground-truth patch.
+The agent does not observe the repository contents or ground-truth solution during training; instead, it must learn effective debugging strategies through repeated interaction with these problem instances, receiving terminal rewards based on the correctness of its proposed fixes.
+
+Training employs a 1{,}000-task curriculum combining Python and multilingual repositories.
+SWE-Gym~\cite{sweGym2025} provides approximately 2{,}400 Python bug-fixing tasks extracted from real GitHub repositories; we select 750 of these for the training curriculum.
+SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} offers debugging tasks spanning nine programming languages: Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++.
+From this collection, we incorporate 250 tasks into training and reserve 50 as a held-out evaluation set.
+Instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than Python-only resources, constraining the scale of cross-language training currently feasible.
 
 \section{Nano Agent}
 \label{sec:nano-agent}
@@ -23,6 +35,13 @@ This specification provides the foundation for the \ac{RL} training methodology 
 	\centering
 \includegraphics[width=0.3\textwidth]{plotting/figures/nano_blank.png}
 \end{figure}
+
+\subsection{Episode Initialization}
+
+Each episode begins with the agent placed within an isolated clone of a Git repository containing a known bug.
+The agent receives a task prompt in the form of a issue description that specifies the problem to be solved, typically via a bug report.
+This issue serves as the sole high-level specification of the task; the agent must autonomously navigate the repository, locate relevant code, and implement appropriate fixes using only the provided tools.
+The repository starts in a clean working state at a specific commit corresponding to the buggy version, and the agent operates entirely through terminal interactions without access to external documentation, pre-computed file listings, or repository metadata beyond what it can discover through exploration.
 
 \subsection{Observations}
 
@@ -72,12 +91,6 @@ Patch applied successfully.
 \label{fig:nano-tools}
 \end{figure}
 
-\subsection{Termination and Limits}
-
-Episodes terminate when any of the following conditions is met: (i) the agent produces repository changes and emits no further tool calls (successful submission), (ii) the tool-call budget is exhausted, (iii) the token budget is exceeded, or (iv) the wall-clock timeout is reached.
-These limits keep \ac{VRAM} utilization bounded and improve sample efficiency: the agent receives warnings as it approaches limits, encouraging it to produce a submission rather than simply timing out.
-Exact values appear in \Cref{tab:termination-parameters}.
-
 \subsection{Sidestepping the Diff Generation Problem}
 
 Generating syntactically valid unified diffs presents a high-dimensional formatting challenge for language models: line numbers must accurately reflect current file state, context lines must match existing content exactly character-for-character, and headers must specify correct paths, offsets, and chunk sizes.
@@ -101,17 +114,20 @@ index abc123..def456 100644
 \label{fig:git-diff}
 \end{figure}
 
-\section{Training Data}
-\label{sec:data-env}
+\subsection{Termination and Limits}
 
-Training employs a 1{,}000-task curriculum combining Python and multilingual data.
-SWE-Gym~\cite{sweGym2025} provides approximately 2{,}400 Python bug-fixing tasks extracted from real GitHub repositories; we select 750 of these tasks for the training curriculum.
-SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} offers debugging tasks spanning nine programming languages: Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++.
-From this collection, we incorporate 250 tasks into training and reserve 50 as a held-out evaluation set.
-Instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than Python-only resources, constraining the scale of cross-language training currently feasible in the field.
+Episodes terminate when any of the following conditions is met: (i) the agent produces repository changes and emits no further tool calls (successful submission), (ii) the tool-call budget is exhausted, (iii) the token budget is exceeded, or (iv) the wall-clock timeout is reached.
+Throughout all experiments, we enforce a maximum of 30 tool calls, a cumulative token budget of 10,240 generated tokens, and a wall-clock timeout of approximately 60 seconds.
+Individual tool outputs are truncated to 2,000 characters to prevent excessively verbose responses from consuming the token budget.
+These limits keep \ac{VRAM} utilization bounded and improve sample efficiency: the agent receives warnings as it approaches limits, encouraging it to produce a submission rather than simply timing out.
 
-The execution-free training methodology relies solely on ground-truth patches as terminal supervision signals, enabling language-agnostic training through patch-similarity rewards.
-This approach permits controlled mixing of programming languages without maintaining language-specific test infrastructure or execution environments.
+\subsection{Sampling and Exploration}
+
+Training and evaluation employ distinct sampling configurations that reflect the fundamental exploration-exploitation trade-off in \ac{RL}.
+During training rollouts, we configure sampling with temperature 1.0 and top-$p$ 1.0 to encourage exploration of diverse debugging strategies and tool-usage patterns.
+This maximally stochastic sampling enables the policy to discover varied solution trajectories and prevents premature convergence to suboptimal behaviors.
+Conversely, evaluation rollouts use temperature 0.2 and top-$p$ 0.9 to exploit the learned policy, producing more deterministic and reliable behavior when assessing performance on held-out benchmarks.
+This exploration-during-training, exploitation-during-evaluation paradigm ensures that the model explores broadly while learning but executes confidently when deployed.
 
 \section{Reward Design}
 \label{sec:reward}
@@ -126,6 +142,8 @@ R(\tau) = \frac{1}{\max\big(|F_a|,\,|F_g|\big)} \sum_{f \in F_a \cup F_g} \opera
 Files that appear in only the set of agent affected files or ground truth affected files contribute zero.
 
 This design keeps training simple, avoids brittle intermediate reward engineering, and permits diverse problem-solving trajectories while targeting the ultimate objective directly: producing the correct changes to the repository.
+By rewarding patch similarity rather than test passage, this execution-free approach enables language-agnostic training without language-specific test infrastructure, build systems, or execution environments.
+The trade-off exchanges direct functional verification for infrastructure simplicity and determinism, making large-scale multilingual training tractable.
 
 \section{Policy Optimization} \label{sec:rl}
 
@@ -141,9 +159,11 @@ J(\theta) = J_{\mathrm{GSPO}}(\theta) - \beta_{\text{KL}} \cdot D_{\text{KL}}(\p
 \label{sec:models}
 
 We base our experiments on Qwen3-14B, a hybrid reasoning model combining strong coding capabilities with native tool-calling support.
-This selection stems from superior tool-calling performance and competitive performance on coding benchmarks, making it well-suited for multi-turn agent applications.
-Initial experiments included Llama3.1-8B, but it was excluded from the study after demonstrating insuficcient performance to facilitate learning.
-Limited comparisons across the Qwen3 series (8B, 14B, 30B-A3B, 32B) appear in Appendix~\ref{app:model-comparison}.
+Qwen3 was selected based on widespread consensus that it was the strongest open-weight coding model for tool-augmented tasks at the time of experimentation.
+The 14B variant offered an optimal fit for available resources: Qwen3-8B proved too large for two \acp{GPU} yet too small to justify three, while larger variants (30B-A3B, 32B) imposed prohibitive computational demands.
+
+Several alternative models including Llama3.1-8B, Gemma3, Ministral, GLM4-9B, and Llama3.1-Nemotron were explored but ultimately excluded.
+Limited comparisons across Qwen3 sizes and Llama3.1-8B, along with more detailed justification of model selection constraints, appear in \cref{app:model-comparison}.
 
 \section{Evaluation Protocol}
 \label{sec:eval-brief}
