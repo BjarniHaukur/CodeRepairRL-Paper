@@ -53,10 +53,9 @@ This thesis instantiates exactly one such harness (the Nano agent) and conducts 
 
 When equipped with appropriate harnesses, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
 This capability transformation makes it practical to apply \ac{RL} to real-world software engineering tasks, as models can now generate the rich interaction trajectories required for policy gradient estimation.
+Terminal-oriented agency benchmarks such as TauBench~\cite{taubench2024} provide standardized evaluation frameworks for such capabilities.
 
-Training adopts an execution-free approach: the agent executes shell commands to explore repositories but does not run test suites or build systems.
-Rewards derive solely from comparing the agent's final repository modifications to ground-truth patches via static string similarity.
-This trades direct functional verification for infrastructure simplicity and determinism, enabling scalable multilingual training while maintaining alignment with valid tool use, efficiency, and ultimately, repair success.
+Training adopts an execution-free approach where rewards derive from patch similarity rather than test execution, enabling language-agnostic training without maintaining test infrastructure for each programming language.
 Concrete observation, action, and reward definitions are specified in \cref{ch:method}.
 
 The significance of this paradigm shift extends beyond technical feasibility.
@@ -89,7 +88,6 @@ Consider restructuring to clearly separate problem definition from importance/mo
 Tool-using coding agents already exist; what remains largely unavailable to the open scientific community is a reproducible training pipeline that develops agentic behavior through interaction.
 We target a minimalist, execution-free \ac{RL} recipe for repository-level \ac{APR} that (i) optimizes shell-based repository interaction using static patch-similarity rewards, (ii) scales across programming languages without test infrastructure or language-specific engineering, and (iii) demonstrates transfer from training benchmarks to held-out evaluations and across base model families.
 
-Execution-free \ac{RL} represents a pragmatic trade-off: by replacing test execution with deterministic patch comparison, large-scale multilingual experiments become feasible with controlled variance and full reproducibility.
 The scientific question becomes whether such training can improve repository navigation, reduce invalid tool calls, and enhance repair efficiency while transferring across datasets and model architectures.
 
 \section{Purpose}
@@ -97,7 +95,7 @@ The scientific question becomes whether such training can improve repository nav
 
 This thesis develops and evaluates an open, execution-free \ac{RL} training recipe for a single minimalist coding agent (Nano).
 The emphasis lies on training practice and empirical evidence rather than novel scaffolding or algorithmic contributions: we document a complete, transparent training procedure and analyze its effects on interactive behavior.
-We demonstrate that static patch-similarity rewards can improve repository navigation and repair attempts without test execution, and that the resulting behaviors transfer across base models and from training benchmarks to held-out evaluations.
+We demonstrate that static patch-similarity rewards can improve repository navigation and repair performance without test execution, and that the resulting behaviors transfer across base models and from training benchmarks to held-out evaluations.
 Methodological clarity and reproducibility guide all design choices: complete configurations, harness specifications, and evaluation protocols are provided, with multilingual scalability achieved through language-agnostic reward formulation rather than per-language engineering.
 
 \todoinline{Tighten scope/claims to match finalized results; add pointers to Sections/Figures once numbers are fixed.}
@@ -140,7 +138,7 @@ The overarching goal is to develop and empirically validate an online \ac{RL} tr
 \textbf{RQ1: How does \ac{GSPO} training improve Nano harness adaptation?
 }
 \begin{itemize}
-	\item Primary indicators: tool-call success rate, invalid-call reduction, action efficiency, and command usage evolution over training.
+	\item Primary indicators: tool-call success rate, action efficiency, and command usage evolution over training.
 	\item Analysis: pre-training vs. post-training comparison of harness-level efficiency metrics and qualitative examination of changes in command usage patterns.
 	\item Hypothesis: \ac{RL} training improves harness interaction efficiency and tool-use reliability, with observable shifts in command patterns toward more focused debugging strategies.
 \end{itemize}
@@ -182,7 +180,7 @@ This research employs a rigorous experimental methodology to systematically eval
 We employ \ac{GSPO}~\cite{gspo2025}, a sequence-level policy optimization algorithm that extends the group-relative baseline principle with improved importance weighting for variable-length sequences.
 \ac{GSPO} demonstrates superior robustness compared to earlier group-relative methods (\ac{GRPO}, DAPO), proving particularly effective for small effective batch sizes and high-variance rewards characteristic of multi-turn agent training under academic compute constraints.
 
-Training proceeds through iterative online interaction: agents explore repositories, attempt repairs, and receive rewards based on static patch-similarity comparison between their repository modifications and ground-truth patches.
+Training proceeds through iterative online interaction: the agent explores repositories, generates repair episodes, and receives rewards based on static patch-similarity comparison between its repository modifications and ground-truth patches.
 
 Primary comparisons report pre-training baseline vs.
 post-training performance on SWE-Bench-Verified using the same Nano harness for both evaluations, eliminating confounds from supervised fine-tuning or prompt engineering.

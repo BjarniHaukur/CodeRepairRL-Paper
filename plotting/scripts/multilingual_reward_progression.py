@@ -87,7 +87,7 @@ def detect_language_from_patch(patch: str) -> str:
     return 'Unknown'
 
 
-def apply_ema_smoothing(values, alpha=0.05):
+def apply_ema_smoothing(values, alpha=0.01):
     """
     Apply exponential moving average smoothing.
 
@@ -117,8 +117,8 @@ def main():
     parser = argparse.ArgumentParser(description='Plot reward progression by programming language')
     parser.add_argument('--run-id', type=str, default=RUN_ID,
                         help=f'WandB run ID (default: {RUN_ID})')
-    parser.add_argument('--ema-alpha', type=float, default=0.05,
-                        help='EMA smoothing parameter (default: 0.05, higher = less smoothing)')
+    parser.add_argument('--ema-alpha', type=float, default=0.01,
+                        help='EMA smoothing parameter (default: 0.01, higher = less smoothing)')
     parser.add_argument('--min-samples', type=int, default=10,
                         help='Minimum samples required to plot a language (default: 10)')
     parser.add_argument('--max-y', type=float, default=0.3,

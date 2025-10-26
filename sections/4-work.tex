@@ -11,7 +11,7 @@ Complete implementation artifacts and configurations appear in \cref{app:reprodu
 \section{Online RL Infrastructure}
 \label{sec:online-rl-infrastructure}
 
-Recent \ac{RL} training libraries have begun supporting out-of-process generation, where rollout collection runs on separate inference servers rather than within the trainer process itself.
+Recent \ac{RL} training libraries have begun supporting out-of-process generation, where episode collection runs on separate inference servers rather than within the trainer process itself.
 For most use cases, vLLM's synchronous v1 engine suffices: the trainer requests a batch of prompts, waits for completion, and processes the returned sequences.
 This approach works well for single-turn generation but proves inefficient for multi-turn coding agents, where existing methods execute each turn synchronously across the entire batch.
 
@@ -75,26 +75,26 @@ Training on three A100 \acp{GPU} rather than industrial clusters with dozens of 
 
 Aside from standard optimizations like BF16 mixed-precision training and FlashAttention kernels, we describe key techniques that address distinct bottlenecks and compose synergistically.
 
-\subsection{Agent Design}
+\subsection{Limit Aware Agent Design for Improved Reward Signal}
 Nano imposes explicit episode limits that serve dual purposes: bounding \ac{VRAM} utilization and improving sample efficiency.
 Token limits prevent out-of-memory failures as conversation histories grow, while tool-call budgets and wall-clock timeouts prevent runaway episodes from monopolizing training resources.
 Rather than aggressively truncating episodes to fit memory constraints—which risks discarding tokens that influenced the final reward—we set budgets that accommodate realistic debugging workflows.
 The agent receives warnings when approaching limits, encouraging submission attempts that ensure episodes yield gradient information even for unsolved tasks.
 
-\subsection{Parameter-Efficient Adaptation with \ac{LoRA}}
+\subsection{\ac{LoRA} for Parameter-Efficient Adaptation}
 
 We restrict updates to low-rank adapter matrices (rank 32, $\alpha=64$) applied to attention and \ac{MLP} projections, vastly reducing the amount of trainable parameters.
 This choice yields compounding benefits: optimizer states shrink proportionally, reference policy access for KL computation requires only unmounting adapters rather than loading duplicate weights, and weight synchronization transmits compact adapter deltas rather than the full 28GB model.
 The restricted parameter space also improves training stability by avoiding simultaneous updates to billions of pre-trained parameters.
 
-\subsection{Custom Triton Kernels for \ac{GSPO}
-Loss Computation}
+\subsection{Custom \ac{GSPO}
+Triton Kernels for Loss Computation}
 
 The \ac{GSPO} loss involves multiple sequential operations—log-probability computation, masking, importance weighting, advantage normalization, and sequence-level clipping—that materialize intermediate tensors when implemented as separate PyTorch operations.
 Following design principles from Liger-Kernel, we developed fused Triton kernels that combine these operations into single \ac{GPU} kernels, eliminating intermediate materialization.
 Liger-Kernel reports ~60\% memory reduction and ~20\% throughput gains for core training primitives, while TRL documents ~40\% peak memory reduction during \ac{GRPO} training with fused kernels.
 
-\subsection{Memory Management Through DeepSpeed ZeRO}
+\subsection{DeepSpeed ZeRO for Optimizer State Sharding}
 
 We employ DeepSpeed ZeRO-2 partitioning, which shards optimizer states and gradients across training \acp{GPU} while replicating model parameters.
 This configuration addresses the primary memory bottleneck: AdamW optimizer states (first and second moments) would otherwise double the 28GB parameter memory footprint, exceeding per-device \ac{VRAM} budgets.
@@ -105,3 +105,10 @@ We choose ZeRO-2 over ZeRO-3 to avoid parameter-gathering latency during forward
 Long multi-turn episodes accumulate substantial activation memory during backward passes.
 We employ gradient checkpointing at transformer layer boundaries, discarding intermediate activations during forward passes and recomputing them on demand during backpropagation.
 This typically reduces peak activation memory by 40-60\% while adding approximately 20-33\% compute overhead.
+
+\subsection{Gradient Accumulation for Effective Batch Size}
+
+Computing group-relative advantages requires that an entire group fit in memory simultaneously; in our configuration we set $G{=}8$.
+With two training \acp{GPU}, we set a per-device batch size of 4 episodes, fully utilizing available \ac{VRAM} given the long context lengths of multi-turn debugging episodes.
+To achieve higher effective batch sizes without exceeding memory constraints, we accumulate gradients across 4 mini-batches of 8 episodes before applying optimizer updates.
+This configuration ensures that 32 episodes contribute to each policy update, trading increased wall-clock time per training step for improved gradient stability through larger effective batch sizes.

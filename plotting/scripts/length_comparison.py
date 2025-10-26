@@ -32,13 +32,13 @@ RUN_QWEN_14B = "6wkkt1s0"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/6wkkt
 RUN_LLAMA_8B = "1doecift"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/1doecift
 
 # Plot settings
-EMA_ALPHA = 0.05  # Smoothing factor for exponential moving average
+EMA_ALPHA = 0.01  # Smoothing factor for exponential moving average
 RAW_ALPHA = 0.2   # Transparency for raw data
 SMOOTHED_LINEWIDTH = 2.5
 RAW_LINEWIDTH = 1.0
 
 
-def exponential_moving_average(data, alpha=0.05):
+def exponential_moving_average(data, alpha=0.01):
     """
     Apply exponential moving average smoothing to data.
 

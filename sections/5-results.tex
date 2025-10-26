@@ -2,70 +2,100 @@
 \label{ch:results}
 
 This chapter presents experimental results addressing the three research questions established in Chapter~\ref{ch:introduction}.
-Following the evaluation protocol detailed in \cref{sec:eval-brief}, we report harness adaptation metrics (RQ1), test-verified success rates on SWE-Bench-Verified (RQ2), and language-agnostic training effectiveness on the SWE-Bench-Multilingual holdout (RQ3), supplemented by patch-similarity rates and training dynamics analysis.
+We begin by examining training convergence through reward progression, then address harness adaptation (RQ1), SWE-Bench-Verified performance (RQ2), and multilingual generalization (RQ3).
 
-The detailed analyses in this chapter focus primarily on run 2m8geyey (Qwen3-14B-Multilingual-GSPO-Clipping), which trained for 212 steps before experiencing a hardware crash.
-Despite its premature termination, this run exhibits particularly instructive characteristics including exceptionally high \ac{KL} divergence reflecting aggressive policy exploration, a dramatic late-stage breakthrough in patch application success reaching 90.6\%, and clear evidence of strategic debugging workflow development.
-The training dynamics and harness adaptation patterns observed in this run illuminate both the promise and challenges of \ac{RL}-based debugging agent training.
+\section{Training Convergence}
+\label{sec:training-convergence}
 
-\todoinline{Insert comprehensive experimental results tables and statistical analyses once training runs complete, demonstrating improvements over baseline approaches.}
+Training proceeded for approximately 2 epochs over the 1{,}000-task curriculum, completing in 2 days of wall-clock time on 3 A100 \acp{GPU} (144 total \ac{GPU}-hours), with \Cref{fig:reward-progression} demonstrating sustained learning throughout.
+Mean patch-similarity rewards approximately doubled from 0.05 to peak values exceeding 0.10.
+The continued upward trend validates that execution-free rewards provide sufficient signal for policy optimization in the agentic debugging setting.
+
+Crucially, reward standard deviation shows steady increase from 0.02 to 0.07 rather than collapsing toward zero.
+In group-relative optimization methods such as \ac{GSPO}, advantages are computed by comparing each response's reward against within-group statistics that approximate the value function.
+When all responses receive similar rewards, this approximation becomes degenerate: uniform outcomes provide no signal for distinguishing better from worse actions, causing advantages to approach zero and eliminating the policy gradient.
+Moreover, the variance itself enables learning the value function approximation—without diversity in outcomes, the baseline cannot meaningfully estimate expected returns.
+The sustained and growing variance indicates the policy generates diverse episode outcomes with meaningfully different rewards, maintaining strong policy gradient signal throughout training.
+This stands in contrast to variance collapse, a common failure mode where the policy converges prematurely to a narrow strategy that produces uniform outcomes.
+
+The transient reward decline around step 200 reflects a characteristic challenge in online reinforcement learning.
+As detailed in \cref{sec:rq1-harness}, the tool usage patterns that proved effective through step 150 subsequently degraded performance, and it took considerable time for alternative patterns to reemerge in the policy distribution.
+These alternative patterns ultimately proved superior, yielding the subsequent reward improvements.
+Similar transitions occur throughout training as the policy sifts through different behavioral patterns.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/reward_over_time_8dc73bp4.png}
+	\caption{Mean patch-similarity reward (left) and standard deviation (right) throughout training, plotted with exponential moving average smoothing (\(\alpha = 0.01\)). Sustained variance growth indicates the policy maintains strong gradient signal by generating diverse episode outcomes, avoiding variance collapse.}
+	\label{fig:reward-progression}
+\end{figure}
+
+While this exploration maintains healthy gradient signal, extended training would likely require curriculum mixing with non-agentic or meaningfullly different tasks to preserve broader model capabilities and prevent catastrophic forgetting.
 
 \section{RQ1: Nano Harness Adaptation}
 \label{sec:rq1-harness}
 
-\textbf{Research Question 1}: How does \ac{GSPO} training improve Nano harness adaptation?
+\textbf{Research Question:}
+How does \ac{GSPO} training improve Nano harness adaptation?
 
-Following the evaluation protocol detailed in \cref{sec:eval-brief}, we measured harness adaptation through tool-call success rates, invalid-call reduction, and action efficiency, supplemented by qualitative analysis of command usage evolution over training.
+Effective harness adaptation requires the policy to generate valid tool calls, strategically appropriate commands, and applying syntactically correct changes to files.
+We measure tool execution success rates, number of tool calls, and command usage patterns to characterize how the policy's interaction behavior evolves during training.
+These trends offer insight into the learning that is occurring, as evidenced by concurrent reward progression shown in \cref{sec:training-convergence}.
 
-\subsection{Training Dynamics} \label{subsec:training-dynamics}
+\subsection{Episode Length}
+\label{subsec:episode-length}
 
-\begin{figure}[htbp]
+\Cref{fig:episode-length} tracks the number of tool calls per episode throughout training.
+Initially, the policy consistently exhausts the maximum episode budget of 30 tool calls, frequently exhibiting ``death spiral'' behavior where it repeatedly invokes the same failing tool without adapting its strategy.
+The reward decline around step 200 discussed in \cref{sec:training-convergence} coincides with a spike in apply\_patch usage visible in \cref{fig:command-evolution}.
+One plausible explanation is that the policy adopted a strategy of broadly affecting the repository to attain tail rewards, but this approach prooved harmful to performance was eventually superseded after many gradient updates.
+
+As training progresses, the policy ceases to exhaust the tool call budget and episode lengths trend consistently downward.
+This indicates that the policy learns both to execute successful debugging workflows more efficiently and to terminate episodes when productive actions are exhausted rather than persisting with unproductive patterns.
+
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/reward_curve_ema0.05_2m8geyey.png}
-	\caption{Evolution of the Unified Diff Similarity reward component throughout training.}
-	\label{fig:reward-curve}
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/tool_calls_over_time_ema0.05_8dc73bp4.png}
+	\caption{Number of tool calls per episode throughout training, plotted with exponential moving average smoothing (\(\alpha = 0.05\)).}
+	\label{fig:episode-length}
 \end{figure}
 
-\subsection{Harness Adaptation Results} \label{subsec:rq1-results}
+\subsection{Tool Execution Success Rates}
+\label{subsec:tool-success}
 
-The evaluation of harness adaptation reveals how effectively the model learns to interact with the Nano debugging environment through valid tool calls and strategic command selection.
-Run 2m8geyey demonstrates particularly striking patterns in both tool execution success and command usage evolution, culminating in a dramatic late-stage breakthrough that validates the \ac{RL} training approach.
+Tool execution success measures whether the policy generates syntactically valid \ac{JSON} tool calls that execute without errors.
+As noted in \cref{subsec:episode-length}, episodes shorten substantially over training, which could artificially inflate success rates if the policy simply avoids aforementioned death-spirals.
+However, success rate improvements occur throughout training as rewards increase, including during the early phase when episodes consistently exhaust the 30-call budget, indicating that the policy learns to generate more valid tool calls rather than merely becoming more selective about which tools to invoke.
 
-\begin{figure}[htbp]
+\Cref{fig:tool-success} shows tool execution success rates for both tools throughout training.
+The shell command success rates improve from approximately 45\% early in training to 80\% at the end, though the peak success rate coincides with episodes averaging only 5 tool calls.
+The apply\_patch success rates exhibit greater volatility, but still trend upwards.
+
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/tool_success_rates_ema0.05_2m8geyey.png}
-	\caption{Tool success rates throughout training.}
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/tool_success_rates_ema0.05_8dc73bp4.png}
+	\caption{Tool execution success rates throughout training, computed as the mean proportion of successful invocations per tool type across episodes. Plotted with exponential moving average smoothing (\(\alpha = 0.05\)).}
 	\label{fig:tool-success}
 \end{figure}
 
-\begin{figure}[htbp]
+\subsection{Command Usage Evolution}
+\label{subsec:command-evolution}
+
+While \cref{subsec:episode-length} examined overall shell command and apply\_patch counts, \cref{fig:command-evolution} decomposes shell command usage into the most frequently invoked individual commands to reveal strategic shifts in debugging behavior.
+Each command's usage is expressed as a percentage of total tool calls at that training step, allowing us to broadly observe the patterns the policy favors as a function of time.
+
+\begin{figure}[H]
 	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/command_trend_direct_ema0.05_2m8geyey.png}
-	\caption{Evolution of command usage frequencies throughout training.}
-	\label{fig:command-trend}
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/command_trend_direct_ema0.05_8dc73bp4.png}
+	\caption{Evolution of command usage frequencies throughout training, plotted with exponential moving average smoothing (\(\alpha = 0.05\)).}
+	\label{fig:command-evolution}
 \end{figure}
 
-\subsection{Command Evolution and Specialization} \label{subsec:command-evolution}
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/sankey/early_sankey.png}
-	\caption{Evolution of command usage frequencies throughout training.}
-	\label{fig:early-sankey}
-\end{figure}
+\section{RQ2: SWE-Bench-Verified Performance}
+\label{sec:rq2-swebench}
 
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/sankey/late_sankey.png}
-	\caption{Evolution of command usage frequencies throughout training.}
-	\label{fig:late-sankey}
-\end{figure}
-
-\subsection{Key Findings} \label{subsec:rq1-findings}
-
-\section{RQ2: Execution-Free Patch-Similarity \ac{RL}
-  Performance} \label{sec:rq2-swebench}
-
-\textbf{Research Question 2}: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?
+\textbf{Research Question:}
+Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?
 
 Following the evaluation protocol detailed in \cref{sec:eval-brief}, we compare pre-training Qwen3-14B baseline performance with post-\ac{GSPO} training results on SWE-Bench-Verified (approximately 500 Python debugging tasks).
 We report test-verified success rates with bootstrap 95\% confidence intervals.
@@ -73,8 +103,8 @@ We report test-verified success rates with bootstrap 95\% confidence intervals.
 \subsection{SWE-Bench-Verified Results} \label{subsec:rq2-performance}
 
 \Cref{tab:swebench-verified-results} presents the baseline performance of Qwen3-14B on SWE-Bench-Verified using the Nano agent before \ac{RL} training.
-The baseline model submitted patches for all 500 instances, with 186 attempts completing the full evaluation pipeline.
-Of these completed attempts, 36 instances were successfully resolved by passing all associated test cases, representing a 7.2\% resolve rate on total instances.
+The baseline model submitted patches for all 500 instances, with 186 episodes completing the full evaluation pipeline.
+Of these completed episodes, 36 instances were successfully resolved by passing all associated test cases, representing a 7.2\% resolve rate on total instances.
 The high proportion of empty patches (313 instances, 62.6\%) indicates that the baseline model frequently failed to generate valid repository modifications within the episode constraints.
 
 \begin{table}[htbp]
@@ -98,15 +128,13 @@ Resolve rate (on completed) & 19.4\% & --- \\
 \end{tabular}
 \end{table}
 
-\todoinline{Fill in trained model results once final evaluation completes.
-Include bootstrap confidence intervals for resolve rates.
-}
-
 \subsection{Analysis} \label{subsec:rq2-analysis} \todoinline{Interpret success rate improvements, discuss error modes and failure cases, and relate patch-similarity training rewards to test-verified success.}
 
-\section{RQ3: Language-Agnostic Training Effectiveness} \label{sec:rq3-multilingual}
+\section{RQ3: Multilingual Generalization}
+\label{sec:rq3-multilingual}
 
-\textbf{Research Question 3}: Does execution-free \ac{RL} enable effective multilingual training without language-specific engineering?
+\textbf{Research Question:}
+Does execution-free \ac{RL} enable effective multilingual training without language-specific engineering?
 
 Using the mixed 1,000-task curriculum described in \cref{sec:data-env} (750 Python + 250 multilingual training tasks), we evaluate \ac{GSPO}-trained checkpoints on the reserved 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
 This evaluation directly tests whether execution-free patch-similarity rewards enable unified training across diverse languages without language-specific infrastructure.

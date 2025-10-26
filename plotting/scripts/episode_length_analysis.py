@@ -25,10 +25,10 @@ PROJECT = "SWE-Gym-GRPO"
 RUN_ID = "6wkkt1s0"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/6wkkt1s0
 
 # EMA smoothing parameter
-EMA_ALPHA = 0.05
+EMA_ALPHA = 0.01
 
 
-def apply_ema(data: pd.Series, alpha: float = 0.05):
+def apply_ema(data: pd.Series, alpha: float = 0.01):
     """
     Apply exponential moving average smoothing.
 

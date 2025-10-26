@@ -11,7 +11,7 @@ from typing import Dict, List, Tuple, Optional
 # WandB configuration constants
 ENTITY = "assert-kth"
 PROJECT = "SWE-Gym-GRPO"
-RUN_ID = "nz1r7ml3"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/nz1r7ml3
+RUN_ID = "8dc73bp4"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/8dc73bp4 - Qwen3-14B-Multilingual-GSPO-Final
 
 # Standardized filename format with plot type organization
 FILENAME_FORMAT = "{name}_{run_id}"
@@ -91,26 +91,26 @@ COLORS = {
 COMMAND_COLORS = {
     # Critical tool - dominates red channel
     "apply_patch": "#DC143C",  # Crimson red - most important, stands out
-    
-    # Exploration commands (blues - keep rg/grep similar but distinguishable)
-    "rg": "#3498DB",           # Bright blue
-    "grep": "#2E86C1",         # Similar blue but darker
-    "find": "#1ABC9C",         # Distinct teal
-    "ls": "#16A085",           # Dark teal
-    
-    # File reading (greens - more variation)
-    "cat": "#27AE60",          # Green
-    "head": "#2ECC71",         # Light green
-    "tail": "#58D68D",         # Pale green
-    
+
+    # Exploration commands (blues/purples - more distinct variations)
+    "rg": "#1E88E5",           # Bright blue (dominant search tool)
+    "grep": "#6A1B9A",         # Purple (distinct from rg)
+    "find": "#00ACC1",         # Cyan (clear teal, different from blues)
+    "ls": "#D4A017",           # Golden/amber (totally different from search tools)
+
+    # File reading (greens - much wider variation)
+    "cat": "#2E7D32",          # Dark forest green
+    "head": "#7CB342",         # Light lime green (much lighter)
+    "tail": "#004D40",         # Very dark teal-green (much darker)
+
     # Development tools (purples - pip and python together)
     "python": "#8E44AD",       # Purple
     "python3": "#A569BD",      # Light purple (more distinct)
     "pip": "#7B68EE",          # Medium slate blue (clearly purple)
     "git": "#5B2C6F",          # Dark purple (darker)
-    
+
     # Text processing (oranges/yellows - avoid red channel)
-    "sed": "#FF8C00",          # Dark orange (no red conflict)
+    "sed": "#EF6C00",          # Bright orange (more vibrant)
     "awk": "#FFA500",          # Orange
     "diff": "#FFD700",         # Gold (bright, distinct)
     "echo": "#F0E68C",         # Khaki (pale yellow)

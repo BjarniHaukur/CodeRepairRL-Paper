@@ -17,7 +17,7 @@ This removes the need for language-specific runners during training and permits 
 
 Unlike traditional supervised learning that trains on static datasets, our approach generates training data through interaction with problem instances.
 Each instance consists of a GitHub repository at a specific buggy commit paired with an issue description and a ground-truth patch.
-The agent produces rollouts by interacting with these repositories through the terminal environment, and training occurs on these generated trajectories.
+The agent generates episodes by interacting with these repositories through the terminal environment, and training occurs on the trajectories produced from these episodes.
 
 Additionally, repository-level code repair datasets differ fundamentally in how they specify the agent's mission.
 Instruction-driven datasets provide natural language issue descriptions that communicate what to fix, while test-execution datasets provide failing tests that indicate what is broken.
@@ -90,7 +90,7 @@ drwxr-xr-x  utils/
 ... )
 Patch applied successfully.
 \end{minted}
-\caption{Illustrative rollout of the Nano agent. Strings in red are supplied by the \ac{LLM} as \ac{JSON} tool call arguments. The agent explores repository structure and file contents before applying a targeted edit.}
+\caption{Illustrative episode execution of the Nano agent. Strings in red are supplied by the \ac{LLM} as \ac{JSON} tool call arguments. The agent explores repository structure and file contents before applying a targeted edit.}
 \label{fig:nano-tools}
 \end{figure}
 
@@ -127,9 +127,9 @@ These limits keep \ac{VRAM} utilization bounded and improve sample efficiency: t
 \subsection{Sampling and Exploration}
 
 Training and evaluation employ distinct sampling configurations that reflect the fundamental exploration-exploitation trade-off in \ac{RL}.
-During training rollouts, we configure sampling with temperature 1.0 and top-$p$ 1.0 to encourage exploration of diverse debugging strategies and tool-usage patterns.
+During training episodes, we configure sampling with temperature 1.0 and top-$p$ 1.0 to encourage exploration of diverse debugging strategies and tool-usage patterns.
 This maximally stochastic sampling enables the policy to discover varied solution trajectories and prevents premature convergence to suboptimal behaviors.
-Conversely, evaluation rollouts use temperature 0.2 and top-$p$ 0.9 to exploit the learned policy, producing more deterministic and reliable behavior when assessing performance on held-out benchmarks.
+Conversely, evaluation episodes use temperature 0.2 and top-$p$ 0.9 to exploit the learned policy, producing more deterministic and reliable behavior when assessing performance on held-out benchmarks.
 This exploration-during-training, exploitation-during-evaluation paradigm ensures that the model explores broadly while learning but executes confidently when deployed.
 
 \section{Reward Design}
@@ -156,7 +156,7 @@ This stability is essential for long-context, multi-turn coding agent training w
 
 Our training objective combines \ac{GSPO} with a modest \ac{KL} penalty to counteract gradient variance from limited batch sizes: \begin{equation}
 J(\theta) = J_{\mathrm{GSPO}}(\theta) - \beta_{\text{KL}} \cdot D_{\text{KL}}(\pi_\theta \| \pi_{\theta_{\text{ref}}}),
-\end{equation} where the \ac{KL} divergence is computed on the logits of the rollouts used for training, $\beta_{\text{KL}}$ controls regularization strength, and $\pi_{\theta_{\text{ref}}}$ is the initial pre-trained checkpoint.
+\end{equation} where the \ac{KL} divergence is computed on the logits of the episodes used for training, $\beta_{\text{KL}}$ controls regularization strength, and $\pi_{\theta_{\text{ref}}}$ is the initial pre-trained checkpoint.
 
 \section{Model Choice}
 \label{sec:models}
@@ -174,8 +174,8 @@ Limited comparisons across Qwen3 sizes and Llama3.1-8B, along with more detailed
 Our evaluation protocol addresses the three research questions established in Chapter~\ref{ch:introduction}.
 
 \textbf{RQ1: How does \ac{GSPO} training improve Nano harness adaptation?}
-We measure tool-call success rate, invalid-call reduction, action efficiency, and command usage evolution, comparing pre-training and post-training behavior.
-Command usage patterns are analyzed qualitatively across training runs to identify shifts in debugging strategies.
+We measure tool-call success rate, action efficiency, and evolution of command usage trends.
+Command usage patterns are analyzed qualitatively across training steps to identify shifts in debugging strategies.
 
 \textbf{RQ2: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?}
 We measure test-verified success rates on SWE-Bench-Verified, comparing pre-training baseline to post-training performance using identical evaluation protocol.

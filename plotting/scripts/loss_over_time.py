@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from wandb_utils import get_run, get_history
 from plot_config import ENTITY, PROJECT, RUN_ID, get_output_filename, setup_plotting_style
 
-def apply_ema_smoothing(values, alpha=0.05):
+def apply_ema_smoothing(values, alpha=0.01):
     """Apply exponential moving average smoothing."""
     smoothed = np.zeros_like(values)
     smoothed[0] = values[0]
@@ -28,8 +28,8 @@ def main():
                         help=f'WandB run ID (default: {RUN_ID})')
     parser.add_argument('--merge-with', type=str, default=None,
                         help='Optional second run ID to merge with (for continued training runs)')
-    parser.add_argument('--ema-alpha', type=float, default=0.05,
-                        help='EMA smoothing parameter (default: 0.05)')
+    parser.add_argument('--ema-alpha', type=float, default=0.01,
+                        help='EMA smoothing parameter (default: 0.01)')
     args = parser.parse_args()
 
     print("="*60)
@@ -80,6 +80,16 @@ def main():
 
     # Set y-axis manually
     ax.set_ylim(0, 0.05)
+
+    # Remove duplicate "0" label on x-axis to avoid overlap with y-axis
+    xticks = ax.get_xticks()
+    xticks = xticks[xticks > 0]  # Remove 0 from x-axis ticks
+    ax.set_xticks(xticks)
+
+    # Set x-axis to actual data range (no negative padding, no extra space on right)
+    # Must be done AFTER setting xticks to prevent matplotlib from expanding limits
+    max_step = len(training_steps) - 1
+    ax.set_xlim(0, max_step)
 
     # Print statistics
     print(f"\nTraining loss statistics:")

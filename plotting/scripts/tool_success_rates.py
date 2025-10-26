@@ -95,7 +95,17 @@ def main():
     
     # Set y-axis range to 0-100%
     ax.set_ylim(0, 100)
-    
+
+    # Remove duplicate "0" label on x-axis to avoid overlap with y-axis
+    xticks = ax.get_xticks()
+    xticks = xticks[xticks > 0]  # Remove 0 from x-axis ticks
+    ax.set_xticks(xticks)
+
+    # Set x-axis to actual data range (no negative padding, no extra space on right)
+    # Must be done AFTER setting xticks to prevent matplotlib from expanding limits
+    max_step = steps_smoothed[-1]
+    ax.set_xlim(0, max_step)
+
     # Print summary stats
     print(f"\nSummary statistics:")
     print(f"Shell success rate: {shell_smoothed.mean()*100:.1f}% ± {shell_smoothed.std()*100:.1f}%")

@@ -40,7 +40,6 @@ Our work attempts to bridge the gap between closed-source frontier capabilities 
 We implement this through \ac{GSPO}~\cite{gspo2025} with an explicit KL regularizer, enabling stable updates while models actively debug real repositories during training.
 The key technical innovation lies in our training-inference duality: a custom integration layer enables simultaneous model training and serving, with \ac{NCCL} facilitating live weight synchronization across distributed \acsp{GPU} [expand: specific throughput numbers, latency implications].
 Our \textit{Nano-agent} architecture provides essential bash and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
-\todoinline{Add brief description of Mini-SWE-Agent/Aider transfer once experiments finish.}
 
 % Evidence / Secondary Contribution
 Experiments on [X training instances, Y compute hours] demonstrate that online training yields models exhibiting sophisticated debugging behaviors: systematic hypothesis testing, incremental code modification, and test-guided exploration [specific examples needed].

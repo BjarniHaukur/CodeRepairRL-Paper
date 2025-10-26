@@ -21,7 +21,7 @@ TOP_COMMANDS = [
     'ls',  # Directory listing
 ]
 
-def get_command_metrics_from_history(run, ema_alpha=0.05, history_override=None):
+def get_command_metrics_from_history(run, ema_alpha=0.01, history_override=None):
     """
     Extract command ratios directly from WandB history using train/extra_kwargs metrics.
 
@@ -127,7 +127,7 @@ def get_command_metrics_from_history(run, ema_alpha=0.05, history_override=None)
         for i, (_, row) in enumerate(cmd_data.iterrows()):
             if i >= skip_points:  # Only include points after the skip threshold
                 smoothed_data.append({
-                    'training_step': i,  # Use evaluation index
+                    'training_step': i - skip_points,  # Reset to start from 0
                     'command': cmd,
                     'ratio': smoothed_ratios[i],
                     'raw_ratio': row['ratio'],
@@ -185,7 +185,17 @@ def create_trend_plot(ratio_df, run_name, filename):
     
     # Set y-axis to percentage
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y*100:.0f}%'))
-    
+
+    # Remove duplicate "0" label on x-axis to avoid overlap with y-axis
+    xticks = ax.get_xticks()
+    xticks = xticks[xticks > 0]  # Remove 0 from x-axis ticks
+    ax.set_xticks(xticks)
+
+    # Set x-axis to actual data range (no negative padding, no extra space on right)
+    # Must be done AFTER setting xticks to prevent matplotlib from expanding limits
+    max_step = ratio_df['training_step'].max()
+    ax.set_xlim(0, max_step)
+
     # Adjust layout to prevent legend cutoff
     plt.tight_layout()
     
@@ -203,8 +213,8 @@ def main():
                         help=f'WandB run ID (default: {RUN_ID})')
     parser.add_argument('--merge-with', type=str, default=None,
                         help='Optional second run ID to merge with (for continued training runs)')
-    parser.add_argument('--ema-alpha', type=float, default=0.05,
-                        help='EMA smoothing parameter (default: 0.05, smaller = more smoothing)')
+    parser.add_argument('--ema-alpha', type=float, default=0.01,
+                        help='EMA smoothing parameter (default: 0.01, smaller = more smoothing)')
     args = parser.parse_args()
 
     print("="*60)

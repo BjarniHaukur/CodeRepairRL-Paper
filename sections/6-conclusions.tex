@@ -13,10 +13,10 @@ Our work makes several methodological and infrastructure contributions to online
 
 \subsection{Execution-Free Training Methodology}
 
-\textbf{Language-Agnostic Rewards}: We demonstrate that execution-free patch-similarity rewards enable effective \ac{RL} training across programming languages without language-specific test infrastructure, build systems, or dependency management.
+\textbf{Language-Agnostic Rewards}: We demonstrate that execution-free patch-similarity rewards enable effective \ac{RL} training across programming languages without language-specific execution infrastructure.
 Training on a 1{,}000-task curriculum mixing Python and nine additional languages validates that static diff comparison provides sufficient learning signal for repository-level code repair.
 
-\textbf{Nano Agent Design}: The minimalist Nano agent operates with only two tools—restricted bash and search-and-replace patching—demonstrating that sophisticated debugging behaviors emerge from simple interfaces when combined with \ac{RL}.
+\textbf{Nano Agent Design}: The minimalist Nano agent operates with only two tools—restricted bash and search-and-replace patching—demonstrating that effective debugging behaviors can develop through \ac{RL} training without engineered complexity.
 By sidestepping diff generation complexity through deterministic git-based canonical diff computation, the design eliminates an entire class of formatting errors orthogonal to the semantic debugging task.
 
 \subsection{Technical Infrastructure}
@@ -59,8 +59,7 @@ Performance} \label{subsec:rq2-answer}
 This demonstrates that static diff-based rewards provide sufficient learning signal for functional bug-fixing improvements despite not directly optimizing for test passage.
 \todoinline{Insert bootstrap confidence intervals and statistical significance tests from Chapter 5.}
 
-\textbf{Implications}: Execution-free rewards serve as effective proxies for functional correctness, validating the core methodological approach.
-This substantially reduces infrastructure complexity compared to execution-based training while enabling language-agnostic learning, as patch similarity computation requires no language-specific test runners, build systems, or dependency management.
+\textbf{Implications}: Execution-free rewards serve as effective proxies for functional correctness, validating the core methodological approach while substantially reducing infrastructure complexity compared to execution-based training.
 
 \subsection{RQ3: Language-Agnostic Training Effectiveness}
 \label{subsec:rq3-answer}
@@ -147,7 +146,7 @@ Our current implementation optimizes intra-group asynchronous behavior, allowing
 However, the system treats episode groups synchronously: inference pauses once the configured group size is reached, waiting for training to complete and weights to synchronize before new episodes begin.
 Given the substantial variation in episode completion times—some problems resolve in five turns while others require twenty or more—this synchronous grouping creates walltime dependencies where inference servers sit idle during training updates.
 
-Future implementations could eliminate this bottleneck through slightly off-policy rollouts.
+Future implementations could eliminate this bottleneck through slightly off-policy episodes.
 Instead of pausing inference during training, new episodes would begin immediately using the current policy while training proceeds on completed episodes in parallel.
 When weight updates broadcast to inference servers, any in-flight episodes would continue with the updated policy, making them slightly off-policy: they began with policy version $\pi_n$ but will complete under $\pi_{n+1}$ or later.
 Given the small, gradual nature of \ac{GSPO} updates and continuous weight synchronization, this off-policy gap remains bounded and acceptable.
@@ -162,7 +161,7 @@ While this design maximizes throughput by overlapping computation, it increases 
 Future implementations could co-locate training and inference on a single set of weights, eliminating synchronization overhead entirely and reducing the entry barrier for \ac{RL} experimentation.
 
 In this unified architecture, the model would alternate between inference and training phases rather than running them concurrently.
-Episodes would accumulate using the current policy weights, and once sufficient experience is collected, the system would pause rollout generation, perform training updates in-place, then resume inference with the updated policy.
+Episodes would accumulate using the current policy weights, and once sufficient experience is collected, the system would pause episode generation, perform training updates in-place, then resume inference with the updated policy.
 This eliminates the need for separate inference servers, weight broadcasting infrastructure, and \ac{NCCL} synchronization—reducing the minimum viable system to a single training node.
 
 The trade-off is straightforward: training updates pause inference, reducing overall throughput compared to the parallel design.
@@ -227,9 +226,9 @@ By decoupling learning signals from language-specific test infrastructure, we en
 This design choice traded some precision in correctness evaluation for substantial gains in experimental velocity and scope.
 Similar trade-offs may benefit other domains where approximate but tractable reward signals enable broader exploration than expensive ground-truth evaluation.
 
-The success of minimalist agent design suggests that sophisticated capabilities can emerge from simple interfaces when combined with adequate training.
+The minimalist agent design validates that effective capabilities can arise from basic tool primitives when combined with adequate training.
 Rather than engineering complex tool suites that embed human debugging knowledge through careful interface design, we provided basic primitives and relied on learning to discover effective strategies.
-This philosophy aligns with core \ac{RL} principles of capability emergence through environmental interaction, though it requires sufficient training time and sample efficiency to realize in practice.
+This philosophy aligns with core \ac{RL} principles—capabilities develop through environmental interaction rather than pre-programmed behaviors—though it requires sufficient training time and sample efficiency to realize in practice.
 
 \section{Long-Term Vision}
 \label{sec:long-term-vision}
