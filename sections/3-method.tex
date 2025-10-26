@@ -21,7 +21,7 @@ The agent produces rollouts by interacting with these repositories through the t
 
 Additionally, repository-level code repair datasets differ fundamentally in how they specify the agent's mission.
 Instruction-driven datasets provide natural language issue descriptions that communicate what to fix, while test-execution datasets provide failing tests that indicate what is broken.
-Our execution-free training approach requires instruction-driven variant.
+Our execution-free training approach requires the instruction-driven variant.
 
 We employ a 1{,}000-task curriculum combining Python and multilingual repositories.
 From SWE-Gym~\cite{sweGym2025}, we select 750 Python bug-fixing tasks for training.

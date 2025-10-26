@@ -2,10 +2,9 @@
 \label{ch:background}
 
 This chapter establishes the theoretical and empirical foundations for applying online \ac{RL} to \ac{APR} with tool-augmented \acp{LLM}.
-We situate \ac{APR} historically, progressing from pre-LLM search- and learning-based methods to contemporary repository-grounded systems, introducing a taxonomy spanning scaffold-free, agentless, and agentic paradigms.
-Policy optimization algorithms (\ac{PPO}, \ac{GRPO}, DAPO, \ac{GSPO}) are reviewed with emphasis on group-relative methods and stability challenges in variable-length trajectories.
-Complementary techniques—parameter-efficient adaptation via \ac{LoRA}, exploration-exploitation balance through sampling—are summarized alongside evaluation benchmarks (SWE-Bench, TauBench).
-We conclude with related work and design constraints that motivate the minimalist Nano agent and execution-free training methodology presented in subsequent chapters.
+We begin by situating \ac{APR} historically, then introduce a taxonomy of \ac{LLM}-based approaches—scaffold-free, agentless, and agentic—that clarifies which paradigms support end-to-end policy learning.
+Having established why agentic systems enable \ac{RL} training, we provide an in-depth treatment of policy optimization algorithms, progressing from \ac{PPO} through group-relative methods, with emphasis on stability challenges.
+We then cover parameter-efficient adaptation, instruction-driven datasets, and conclude with research positioning that contrasts our execution-free approach with concurrent work, establishing the methodological context for subsequent chapters.
 
 \section{Automated Program Repair before \acsp{LLM}}\label{sec:apr-pre-llm}
 

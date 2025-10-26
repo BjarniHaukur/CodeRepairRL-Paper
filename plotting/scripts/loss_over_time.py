@@ -24,22 +24,28 @@ def apply_ema_smoothing(values, alpha=0.05):
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(description='Plot training loss over time')
-    parser.add_argument('--run-id', type=str, default=RUN_ID, 
+    parser.add_argument('--run-id', type=str, default=RUN_ID,
                         help=f'WandB run ID (default: {RUN_ID})')
+    parser.add_argument('--merge-with', type=str, default=None,
+                        help='Optional second run ID to merge with (for continued training runs)')
     parser.add_argument('--ema-alpha', type=float, default=0.05,
                         help='EMA smoothing parameter (default: 0.05)')
     args = parser.parse_args()
-    
+
     print("="*60)
     print("Training Loss Over Time")
     print("="*60)
-    
-    # Get run
-    run = get_run(ENTITY, PROJECT, args.run_id)
-    
-    # Get loss metric
-    metrics = ['_step', 'train/loss']
-    history = get_history(run, keys=metrics)
+
+    # Get run and history (with optional merging)
+    if args.merge_with:
+        print(f"\n🔗 Merging runs: {args.run_id} + {args.merge_with}")
+        from scripts.merge_runs import merge_continued_runs
+        merged_history, run, _ = merge_continued_runs(args.run_id, args.merge_with, ENTITY, PROJECT)
+        history = merged_history[['_step', 'train/loss']]
+    else:
+        run = get_run(ENTITY, PROJECT, args.run_id)
+        metrics = ['_step', 'train/loss']
+        history = get_history(run, keys=metrics)
     
     # Filter out NaN values
     history = history.dropna(subset=['train/loss'])
@@ -54,58 +60,33 @@ def main():
     setup_plotting_style()
     fig, ax = plt.subplots(figsize=(12, 7))
 
-    # Apply EMA smoothing
+    # Get data
     loss_values = history['train/loss'].values
-    steps = history['_step'].values
+    training_steps = np.arange(len(history))  # Use sequential index as training steps
 
-    # Apply EMA and skip first 0.5%
-    loss_smoothed, skip_points = apply_ema_smoothing(loss_values, args.ema_alpha)
-    steps_smoothed = steps[skip_points:]
+    # Plot raw data
+    ax.plot(training_steps, loss_values,
+           color='#3498DB', linewidth=1.5, alpha=0.8)
 
-    # Plot raw data with lower alpha
-    ax.plot(steps, loss_values,
-           color='#E74C3C', linewidth=1, alpha=0.3, label='Raw Data')
-
-    # Plot EMA smoothed data
-    ax.plot(steps_smoothed, loss_smoothed,
-           color='#E74C3C', linewidth=2.5, alpha=0.9, label='EMA Smoothed')
-    
     # Styling
     ax.set_xlabel('Training Steps', fontsize=14, fontweight='bold')
     ax.set_ylabel('Training Loss', fontsize=14, fontweight='bold')
-    ax.set_title(f'{run.name}: Training Loss During Training', 
+    ax.set_title(f'{run.name}: Training Loss',
                 fontsize=16, fontweight='bold', pad=20)
-    
-    # Grid and legend
+
+    # Grid (no legend)
     ax.grid(True, alpha=0.3, linestyle='--')
     ax.set_axisbelow(True)
-    ax.legend(fontsize=11, frameon=True, fancybox=True, shadow=True)
-    
-    # Set y-axis limits considering raw data
-    q10, q90 = np.percentile(loss_values, [10, 90])
-    margin = (q90 - q10) * 0.2  # 20% margin
-    ax.set_ylim(max(0, q10 - margin), q90 + margin)
 
-    # Add statistics as text
-    mean_loss = loss_smoothed.mean()
-    std_loss = loss_smoothed.std()
-    initial_loss = loss_smoothed[0]
-    final_loss = loss_smoothed[-1]
-    improvement = ((initial_loss - final_loss) / initial_loss) * 100 if initial_loss != 0 else 0
-    
-    stats_text = f'Mean: {mean_loss:.4f}\nStd: {std_loss:.4f}\nInitial: {initial_loss:.4f}\nFinal: {final_loss:.4f}\nImprovement: {improvement:.1f}%'
-    ax.text(0.02, 0.98, stats_text,
-            transform=ax.transAxes,
-            verticalalignment='top',
-            bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8),
-            fontsize=10)
-    
+    # Set y-axis manually
+    ax.set_ylim(0, 0.05)
+
+    # Print statistics
     print(f"\nTraining loss statistics:")
-    print(f"  Mean: {mean_loss:.4f}")
-    print(f"  Std: {std_loss:.4f}")
-    print(f"  Initial: {initial_loss:.4f}")
-    print(f"  Final: {final_loss:.4f}")
-    print(f"  Improvement: {improvement:.1f}%")
+    print(f"  Data points: {len(loss_values)}")
+    print(f"  Mean: {loss_values.mean():.4f}")
+    print(f"  Std: {loss_values.std():.4f}")
+    print(f"  Range: {loss_values.min():.4f} - {loss_values.max():.4f}")
     
     # Adjust layout and save
     plt.tight_layout()

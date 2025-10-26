@@ -27,6 +27,8 @@ def main():
     parser = argparse.ArgumentParser(description='Plot tool success rates over time')
     parser.add_argument('--run-id', type=str, default=RUN_ID, 
                         help=f'WandB run ID (default: {RUN_ID})')
+    parser.add_argument('--merge-with', type=str, default=None,
+                        help='Optional second run ID to merge with (for continued training runs)')
     parser.add_argument('--ema-alpha', type=float, default=0.05,
                         help='EMA smoothing parameter (default: 0.05)')
     args = parser.parse_args()
@@ -35,17 +37,21 @@ def main():
     print("Tool Success Rates Over Training")
     print("="*60)
     
-    # Get run
-    run = get_run(ENTITY, PROJECT, args.run_id)
-    
-    # Get metrics
-    metrics = [
-        '_step',
-        'train/extra_kwargs/tool_success_rate_shell',
-        'train/extra_kwargs/tool_success_rate_apply_patch'
-    ]
-    
-    history = get_history(run, keys=metrics)
+    # Get run and history (with optional merging)
+    if args.merge_with:
+        print(f"\n🔗 Merging runs: {args.run_id} + {args.merge_with}")
+        from scripts.merge_runs import merge_continued_runs
+        merged_history, run, _ = merge_continued_runs(args.run_id, args.merge_with, ENTITY, PROJECT)
+        history = merged_history[['_step', 'train/extra_kwargs/tool_success_rate_shell', 
+                                  'train/extra_kwargs/tool_success_rate_apply_patch']]
+    else:
+        run = get_run(ENTITY, PROJECT, args.run_id)
+        metrics = [
+            '_step',
+            'train/extra_kwargs/tool_success_rate_shell',
+            'train/extra_kwargs/tool_success_rate_apply_patch'
+        ]
+        history = get_history(run, keys=metrics)
     
     # Filter out NaN values
     history = history.dropna(subset=['train/extra_kwargs/tool_success_rate_shell', 
@@ -60,26 +66,26 @@ def main():
     # Set up the plot
     setup_plotting_style()
     fig, ax = plt.subplots(figsize=(12, 7))
-    
+
     # Apply EMA smoothing to both metrics
     shell_rates = history['train/extra_kwargs/tool_success_rate_shell'].values
     patch_rates = history['train/extra_kwargs/tool_success_rate_apply_patch'].values
-    steps = history['_step'].values
-    
+    training_steps = np.arange(len(history))  # Use sequential index as training steps
+
     shell_smoothed, skip_points = apply_ema_smoothing(shell_rates, args.ema_alpha)
     patch_smoothed, _ = apply_ema_smoothing(patch_rates, args.ema_alpha)
-    steps_smoothed = steps[skip_points:]
-    
+    steps_smoothed = training_steps[skip_points:]
+
     # Plot the success rates
-    ax.plot(steps_smoothed, shell_smoothed * 100, 
+    ax.plot(steps_smoothed, shell_smoothed * 100,
            label='Shell Commands', color='#3498DB', linewidth=2.5, alpha=0.9)
-    ax.plot(steps_smoothed, patch_smoothed * 100, 
+    ax.plot(steps_smoothed, patch_smoothed * 100,
            label='Apply Patch', color='#DC143C', linewidth=2.5, alpha=0.9)
-    
+
     # Styling
     ax.set_xlabel('Training Steps', fontsize=14, fontweight='bold')
     ax.set_ylabel('Success Rate (%)', fontsize=14, fontweight='bold')
-    ax.set_title(f'{run.name}: Tool Success Rates During Training', 
+    ax.set_title(f'{run.name}: Tool Success Rates',
                 fontsize=16, fontweight='bold', pad=20)
     
     # Grid and legend

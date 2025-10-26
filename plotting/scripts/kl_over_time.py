@@ -24,22 +24,28 @@ def apply_ema_smoothing(values, alpha=0.05):
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(description='Plot KL divergence over time')
-    parser.add_argument('--run-id', type=str, default=RUN_ID, 
+    parser.add_argument('--run-id', type=str, default=RUN_ID,
                         help=f'WandB run ID (default: {RUN_ID})')
+    parser.add_argument('--merge-with', type=str, default=None,
+                        help='Optional second run ID to merge with (for continued training runs)')
     parser.add_argument('--ema-alpha', type=float, default=0.05,
                         help='EMA smoothing parameter (default: 0.05)')
     args = parser.parse_args()
-    
+
     print("="*60)
     print("KL Divergence Over Training")
     print("="*60)
-    
-    # Get run
-    run = get_run(ENTITY, PROJECT, args.run_id)
-    
-    # Get KL metric
-    metrics = ['_step', 'train/kl']
-    history = get_history(run, keys=metrics)
+
+    # Get run and history (with optional merging)
+    if args.merge_with:
+        print(f"\n🔗 Merging runs: {args.run_id} + {args.merge_with}")
+        from scripts.merge_runs import merge_continued_runs
+        merged_history, run, _ = merge_continued_runs(args.run_id, args.merge_with, ENTITY, PROJECT)
+        history = merged_history[['_step', 'train/kl']]
+    else:
+        run = get_run(ENTITY, PROJECT, args.run_id)
+        metrics = ['_step', 'train/kl']
+        history = get_history(run, keys=metrics)
     
     # Filter out NaN values
     history = history.dropna(subset=['train/kl'])
@@ -54,54 +60,33 @@ def main():
     setup_plotting_style()
     fig, ax = plt.subplots(figsize=(12, 7))
 
-    # Apply EMA smoothing
+    # Get data
     kl_values = history['train/kl'].values
-    steps = history['_step'].values
+    training_steps = np.arange(len(history))  # Use sequential index as training steps
 
-    # Apply EMA and skip first 0.5%
-    kl_smoothed, skip_points = apply_ema_smoothing(kl_values, args.ema_alpha)
-    steps_smoothed = steps[skip_points:]
+    # Plot raw data
+    ax.plot(training_steps, kl_values,
+           color='#3498DB', linewidth=1.5, alpha=0.8)
 
-    # Plot raw data with lower alpha
-    ax.plot(steps, kl_values,
-           color='#8E44AD', linewidth=1, alpha=0.3, label='Raw Data')
-
-    # Plot EMA smoothed data
-    ax.plot(steps_smoothed, kl_smoothed,
-           color='#8E44AD', linewidth=2.5, alpha=0.9, label='EMA Smoothed')
-    
     # Styling
     ax.set_xlabel('Training Steps', fontsize=14, fontweight='bold')
     ax.set_ylabel('KL Divergence', fontsize=14, fontweight='bold')
-    ax.set_title(f'{run.name}: KL Divergence During Training', 
+    ax.set_title(f'{run.name}: KL Divergence',
                 fontsize=16, fontweight='bold', pad=20)
-    
-    # Grid and legend
+
+    # Grid (no legend)
     ax.grid(True, alpha=0.3, linestyle='--')
     ax.set_axisbelow(True)
-    ax.legend(fontsize=11, frameon=True, fancybox=True, shadow=True)
-    
-    # Set y-axis limits considering raw data
-    q10, q90 = np.percentile(kl_values, [10, 90])
-    margin = (q90 - q10) * 0.2  # 20% margin
-    ax.set_ylim(max(0, q10 - margin), q90 + margin)
 
-    # Add statistics as text
-    mean_kl = kl_smoothed.mean()
-    std_kl = kl_smoothed.std()
-    final_kl = kl_smoothed[-1]
-    
-    stats_text = f'Mean: {mean_kl:.4f}\nStd: {std_kl:.4f}\nFinal: {final_kl:.4f}'
-    ax.text(0.02, 0.98, stats_text,
-            transform=ax.transAxes,
-            verticalalignment='top',
-            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8),
-            fontsize=11)
-    
+    # Set y-axis manually
+    ax.set_ylim(0, 2)
+
+    # Print statistics
     print(f"\nKL divergence statistics:")
-    print(f"  Mean: {mean_kl:.4f}")
-    print(f"  Std: {std_kl:.4f}")
-    print(f"  Final: {final_kl:.4f}")
+    print(f"  Data points: {len(kl_values)}")
+    print(f"  Mean: {kl_values.mean():.4f}")
+    print(f"  Std: {kl_values.std():.4f}")
+    print(f"  Range: {kl_values.min():.4f} - {kl_values.max():.4f}")
     
     # Adjust layout and save
     plt.tight_layout()
