@@ -25,7 +25,8 @@ Our execution-free training approach requires the instruction-driven variant.
 
 We employ a 1{,}000-task curriculum combining Python and multilingual repositories.
 From SWE-Gym~\cite{sweGym2025}, we select 750 Python bug-fixing tasks for training.
-From SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025}, we incorporate 250 multilingual tasks into training and reserve 50 as a held-out evaluation set.
+From SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025}, we incorporate 250 multilingual tasks into training, providing coverage across nine programming languages.
+Due to the sparsity of instruction-driven multilingual data, an additional 50 multilingual instances were held out for potential test-verified evaluation, though time constraints limited the scope to only reward-based analysis presented in \cref{sec:rq3-multilingual}.
 Instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than their test-execution counterparts, constraining the scale of cross-language training currently feasible.
 
 \section{Nano Agent}

@@ -70,7 +70,6 @@ This architectural choice optimizes for immediate task performance through caref
 Agentic systems operate directly over a live repository and let the model initiate actions.
 The model can open and edit files, run tests and shell commands, read raw outputs, and iterate until a patch is ready.
 Public research harnesses make this concrete: \emph{SWE-Agent} formalizes an agent-computer loop for software tasks, \emph{OpenHands} provides a general terminal-based platform for coding agents, and \emph{mini-swe-agent} shows that a small, disciplined tool set in a tight loop is effective~\cite{sweAgent2024,openHands2024, miniSWEAgentRepo}.
-Our Nano agent (\cref{sec:nano-agent}) adopts a similar minimalist philosophy, providing only essential terminal commands and file patching capabilities, allowing effective debugging behaviors to emerge through \ac{RL}.
 
 Operationally, these systems rely on structured tool calls, typically via \acs{JSON}.
 The model emits a well-formed function call with arguments, an external executor runs it, and the resulting output is returned to the model.
@@ -315,50 +314,3 @@ SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} extends instruction-drive
 
 SWE-Bench-Verified~\cite{sweBenchVerified2024} serves as the community evaluation standard, containing approximately 500 carefully validated Python debugging tasks with deterministic test outcomes.
 The benchmark measures functional correctness through actual test execution, providing ground-truth signals for whether proposed fixes resolve reported issues without introducing regressions.
-
-Having examined the theoretical foundations, we now position our work within the broader landscape of concurrent research.
-
-\section{Summary and Research Positioning}
-\label{sec:summary-positioning}
-
-\textbf{DeepSWE}~\cite{deepSWE2025} validates the viability of online \ac{RL} for terminal-based coding agents, applying \ac{GRPO} to a 32B parameter model with asynchronous inference infrastructure across 72 H100 \acp{GPU} (64 for training, 8 for inference).
-Their work demonstrates that multi-turn agent training can achieve strong performance with test-based rewards.
-In contrast, our work demonstrates that similar training methodologies remain tractable within academic compute constraints.
-Our infrastructure supports models up to 32B parameters on 6 A100 \acp{GPU}; primary experiments reported here use 3 A100 \acp{GPU} with a 14B parameter model.
-
-We adopt execution-free patch-similarity rewards, building on the patch-based signal introduced by SWE-RL~\cite{wei2025swerladvancingllmreasoning}, rather than test-based evaluation.
-This choice reduces engineering friction—avoiding per-repository test harnesses and heavyweight containerization—and enables concurrent training across heterogeneous environments and programming languages without language-specific execution infrastructure.
-Detailed design considerations are deferred to the methods chapter.
-
-This chapter has established the theoretical and empirical foundations for online \ac{RL} applied to \ac{APR}.
-By examining the evolution from rule-based repair systems to modern \ac{LLM}-based approaches, we identified fundamental limitations in current paradigms: the mismatch between static training and the dynamic nature of debugging.
-
-Our review \ac{RL} techniques, particularly the progression from \ac{PPO} to group-relative methods culminating in \ac{GSPO}, demonstrates how computational efficiency and training stability can be achieved through careful algorithmic design without sacrificing theoretical guarantees.
-The examination of existing coding agents reveals a critical gap—all current systems operate at inference time only, missing the opportunity for models to learn optimal tool usage through experience.
-
-This thesis makes three fundamental contributions to the field:
-
-\textbf{One of the first open-source online \ac{RL} implementations for \acp{LLM}}: We provide the research community with complete infrastructure for training language models through interactive environmental experience.
-This democratizes access to techniques we believe are already employed by leading industry labs but have remained proprietary.
-Our implementation enables researchers to explore online learning across diverse domains beyond code repair.
-
-\textbf{Minimalist agent approach}: We demonstrate that a simple agent design with basic tools can achieve strong performance when combined with reinforcement learning, validating that complex debugging behaviors develop through learning rather than engineered tool sophistication.
-
-\textbf{Bridge between research and practice}: By demonstrating that models can learn effective debugging strategies through \ac{RL} in realistic environments, we bridge the gap between academic research on program repair and practical tools used by developers.
-Our approach shows that the future of coding assistance lies not in ever-more-sophisticated prompt engineering, but in models that learn from experience.
-
-\subsection{Limitations of existing work}
-\label{sec:limitations-existing}
-\textbf{Focus on generation rather than repair}: Existing approaches predominantly emphasize code generation, yet creating new code differs fundamentally from the process of debugging and repairing existing systems.
-This distinction is crucial, as effective automated program repair requires models to reason about and modify complex, pre-existing codebases rather than synthesizing code from scratch.
-
-\textbf{Isolated task formulation}: Many prior works formulate tasks at the level of single functions, thereby neglecting the intricate interdependencies and architectural complexity inherent in real-world software systems.
-This simplification limits the ability of models to generalize to practical debugging scenarios, where understanding interactions across multiple files and modules is essential.
-
-\textbf{Lack of environmental interaction}: Previous methods typically do not incorporate exploration, tool usage, or iterative refinement into their training regimes.
-As a result, models are deprived of opportunities to learn through active engagement with their environment, which is a key aspect of effective debugging and repair in realistic settings.
-
-\textbf{Dependence on test-based rewards}: While relying on test-based rewards can, in principle, provide robust supervision, this strategy becomes increasingly impractical as the number of supported programming languages expands.
-Constructing and maintaining comprehensive test suites for each language introduces significant operational challenges, thereby limiting the scalability and applicability of these approaches.
-
-As we proceed to describe our method in detail, keep in mind that our goal is not merely to improve performance metrics on benchmarks, but to demonstrate a fundamentally different, nascent training approach that enables \acp{LLM} to learn not from labeled data points, but from experience.

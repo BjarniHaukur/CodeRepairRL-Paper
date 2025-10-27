@@ -25,14 +25,10 @@ Traditional systems for automated code repair have relied predominantly on super
 In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process.
 While computationally efficient, this approach fundamentally misrepresents the nature of repository-level software debugging, which involves iterative hypothesis refinement, strategic exploration of entire codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation.
 Moreover, the information needed to fix a bug in real-world repositories is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide to navigate and understand the broader codebase context.
-\todoinline{Add citation to traditional APR survey or seminal work (e.g., GenProg, Prophet, or APR survey paper)?}
 
 The question becomes: how do we train such agentic systems when the very complexity that necessitates their existence also makes traditional training approaches intractable?
 \ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaGo2016}.
 However, \ac{RL} fundamentally requires that learning systems can meaningfully participate in the task from the beginning.
-\todoinline{OR that we can heuristically reward them.
-Not feasible for SWE.
-}
 They must be capable of generating valid actions, interpreting feedback, and understanding the basic structure of the problem space.
 For complex reasoning tasks like software debugging, this prerequisite participation threshold has historically been insurmountable.
 
@@ -61,20 +57,9 @@ Human software developers do not repair bugs through single-shot pattern matchin
 They navigate complex codebases, examine interconnected components, execute diagnostic commands, and progressively construct mental models of system behavior.
 This active learning process differs fundamentally from passive pattern recognition, suggesting that training models through interactive experience may yield qualitatively superior debugging capabilities.
 
-%The current landscape of automated program repair reflects an artificial fragmentation: separate models for Python, distinct approaches for Java, isolated systems for JavaScript.
-%This language-specific isolation stems not from fundamental differences in debugging strategies but from the practical constraints of execution-based evaluation.
-%Test-based rewards require language-specific test runners, build systems, package managers, and dependency resolution, creating insurmountable engineering barriers to unified training.
-%Our execution-free approach dissolves these barriers, enabling the first practical path toward universal debugging agents that operate across language boundaries.
-
-\todoinline{Consider expanding: Our execution-free problem setup has significantly lower engineering friction compared to test-based approaches.
-No need for language-specific test runners, build systems, dependency management, or containerized execution environments.
-This enables seamless multilingual training that would be prohibitively complex with execution-based rewards.
-}
-
 This direction aligns with widely observed advances at the frontier: agentic capabilities are clearly improving, with public reports of stronger coding performance and enhanced interactive capabilities.
 These developments heighten the need for open, reproducible understanding of how agentic training works, rather than reliance on closed systems.
 Our work addresses this need by studying \ac{RL} with interactive coding agents in an open setting.
-\todoinline{Add citations to public system cards or technical reports where appropriate.}
 
 \section{Problem Statement}
 \label{sec:intro-problem}
@@ -138,7 +123,7 @@ post-training performance on SWE-Bench-Verified using the same Nano harness for 
 Measured outcomes include repair success rates, reward progression, tool-call validity, action efficiency, and command usage patterns.
 
 Data collection captures complete agent-environment interactions: tool invocations, repository states, reward signals computed via patch-similarity comparison, training dynamics, and aggregated evaluation metrics.
-Training uses a 1,000-task curriculum (750 SWE-Gym Python tasks + 250 SWE-Bench-Multilingual tasks), with primary evaluation on SWE-Bench-Verified and multilingual generalization assessed on a 50-task held-out subset.
+Training uses a 1,000-task curriculum (750 SWE-Gym Python tasks + 250 SWE-Bench-Multilingual tasks), with primary evaluation on SWE-Bench-Verified and multilingual generalization assessed through per-language reward progression across training epochs.
 
 This methodology enables quantitative validation and mechanistic insights into how \ac{RL} shapes interactive debugging behavior through the Nano agent.
 
@@ -181,6 +166,6 @@ agentic approaches to motivate our execution-free, agent-integrated training met
 
 \textbf{Chapter 4: Implementation} documents the practical realization: vLLM-based serving with tool calling, live adapter synchronization via \ac{NCCL}, trainer extensions for multi-turn \ac{GSPO}, SLURM orchestration, compute-efficient infrastructure (\ac{LoRA}, DeepSpeed ZeRO, gradient checkpointing, BF16), and training protocol execution.
 
-\textbf{Chapter 5: Results} presents experimental findings: training convergence and policy gradient signal stability (RQ0), harness adaptation metrics and behavioral changes (RQ1), performance comparisons on SWE-Bench-Verified (RQ2), and language-agnostic training effectiveness on the multilingual held-out subset (RQ3).
+\textbf{Chapter 5: Results} presents experimental findings: training convergence and policy gradient signal stability (RQ0), harness adaptation metrics and behavioral changes (RQ1), SWE-Bench-Verified performance and hierarchical learning dynamics (RQ2), and per-language reward improvements across nine programming languages (RQ3).
 
 \textbf{Chapter 6: Conclusions} synthesizes findings, discusses design philosophy and lessons learned (system complexity, reward misspecification, infrastructure challenges), examines broader implications for agentic \ac{AI}, identifies limitations, and proposes future research directions for \ac{RL}-trained coding agents.

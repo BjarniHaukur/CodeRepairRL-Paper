@@ -10,7 +10,7 @@ We begin by validating training convergence (RQ0), then examine harness adaptati
 \textbf{Research Question:}
 Does \ac{GSPO} training converge effectively with execution-free rewards?
 
-Training proceeded for approximately 2 epochs over the 1{,}000-task curriculum, completing in 2 days of wall-clock time on 3 A100 \acp{GPU} (144 total \ac{GPU}-hours), with \Cref{fig:reward-progression} demonstrating sustained learning throughout.
+Training proceeded for a little over 2 epochs over the 1{,}000-task curriculum, completing in 2 days of wall-clock time on 3 A100 \acp{GPU} (144 total \ac{GPU}-hours), with \Cref{fig:reward-progression} demonstrating sustained learning throughout.
 Mean patch-similarity rewards approximately doubled from 0.05 to peak values exceeding 0.10.
 The continued upward trend validates that execution-free rewards provide sufficient signal for policy optimization in the agentic debugging setting.
 
@@ -33,7 +33,7 @@ Similar transitions occur throughout training as the policy sifts through differ
 	\label{fig:reward-progression}
 \end{figure}
 
-While this exploration maintains healthy gradient signal, extended training would likely require curriculum mixing with non-agentic or meaningfullly different tasks to preserve broader model capabilities and prevent catastrophic forgetting.
+While this exploration maintains healthy gradient signal, extended training would likely require curriculum mixing with non-agentic or meaningfully different tasks to preserve broader model capabilities and prevent catastrophic forgetting.
 
 \section{RQ1: Nano Harness Adaptation}
 \label{sec:rq1-harness}
@@ -51,7 +51,7 @@ These trends offer insight into the learning that is occurring, as evidenced by 
 \Cref{fig:episode-length} tracks the number of tool calls per episode throughout training.
 Initially, the policy consistently exhausts the maximum episode budget of 30 tool calls, frequently exhibiting ``death spiral'' behavior where it repeatedly invokes the same failing tool without adapting its strategy.
 The reward decline around step 200 discussed in \cref{sec:training-convergence} coincides with a spike in apply\_patch usage visible in \cref{fig:command-evolution}.
-One plausible explanation is that the policy adopted a strategy of broadly affecting the repository to attain tail rewards, but this approach prooved harmful to performance was eventually superseded after many gradient updates.
+One plausible explanation is that the policy adopted a strategy of broadly affecting the repository to attain tail rewards, but this approach proved harmful to performance and was eventually superseded after many gradient updates.
 
 As training progresses, the policy ceases to exhaust the tool call budget and episode lengths trend consistently downward.
 This indicates that the policy learns both to execute successful debugging workflows more efficiently and to terminate episodes when productive actions are exhausted rather than persisting with unproductive patterns.

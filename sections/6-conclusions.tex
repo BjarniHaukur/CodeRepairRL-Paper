@@ -1,10 +1,9 @@
 \chapter{Conclusions and Future Work}
 \label{ch:conclusions}
 
-This thesis investigates online \ac{RL} training for repository-level code repair through a single minimalist agent, demonstrating that execution-free patch-similarity rewards enable meaningful performance improvements within academic compute constraints.
+This thesis investigates online \ac{RL} training for repository-level code repair through a single minimalist agent, demonstrating that execution-free patch-similarity rewards enable meaningful improvements in harness adaptation within academic compute constraints.
 We developed infrastructure for live weight synchronization between distributed trainers and deployed inference servers, enabling efficient multi-turn agent training on modest \ac{GPU} clusters.
-\todoinline{Update}
-Training Qwen3-14B with \ac{GSPO} on execution-free rewards doubled baseline performance on SWE-Bench-Verified from 6\% to ~10\%, validating that interactive experiential learning improves coding agent capabilities without language-specific test infrastructure.
+Training Qwen3-14B with \ac{GSPO} on execution-free rewards substantially improves operational reliability—more than doubling patch completion rates from 37\% to 78\%—though test-verified correctness remains flat at approximately 6--7\%.
 
 \section{Summary of Contributions}
 \label{sec:summary-contributions}
@@ -16,7 +15,7 @@ Our work makes several methodological and infrastructure contributions to online
 \textbf{Language-Agnostic Rewards}: We demonstrate that execution-free patch-similarity rewards enable effective \ac{RL} training across programming languages without language-specific execution infrastructure.
 Training on a 1{,}000-task curriculum mixing Python and nine additional languages validates that static diff comparison provides sufficient learning signal for repository-level code repair.
 
-\textbf{Nano Agent Design}: The minimalist Nano agent operates with only two tools—restricted bash and search-and-replace patching—demonstrating that effective debugging behaviors can develop through \ac{RL} training without engineered complexity.
+\textbf{Nano Agent Design}: The minimalist Nano agent operates with only two tools—restricted bash and search-and-replace patching—demonstrating that operational agent competence can develop through \ac{RL} training without engineered complexity.
 By sidestepping diff generation complexity through deterministic git-based canonical diff computation, the design eliminates an entire class of formatting errors orthogonal to the semantic debugging task.
 
 \subsection{Technical Infrastructure}
@@ -43,9 +42,9 @@ Our experiments provide evidence addressing the four research questions establis
 
 \textbf{Research Question}: Does \ac{GSPO} training converge effectively with execution-free rewards?
 
-\textbf{Findings}: Training demonstrates sustained reward progression throughout, with mean patch-similarity rewards approximately doubling from 0.05 to 0.10.
+\textbf{Findings}: Training for approximately 2 epochs demonstrates sustained reward progression throughout, with mean patch-similarity rewards approximately doubling from 0.05 to 0.10.
 Crucially, reward variance increases rather than collapsing, maintaining strong policy gradient signal by generating diverse episode outcomes.
-Transient declines around steps 200 and 500 reflect characteristic online learning dynamics where overreinforced patterns degrade performance before superior alternatives emerge.
+Transient declines around step 200 reflect characteristic online learning dynamics where overreinforced patterns degrade performance before superior alternatives emerge.
 
 \textbf{Implications}: Execution-free patch-similarity rewards provide sufficient signal for policy convergence in agentic debugging, validating the core feasibility assumption underlying the entire training approach.
 
@@ -53,9 +52,9 @@ Transient declines around steps 200 and 500 reflect characteristic online learni
 
 \textbf{Research Question}: How does \ac{GSPO} training improve Nano harness adaptation?
 
-\textbf{Findings}: Training improves tool-call success rates, reduces invalid actions, and shifts command usage patterns toward more effective debugging strategies.
-The model learns to adhere to the Nano interface constraints while developing systematic exploration behaviors—examining project structure, searching strategically, and gathering context before attempting fixes.
-\todoinline{Insert specific quantitative improvements from Chapter 5: tool success rate deltas, invalid call reduction percentages, actions-per-episode evolution.}
+\textbf{Findings}: Training substantially improves operational metrics across all measures.
+Shell command success rates improve from approximately 45\% to 80\%, while episodes consistently exhaust the 30-tool-call budget early in training but trend downward as the policy learns more efficient debugging workflows.
+Command usage patterns shift strategically, with the model developing systematic repository navigation and focused debugging behaviors rather than death-spiral patterns.
 
 \textbf{Implications}: Policy gradient optimization successfully reinforces effective tool-usage patterns within the single-agent paradigm, demonstrating co-adaptation between model and harness through environmental interaction.
 
@@ -64,12 +63,12 @@ Performance} \label{subsec:rq2-answer}
 
 \textbf{Research Question}: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?
 
-\todoinline{Update}
-\textbf{Findings}: \ac{GSPO} training on execution-free patch-similarity rewards doubled test-verified success rates on SWE-Bench-Verified, improving from 6\% baseline to ~10\% after training.
-This demonstrates that static diff-based rewards provide sufficient learning signal for functional bug-fixing improvements despite not directly optimizing for test passage.
-\todoinline{Insert bootstrap confidence intervals and statistical significance tests from Chapter 5.}
+\textbf{Findings}: Training dramatically improves harness adaptation—patch completion rates more than double from 37\% to 78\% and patch-similarity rewards increase by 54\%—but test-verified success remains flat at approximately 6--7\%.
+The baseline reward distribution concentrates heavily near zero (313 empty patches, 150 unresolved with poor patches), creating a hierarchical learning structure where escaping this low-reward regime represents the highest-impact optimization target.
+Step 460 demonstrates successful acquisition of operational competence (non-zero reward achievement through reliable tool use) without yet translating to functional correctness improvements.
 
-\textbf{Implications}: Execution-free rewards serve as effective proxies for functional correctness, validating the core methodological approach while substantially reducing infrastructure complexity compared to execution-based training.
+\textbf{Implications}: The results validate that execution-free patch-similarity rewards enable measurable learning, though the relationship between training rewards and test-verified success proves indirect.
+Extended training beyond the current 2+ epochs may be necessary, particularly given that similar methodologies (DeepSWE) achieve strong results with substantially more computational resources and longer training duration.
 
 \subsection{RQ3: Language-Agnostic Training Effectiveness}
 \label{subsec:rq3-answer}
@@ -82,6 +81,26 @@ Java, Ruby, and PHP achieve the strongest absolute performance (0.12--0.18), whi
 \textbf{Implications}: Execution-free patch-similarity rewards enable unified training across diverse programming languages without language-specific adaptations.
 This validates the language-agnostic design principle: by decoupling learning signals from execution infrastructure, a single methodology trains effectively across heterogeneous language ecosystems spanning different paradigms, type systems, and syntactic structures.
 
+\subsection{Sustainability}
+\label{subsec:sustainability}
+
+The compute optimization techniques detailed in \cref{ch:work} directly address sustainability across environmental, economic, and social dimensions.
+By enabling 14B parameter online \ac{RL} training on three A100 \acp{GPU} rather than industrial-scale clusters, we reduce both absolute energy consumption and the concentration of research capabilities in well-funded institutions.
+Training completed in 144 \ac{GPU}-hours, demonstrating that meaningful \ac{RL} research remains feasible within academic compute budgets and associated energy constraints.
+The execution-free reward design eliminates the operational overhead of maintaining language-specific test runners, build systems, and Docker orchestration across nine programming languages, further reducing both engineering complexity and computational requirements.
+From an economic perspective, the complete open-source release of training infrastructure, agent implementations, and orchestration scripts (\cref{app:reproducibility}) creates a sustainable research ecosystem where advanced techniques remain accessible beyond proprietary laboratories, enabling sustained academic investigation rather than dependence on selective corporate disclosures.
+This low-resource methodology promotes equitable research participation: by targeting modest \ac{GPU} allocations typical of academic clusters and adopting language-agnostic designs that avoid complex per-language execution infrastructure, we reduce barriers that would disproportionately burden under-resourced institutions attempting to replicate or extend this work.
+
+\subsection{Ethics}
+\label{subsec:ethics}
+
+Autonomous code repair systems capable of repository modification raise several ethical considerations that warrant careful discussion.
+While developed for beneficial bug repair, similar capabilities could theoretically facilitate automated vulnerability exploitation or malicious code injection, presenting dual-use concerns inherent to any autonomous system operating on software artifacts.
+We mitigate immediate operational risks through restrictive execution environments during training—restricted bash, per-episode tool-call limits, and wall-clock timeouts—though we acknowledge these measures target training safety rather than preventing determined misuse of released models.
+Training data exclusively uses permissively licensed repositories from SWE-Gym and SWE-Bench-Multilingual, ensuring legal and ethical sourcing while avoiding exposure of proprietary code or credentials, and the execution-free approach prevents accidental leakage of secrets that might occur during test execution.
+Production deployments would require stronger isolation than our SLURM-compatible approach provides; we document these limitations transparently to inform responsible deployment decisions.
+The complete open-source release embodies a commitment to research transparency: by publishing training recipes, infrastructure code, and evaluation protocols, we enable independent verification and community-driven safety research, contrasting with proprietary development where capabilities and failure modes remain opaque.
+
 \section{Broader Implications}
 \label{sec:broader-implications}
 
@@ -90,15 +109,6 @@ This validates the language-agnostic design principle: by decoupling learning si
 
 By providing complete open-source implementations, we enable broader academic investigation of online \ac{RL} techniques for coding agents.
 This open approach facilitates reproducible research and community-driven development of advanced agent training methods, reducing barriers to entry in this emerging field.
-
-\subsection{Ethics and Sustainability}
-\label{subsec:ethics-sustainability}
-
-Ethical considerations include potential misuse of agentic systems and training data provenance.
-Experiments use only permissively licensed repositories, avoiding exposure of sensitive credentials or private data.
-Episodes execute with some restrictive measures to prevent host system compromise, though future work should explore stronger containerization for enhanced security.
-
-The low-resource optimizations detailed in Chapter~\ref{ch:method} align naturally with reduced energy consumption.
 
 \subsection{From Games to Real Tasks: \acp{LLM} as the Missing Foundation}
 \label{subsec:design-philosophy}
@@ -129,7 +139,7 @@ Repository-level changes spanning dozens of files with intricate dependency rela
 
 Training data combines 750 Python tasks with 250 multilingual tasks spanning nine additional languages.
 This distribution reflects dataset availability: instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than Python-only resources.
-The 50-task multilingual holdout provides preliminary evidence for cross-language generalization but represents limited coverage of each language's unique characteristics and common bug patterns.
+Multilingual generalization is assessed through per-language reward progression across training epochs, demonstrating improvements across all languages despite the uneven data distribution.
 
 \subsection{Computational Resource Requirements}
 
@@ -202,6 +212,15 @@ The answers would illuminate whether \ac{RL}-trained \acp{LLM} benefit from curr
 Investigating these questions could reveal fundamental insights about the future of \ac{RL} post-training: whether general-purpose reasoning emerges from diverse experiential curricula, or whether different cognitive skills require isolated optimization.
 The infrastructure documented in this thesis provides the foundation for such investigations, requiring only task-specific harnesses and reward functions to explore multi-objective training systematically.
 
+\subsection{Extended Training with Scaled Resources}
+
+Several lines of evidence suggest that extended training with moderately larger models would yield stronger results.
+DeepSWE demonstrates that similar online \ac{RL} methodologies achieve strong test-verified performance with longer training duration and more computational resources.
+Our reward curves continue trending upward throughout training without plateauing, indicating that the policy has not exhausted learning from the patch-similarity signal.
+Additionally, preliminary comparisons in \cref{app:model-comparison} show that Qwen3-32B achieves substantially higher baseline performance than the 14B variant, reflecting that \ac{RL} effectiveness scales with underlying model capability.
+Future work should investigate training larger models for extended durations while maintaining the low-resource optimization techniques documented in \cref{ch:work}.
+The infrastructure supports 32B parameters on 6 A100s, enabling investigation of whether the flat test-verified success rates reflect model capacity and training duration constraints rather than fundamental methodological limitations.
+
 \section{Lessons Learned from Implementation}
 \label{sec:lessons-learned}
 
@@ -234,37 +253,10 @@ Evaluating successive training checkpoints on SWE-Bench-Verified exposed this mi
 The agent learned to modify the correct files consistently while producing increasingly poor patches—a textbook case of reward hacking where optimizing a proxy metric degraded the true objective.
 This experience reinforced the value of sparse, well-aligned rewards over dense but misspecified shaping signals.
 
-\subsection{Broader Insights for Experiential Learning}
-
-Several insights transcend the specific domain of code repair and inform experiential learning research more broadly.
-The tension between exploration and exploitation manifests differently in multi-turn structured environments than in traditional \ac{RL} domains.
-Agents must balance exploring alternative debugging strategies against exploiting known successful patterns while simultaneously learning which environmental observations warrant deeper investigation versus cursory examination.
-This hierarchical exploration challenge suggests that flat action spaces may inadequately represent the decision structure of complex reasoning tasks.
-
-The importance of execution-free rewards extends beyond computational convenience to methodological flexibility.
-By decoupling learning signals from language-specific test infrastructure, we enabled rapid experimentation across programming languages and failure modes without maintaining complex execution environments.
-This design choice traded some precision in correctness evaluation for substantial gains in experimental velocity and scope.
-Similar trade-offs may benefit other domains where approximate but tractable reward signals enable broader exploration than expensive ground-truth evaluation.
-
-The minimalist agent design validates that effective capabilities can arise from basic tool primitives when combined with adequate training.
-Rather than engineering complex tool suites that embed human debugging knowledge through careful interface design, we provided basic primitives and relied on learning to discover effective strategies.
-This philosophy aligns with core \ac{RL} principles—capabilities develop through environmental interaction rather than pre-programmed behaviors—though it requires sufficient training time and sample efficiency to realize in practice.
-
-\section{Long-Term Vision}
-\label{sec:long-term-vision}
-
-The long-term vision of this research direction involves developing increasingly capable software engineering assistance through experiential learning approaches.
-Our methodological framework provides a foundation for investigating how agents can acquire debugging and programming skills through environmental interaction.
-
-Future developments in this direction could enhance software development productivity by providing intelligent assistance for debugging, code review, and implementation tasks.
-Such systems could particularly benefit educational contexts by providing interactive learning environments for programming skill development.
-
-Enhanced automated debugging capabilities could accelerate research workflows by reducing time spent on implementation details, allowing researchers to focus more extensively on conceptual innovation and experimental design.
-
 \section{Final Reflections}
 \label{sec:final-reflections}
 
-This work demonstrates that online \ac{RL} training for coding agents is practically feasible within academic compute constraints and yields measurable performance improvements.
+This work demonstrates that online \ac{RL} training for coding agents is practically feasible within academic compute constraints and yields measurable improvements in harness adaptation.
 The convergence of \acp{LLM} and \ac{RL} enables training approaches previously confined to simple domains with well-defined action spaces to extend to complex reasoning tasks like repository-level debugging.
 
 \acp{LLM} fundamentally transformed what reinforcement learning can accomplish by providing the conceptual foundation necessary for coherent interaction with complex environments.
