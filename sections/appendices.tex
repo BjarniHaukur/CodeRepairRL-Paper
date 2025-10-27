@@ -13,7 +13,7 @@
 
 The choice of Qwen3-14B as the primary model for this thesis emerged from systematic exploration of multiple model families and sizes, balancing computational constraints with task performance.
 At the time of experimentation, Qwen3 was widely regarded as the strongest open-weight coding model, particularly for tool-augmented tasks.
-Qwen3-14B offered an optimal fit for available resources: Qwen3-8B proved too large for two \acp{GPU} yet too small to justify three, while the 32B and 30B-A3B variants, though promising, imposed prohibitive computational demands for exploratory training runs.
+Qwen3-14B offered an optimal fit for available resources: Qwen3-8B proved too large for two \acp{GPU} yet too small to justify three, while the 32B variant though promising, imposed prohibitive computational demands for exploratory training runs.
 
 Beyond capacity considerations, the combination of tool-calling capability and sufficient reasoning ability proved critical for agentic \ac{RL} training.
 Llama3.1-8B, while competent at formatting tool calls, exhibited near-zero rewards throughout preliminary training, suggesting it lacked the problem-solving intelligence necessary to use tools effectively for repository navigation and bug localization.
@@ -22,11 +22,26 @@ Ministral substantially underperformed compared to more recent releases.
 GLM4-9B showed promise but suffered from inadequate support in the Transformers and vLLM ecosystems at the time of experimentation.
 Similarly, Llama3.1-Nemotron (Nvidia) demonstrated potential but would have required extensive vLLM refactoring to accommodate its custom tool-calling parser.
 
-These constraints narrowed the viable candidates to the Qwen3 family, where robust tool-calling support, strong baseline coding performance, and flexible scaling across 8B, 14B, 30B-A3B and 32B enabled systematic capacity analysis within consistent infrastructure.
+These constraints narrowed the viable candidates to the Qwen3 family, where robust tool-calling support, strong baseline coding performance, and flexible scaling across 8B, 14B, and 32B enabled systematic capacity analysis within consistent infrastructure.
 
-\todoinline{Present reward progression curves across Qwen3 model sizes (8B, 14B, 30B-A3B, 32B) and Llama3.1-8B comparison.
-Show capacity scaling trends.
-}
+\Cref{fig:model-reward-comparison,fig:model-tool-comparison} compare training trajectories across model families.
+Llama3.1-8B plateaus near zero reward with minimal tool success, motivating its exclusion from main results.
+Qwen3-32B reaches 0.20 reward before early termination at step 135 due to compute constraints.
+Qwen3-14B and 8B exhibit comparable performance trajectories.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/comparison/reward_comparison_win20_multi.png}
+	\caption{Mean reward progression across model families and sizes, plotted with rolling window average.}
+	\label{fig:model-reward-comparison}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/comparison/tool_success_comparison_win20_multi.png}
+	\caption{Tool success rates across models. Left: shell commands. Right: apply\_patch.}
+	\label{fig:model-tool-comparison}
+\end{figure}
 
 \chapter{Nano Agent Benchmark}
 \label{app:nano-benchmark}

@@ -37,7 +37,17 @@ These techniques compose synergistically to address distinct memory and computat
 \section{Research Question Answers}
 \label{sec:research-answers}
 
-Our experiments provide evidence addressing the three research questions established in Chapter~\ref{ch:introduction}:
+Our experiments provide evidence addressing the four research questions established in Chapter~\ref{ch:introduction}:
+
+\subsection{RQ0: Training Convergence} \label{subsec:rq0-answer}
+
+\textbf{Research Question}: Does \ac{GSPO} training converge effectively with execution-free rewards?
+
+\textbf{Findings}: Training demonstrates sustained reward progression throughout, with mean patch-similarity rewards approximately doubling from 0.05 to 0.10.
+Crucially, reward variance increases rather than collapsing, maintaining strong policy gradient signal by generating diverse episode outcomes.
+Transient declines around steps 200 and 500 reflect characteristic online learning dynamics where overreinforced patterns degrade performance before superior alternatives emerge.
+
+\textbf{Implications}: Execution-free patch-similarity rewards provide sufficient signal for policy convergence in agentic debugging, validating the core feasibility assumption underlying the entire training approach.
 
 \subsection{RQ1: Nano Harness Adaptation} \label{subsec:rq1-answer}
 
@@ -64,14 +74,13 @@ This demonstrates that static diff-based rewards provide sufficient learning sig
 \subsection{RQ3: Language-Agnostic Training Effectiveness}
 \label{subsec:rq3-answer}
 
-\textbf{Research Question}: Does execution-free \ac{RL} enable effective multilingual training without language-specific engineering?
+\textbf{Research Question}: Does execution-free \ac{RL} improve performance across programming languages without language-specific engineering?
 
-\todoinline{fill in numbers}
-\textbf{Findings}: Training on the 1{,}000-task mixed curriculum (750 Python + 250 multilingual) improved performance on the 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
-\todoinline{Insert per-language reward improvements with bootstrap confidence intervals from Chapter 5, highlighting languages with strongest/weakest gains and discussing language family effects.}
+\textbf{Findings}: Training on the 1{,}000-task mixed curriculum (750 Python + 250 multilingual) demonstrates measurable reward improvements across all nine programming languages when comparing epoch 1 to epoch 2 on identical problem instances.
+Java, Ruby, and PHP achieve the strongest absolute performance (0.12--0.18), while all languages—from low-level systems languages (C, Rust) to dynamic scripting languages (Python, Ruby, JavaScript) to statically-typed languages (Java, TypeScript)—show clear learning progression without language-specific adaptations.
 
 \textbf{Implications}: Execution-free patch-similarity rewards enable unified training across diverse programming languages without language-specific adaptations.
-This validates the language-agnostic design principle: by decoupling learning signals from execution infrastructure, a single methodology trains effectively across Python, Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++ without specialized engineering for each ecosystem.
+This validates the language-agnostic design principle: by decoupling learning signals from execution infrastructure, a single methodology trains effectively across heterogeneous language ecosystems spanning different paradigms, type systems, and syntactic structures.
 
 \section{Broader Implications}
 \label{sec:broader-implications}
@@ -81,6 +90,15 @@ This validates the language-agnostic design principle: by decoupling learning si
 
 By providing complete open-source implementations, we enable broader academic investigation of online \ac{RL} techniques for coding agents.
 This open approach facilitates reproducible research and community-driven development of advanced agent training methods, reducing barriers to entry in this emerging field.
+
+\subsection{Ethics and Sustainability}
+\label{subsec:ethics-sustainability}
+
+Ethical considerations include potential misuse of agentic systems and training data provenance.
+Experiments use only permissively licensed repositories, avoiding exposure of sensitive credentials or private data.
+Episodes execute with some restrictive measures to prevent host system compromise, though future work should explore stronger containerization for enhanced security.
+
+The low-resource optimizations detailed in Chapter~\ref{ch:method} align naturally with reduced energy consumption.
 
 \subsection{From Games to Real Tasks: \acp{LLM} as the Missing Foundation}
 \label{subsec:design-philosophy}
@@ -98,9 +116,11 @@ For the first time, we can apply decades of reinforcement learning research to p
 \section{Limitations and Constraints} \label{sec:limitations}
 
 \subsection{Performance Levels and Task Scope}
-\todoinline{fill in}
-While \ac{GSPO} training doubled baseline performance from 6\% to ~10\%, the absolute success rate on SWE-Bench-Verified remains modest compared to frontier systems exceeding 70\%.
-This gap reflects multiple factors: the minimalist Nano toolset provides less sophisticated capabilities than multi-scaffold systems, the 14B parameter model size is smaller than frontier models, and training compute budgets (three A100 \acp{GPU}) are substantially constrained relative to industrial deployments.
+
+While \ac{GSPO} training substantially improved harness adaptation—more than doubling patch completion rates from 37\% to 78\%—test-verified success on SWE-Bench-Verified remained flat at approximately 6-7\%.
+This gap likely reflects insufficient training duration rather than fundamental methodological limitations.
+DeepSWE~\cite{deepSWE2025}, which applies similar online \ac{RL} methods to terminal-based coding agents, demonstrates strong test-verified performance after training with more than 30x computing power for 3x longer.
+Given the methodological similarities, replicating such results may primarily require additional training rather than architectural changes.
 
 The evaluation focuses on single-commit bug fixes rather than complex architectural changes or multi-file refactoring tasks.
 Repository-level changes spanning dozens of files with intricate dependency relationships present substantially harder challenges that may require different agent designs or training methodologies.

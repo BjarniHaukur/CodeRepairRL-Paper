@@ -25,9 +25,7 @@ Traditional systems for automated code repair have relied predominantly on super
 In this paradigm, models passively observe input-output mappings between broken and corrected code, treating bug fixing as a pattern recognition task rather than engaging with the full interactive software engineering process.
 While computationally efficient, this approach fundamentally misrepresents the nature of repository-level software debugging, which involves iterative hypothesis refinement, strategic exploration of entire codebases, execution of diagnostic commands, and contextual interpretation of error signals across multiple rounds of investigation.
 Moreover, the information needed to fix a bug in real-world repositories is rarely contained within the bug-fix pair itself, necessitating the interactive capabilities that coding agents provide to navigate and understand the broader codebase context.
-\todoinline{Add citation to traditional APR survey or seminal work (e.g., GenProg, Prophet, or APR survey paper).
-Per Monperrus guidelines, 30+ references required with recent academic work.
-}
+\todoinline{Add citation to traditional APR survey or seminal work (e.g., GenProg, Prophet, or APR survey paper)?}
 
 The question becomes: how do we train such agentic systems when the very complexity that necessitates their existence also makes traditional training approaches intractable?
 \ac{RL} has achieved remarkable results in well-structured domains like Go, where clear success metrics exist and every action represents a valid move within the game's rules \cite{alphaGo2016}.
@@ -78,62 +76,31 @@ These developments heighten the need for open, reproducible understanding of how
 Our work addresses this need by studying \ac{RL} with interactive coding agents in an open setting.
 \todoinline{Add citations to public system cards or technical reports where appropriate.}
 
-\section{Problem}
+\section{Problem Statement}
 \label{sec:intro-problem}
 
-\todoinline{Per Monperrus guidelines, Problem Statement should have at least two paragraphs: 1. what is the problem you solve? 2. why is it an important problem?
-Consider restructuring to clearly separate problem definition from importance/motivation.
+Tool-using coding agents already exist; what remains largely unavailable to the open scientific community is a reproducible training pipeline that develops such agentic behavior.
+While proprietary systems demonstrate strong performance, their training methodologies remain opaque, creating a critical gap in open research.
+This absence hinders scientific understanding of how \ac{RL} shapes agent behavior and prevents independent verification of claimed capabilities.
+
+Addressing this gap is essential for maintaining competitive open research in a field increasingly dominated by closed frontier systems.
+Without access to training recipes, the scientific community cannot critically evaluate agentic training claims, replicate findings, or build upon established methods.
+The concentration of training expertise in proprietary labs risks creating fundamental knowledge asymmetries that undermine the open research ecosystem.
+This concentration stems from dual barriers.
+First, training is prohibitively expensive: the computational resources required for effective \ac{RL} training place such experiments beyond most academic budgets.
+Second, operational complexity creates steep barriers: training pipelines involve dozens of interacting components built atop ill-understood \ac{LLM} foundations, compounding challenges in reproducing and extending prior work.
+As multi-objective \ac{RL} training emerges as a promising direction, reducing both cost and complexity becomes essential for broad research participation.
+
+We therefore develop a low-resource, execution-free \ac{RL} recipe for repository-level \ac{APR}.
+The investigation addresses four research questions:
+
+\textbf{RQ0: Does \ac{GSPO} training converge effectively with execution-free rewards?
 }
-
-Tool-using coding agents already exist; what remains largely unavailable to the open scientific community is a reproducible training pipeline that develops agentic behavior through interaction.
-We target a minimalist, execution-free \ac{RL} recipe for repository-level \ac{APR} that (i) optimizes shell-based repository interaction using static patch-similarity rewards, (ii) scales across programming languages without test infrastructure or language-specific engineering, and (iii) demonstrates transfer from training benchmarks to held-out evaluations and across base model families.
-
-The scientific question becomes whether such training can improve repository navigation, reduce invalid tool calls, and enhance repair efficiency while transferring across datasets and model architectures.
-
-\section{Purpose}
-\label{sec:intro-purpose}
-
-This thesis develops and evaluates an open, execution-free \ac{RL} training recipe for a single minimalist coding agent (Nano).
-The emphasis lies on training practice and empirical evidence rather than novel scaffolding or algorithmic contributions: we document a complete, transparent training procedure and analyze its effects on interactive behavior.
-We demonstrate that static patch-similarity rewards can improve repository navigation and repair performance without test execution, and that the resulting behaviors transfer across base models and from training benchmarks to held-out evaluations.
-Methodological clarity and reproducibility guide all design choices: complete configurations, harness specifications, and evaluation protocols are provided, with multilingual scalability achieved through language-agnostic reward formulation rather than per-language engineering.
-
-\todoinline{Tighten scope/claims to match finalized results; add pointers to Sections/Figures once numbers are fixed.}
-
-% Despite growing evidence that leading \ac{AI} labs employ experiential training—OpenAI's o1~\cite{openAI_o1_2024}, Anthropic's Claude~\cite{anthropic2024}, and Cognition's Devin~\cite{cognition2024} all exhibit behaviors suggesting such training—no open-source implementation has been available to the research community.
-
-% By open-sourcing this infrastructure, we aim to democratize access to advanced training techniques previously available only to well-resourced industry labs, enabling broader research into agentic \ac{AI} systems.
-
-% The significance extends beyond code repair: online training could transform how models learn any task requiring environmental interaction, from scientific experimentation to robotic control.
-% This thesis demonstrates its viability in the well-scoped domain of automated debugging, paving the way for broader applications.
-
-% Current research in this area is primarily conducted by industry labs (OpenAI, Anthropic, Cognition Labs) with limited open-source replication, creating a significant knowledge gap in the academic community.
-
-\section{Goal}
-\label{sec:intro-goal}
-
-\todoinline{Add explicit "Contributions" subsection here with bullet list format per Monperrus guidelines: "Contributions: A bullet list of the contributions to the state-of-the-art, with one novelty explanation per point."}
-
-% This thesis makes several significant contributions to the field of automated program repair and \ac{RL} for code generation:
-
-% \textbf{Novel Training Paradigm}: We introduce and implement \ac{RL} for code repair, wherein autonomous agents interact with real software environments during training.
-% This approach represents a fundamental departure from static supervised learning, enabling models to learn debugging strategies through direct experience.
-% Our implementation demonstrates the feasibility of this paradigm at scale, handling the computational and engineering challenges of simultaneous training and environment interaction.
-
-% \textbf{Nano Agent Implementation}: We develop a minimalist "Nano agent" that utilizes only essential terminal commands and file operations, demonstrating that sophisticated debugging behaviors can emerge from simple interfaces when combined with \ac{RL}.
-% This clean-slate approach validates that effective code repair capabilities arise from learning rather than engineered complexity.
-
-% \textbf{Technical Infrastructure}: We develop a comprehensive training infrastructure that enables efficient \ac{RL} with coding agents.
-% This includes a custom integration layer between vLLM inference servers and \ac{RL} trainers, real-time weight synchronization via \ac{NCCL} for live policy updates, and optimizations enabling training of models up to 32B parameters with limited computational resources.
-% The infrastructure supports both Group Relative Policy Optimization (\ac{GRPO})~\cite{grpo2024} and can be extended to other policy gradient methods.
-
-% \textbf{Empirical Validation}: Through extensive experiments on the \ac{SWE-Gym} training environment and \ac{SWE-Bench-Verified} evaluation benchmark, we demonstrate that this \ac{RL} approach produces monotonic improvements in bug-fixing performance.
-% This result, achieved in an open-source setting, represents significant progress toward practical autonomous debugging systems and validates the potential of experiential training approaches.
-
-% \textbf{Open Science Contribution}: All code, training configurations, and evaluation protocols are released as open-source contributions to the research community.
-% This includes the Nano agent implementation and the \ac{RL} training pipeline.
-
-The overarching goal is to develop and empirically validate an online \ac{RL} training paradigm for automated program repair, organized around three research questions that structure the investigation:
+\begin{itemize}
+	\item Primary indicators: reward progression, variance evolution, and policy gradient signal stability over training.
+	\item Analysis: reward mean and standard deviation trends.
+	\item Hypothesis: execution-free patch-similarity rewards provide sufficient signal for policy convergence despite not directly optimizing for functional correctness.
+\end{itemize}
 
 \textbf{RQ1: How does \ac{GSPO} training improve Nano harness adaptation?
 }
@@ -150,28 +117,12 @@ The overarching goal is to develop and empirically validate an online \ac{RL} tr
 	\item Hypothesis: training on static patch-similarity rewards improves functional bug-fixing success despite not directly optimizing for test passage.
 \end{itemize}
 
-\textbf{RQ3: Does execution-free \ac{RL} enable effective multilingual training without language-specific engineering?}
+\textbf{RQ3: Does execution-free \ac{RL} improve performance across programming languages without language-specific engineering?}
 \begin{itemize}
-	\item Primary evaluation: per-language reward improvements on a 50-task SWE-Bench-Multilingual holdout spanning nine programming languages.
-	\item Analysis: bootstrap confidence intervals for per-language reward deltas, comparing pre-training and post-training checkpoints.
-	\item Hypothesis: execution-free patch-similarity rewards enable unified training across programming languages without language-specific adaptations, with measurable improvements on held-out multilingual tasks despite limited non-Python training data.
+	\item Primary evaluation: per-language reward improvements from first to second training epoch on the 1{,}000-task curriculum spanning nine programming languages.
+	\item Analysis: comparing epoch 1 and epoch 2 rewards for the same problem instances across languages.
+	\item Hypothesis: execution-free patch-similarity rewards enable unified training across programming languages without language-specific adaptations, with measurable improvements across diverse languages despite limited non-Python training data.
 \end{itemize}
-
-\section{Benefits, Ethics and Sustainability}
-\label{sec:intro-benefits}
-
-This work contributes to open research in a field dominated by closed frontier labs by releasing methods, code, and evaluation protocols in an open format.
-All implementation details needed to reproduce results are documented, including configuration files, prompts, and harness interfaces.
-We use standard datasets with clear licensing and provide exact commit hashes for benchmarks and dependencies.
-To enable critical scrutiny, we specify evaluation scripts and random seeds, and we will archive artifacts to ensure long-term accessibility.
-By reducing barriers to entry and facilitating independent replication, the project strengthens transparency and community-driven progress in automated program repair.
-
-Ethical considerations include potential misuse of agentic systems and training data provenance.
-Experiments use only permissively licensed repositories, avoiding exposure of sensitive credentials or private data.
-Episodes execute with restricted file access and process-level isolation mechanisms to prevent host system compromise, though future work should explore stronger containerization for enhanced security.
-
-Compute utilization per experiment is monitored and reported (tokens processed, \ac{GPU}-hours) to support reproducibility and minimize unnecessary energy consumption.
-Efficiency practices include mixed-precision training (BF16), checkpoint reuse, shared inference servers through training-inference duality, and targeted ablations to eliminate redundant experiments.
 
 \section{Methodology}
 \label{sec:intro-methodology}
@@ -191,13 +142,6 @@ Training uses a 1,000-task curriculum (750 SWE-Gym Python tasks + 250 SWE-Bench-
 
 This methodology enables quantitative validation and mechanistic insights into how \ac{RL} shapes interactive debugging behavior through the Nano agent.
 
-\section{Stakeholders}
-\label{sec:intro-stakeholders}
-
-Primary stakeholders include researchers investigating \ac{RL} training for coding agents, those seeking reproducible methodologies for agentic \ac{LLM} training, and the open-source community advancing alternatives to proprietary training recipes.
-Secondary stakeholders include infrastructure providers supporting large-scale academic training, and benchmark maintainers whose repositories enable evaluation.
-Methods and releases prioritize utility for open research while addressing privacy, security, and sustainability considerations.
-
 \section{Delimitations}
 \label{sec:intro-delimitations}
 
@@ -214,7 +158,7 @@ This focused investigation enables deep analysis of interactive debugging behavi
 This infrastructure constraint shaped both Nano agent design and training pipeline architecture, favoring SLURM-compatible parallelization and process-level isolation over container-based approaches.
 
 \textbf{Model Architecture Scope}: Our primary development and analysis focuses on Qwen3-14B—a hybrid reasoning model with strong tool-calling capabilities—with reasoning explicitly disabled to conserve context window budget in multi-turn episodes.
-Limited comparisons with Qwen3-8B, Qwen3-30B-A3B, Qwen3-32B, and Llama3.1-8B appear in the Appendix to illustrate capacity and architecture effects, but full model ablation studies are left for future work.
+Limited comparisons with Qwen3-8B, Qwen3-32B, and Llama3.1-8B appear in the Appendix to illustrate capacity and architecture effects, but full model ablation studies are left for future work.
 
 \textbf{Evaluation Protocol Boundaries}: Rewards derive from automated patch-similarity comparison rather than test suite execution, trading functional verification for computational tractability and reproducibility.
 This approach aligns with established benchmarks and enables large-scale multilingual training, though it may undervalue functionally equivalent patches with syntactic divergence from ground truth.
@@ -233,10 +177,10 @@ The remainder of this thesis progresses from theoretical foundations through emp
 \textbf{Chapter 2: Background and Related Work} reviews policy optimization algorithms for language models (\ac{PPO}, \ac{GRPO}, DAPO, \ac{GSPO}), situates \ac{APR} within repository-level evaluation paradigms, and contrasts agentless vs.
 agentic approaches to motivate our execution-free, agent-integrated training methodology.
 
-\textbf{Chapter 3: Methodology} formalizes the Nano agent (observation/action spaces, interaction loop, termination), specifies training data (SWE-Gym, SWE-Bench-Multilingual), defines the patch-similarity reward formulation, describes \ac{GSPO} policy optimization with masked loss, and outlines the evaluation protocol addressing RQ1-RQ3.
+\textbf{Chapter 3: Methodology} formalizes the Nano agent (observation/action spaces, interaction loop, termination), specifies training data (SWE-Gym, SWE-Bench-Multilingual), defines the patch-similarity reward formulation, describes \ac{GSPO} policy optimization with masked loss, and outlines the evaluation protocol addressing RQ0-RQ3.
 
 \textbf{Chapter 4: Implementation} documents the practical realization: vLLM-based serving with tool calling, live adapter synchronization via \ac{NCCL}, trainer extensions for multi-turn \ac{GSPO}, SLURM orchestration, compute-efficient infrastructure (\ac{LoRA}, DeepSpeed ZeRO, gradient checkpointing, BF16), and training protocol execution.
 
-\textbf{Chapter 5: Results} presents experimental findings: harness adaptation metrics and behavioral changes (RQ1), performance comparisons on SWE-Bench-Verified (RQ2), language-agnostic training effectiveness on the multilingual held-out subset (RQ3), training dynamics and convergence, and qualitative trajectory examination with statistical analyses.
+\textbf{Chapter 5: Results} presents experimental findings: training convergence and policy gradient signal stability (RQ0), harness adaptation metrics and behavioral changes (RQ1), performance comparisons on SWE-Bench-Verified (RQ2), and language-agnostic training effectiveness on the multilingual held-out subset (RQ3).
 
 \textbf{Chapter 6: Conclusions} synthesizes findings, discusses design philosophy and lessons learned (system complexity, reward misspecification, infrastructure challenges), examines broader implications for agentic \ac{AI}, identifies limitations, and proposes future research directions for \ac{RL}-trained coding agents.

@@ -1,253 +1,120 @@
 #!/usr/bin/env python3
 """
-Training Reward Comparison: Qwen3-14B vs Llama3.1-8B
-
-Compares training reward progression between two GRPO-trained models:
-- Qwen3-14B-Multilingual-GSPO (6wkkt1s0): High-performing larger model
-- Llama3.1-8B-Multilingual-GSPO-Nano (1doecift): Lower-performing smaller model
-
-This plot demonstrates the dramatic 33x performance gap between the models,
-with Qwen3-14B reaching 0.2884 reward vs Llama3.1-8B reaching only 0.0087.
-
-Key finding: Model size significantly impacts RL training effectiveness.
+Compare mean reward across multiple model runs.
+Single plot showing EMA-smoothed reward curves for different models.
 """
 
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 from wandb_utils import get_run, get_history
-from plot_config import (
-    create_figure, save_figure, format_axis_labels,
-    get_color, FONT_CONFIG
-)
+from plot_config import ENTITY, PROJECT, get_output_filename, setup_plotting_style
 
+# Hardcoded model configurations
+MODELS = {
+    'yhj2yemg': {'name': 'Qwen3-32B', 'color': '#E74C3C', 'max_steps': 135},  # Red - cut at 135
+    'ajgo643t': {'name': 'Qwen3-8B', 'color': '#F39C12', 'max_steps': None},   # Orange
+    'jb5uxlqc': {'name': 'Qwen3-14B', 'color': '#8E44AD', 'max_steps': None},  # Purple - FIXED
+    '1doecift': {'name': 'Llama3.1-8B', 'color': '#27AE60', 'max_steps': None} # Green
+}
 
-# Configuration
-ENTITY = "assert-kth"
-PROJECT = "SWE-Gym-GRPO"
-
-# Run IDs with URLs for reference
-RUN_QWEN_14B = "6wkkt1s0"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/6wkkt1s0
-RUN_LLAMA_8B = "1doecift"  # https://wandb.ai/assert-kth/SWE-Gym-GRPO/runs/1doecift
-
-# Plot settings
-EMA_ALPHA = 0.01  # Smoothing factor for exponential moving average
-RAW_ALPHA = 0.2   # Transparency for raw data
-SMOOTHED_LINEWIDTH = 2.5
-RAW_LINEWIDTH = 1.0
-
-
-def exponential_moving_average(data, alpha=0.01):
+def apply_rolling_average(data, window=10):
     """
-    Apply exponential moving average smoothing to data.
-
-    Args:
-        data: Array-like data to smooth
-        alpha: Smoothing factor (lower = smoother)
-
-    Returns:
-        Smoothed data array
+    Apply rolling window average smoothing.
+    This preserves the actual scale better than EMA.
     """
-    smoothed = np.zeros_like(data, dtype=float)
-    smoothed[0] = data[0]
+    import pandas as pd
 
-    for i in range(1, len(data)):
-        smoothed[i] = alpha * data[i] + (1 - alpha) * smoothed[i-1]
+    # Use pandas rolling average (centered for better smoothing)
+    smoothed = pd.Series(data).rolling(window=window, center=True, min_periods=1).mean().values
 
     return smoothed
 
-
-def create_stats_box(ax, run1_final, run2_final, run1_name, run2_name):
-    """
-    Add a statistics box comparing final rewards.
-
-    Args:
-        ax: Matplotlib axes
-        run1_final: Final reward for run 1
-        run2_final: Final reward for run 2
-        run1_name: Name of run 1
-        run2_name: Name of run 2
-    """
-    # Calculate performance ratio
-    ratio = run1_final / run2_final if run2_final > 0 else float('inf')
-
-    # Create stats text
-    stats_text = "Final Rewards:\n"
-    stats_text += f"{run1_name}: {run1_final:.4f}\n"
-    stats_text += f"{run2_name}: {run2_final:.4f}\n"
-    stats_text += f"Ratio: {ratio:.1f}x"
-
-    # Position in upper left
-    ax.text(0.02, 0.98, stats_text,
-            transform=ax.transAxes,
-            verticalalignment='top',
-            horizontalalignment='left',
-            bbox=dict(boxstyle='round,pad=0.5',
-                     facecolor='white',
-                     edgecolor='gray',
-                     alpha=0.9),
-            fontsize=FONT_CONFIG["size"]["small"],
-            family='monospace')
-
-
 def main():
-    """Create reward comparison plot between Qwen3-14B and Llama3.1-8B."""
-
-    parser = argparse.ArgumentParser(description='Compare training rewards between two runs')
-    parser.add_argument('--max-y', type=float, default=None,
-                        help='Maximum y-axis value (default: auto)')
-    parser.add_argument('--show-stats', action='store_true', default=False,
-                        help='Show statistics box in top-left corner')
+    """Main function."""
+    parser = argparse.ArgumentParser(description='Compare reward across multiple models')
+    parser.add_argument('--window', type=int, default=10,
+                        help='Rolling average window size (default: 10)')
     args = parser.parse_args()
 
-    print("="*70)
-    print("Training Reward Comparison: Qwen3-14B vs Llama3.1-8B")
-    print("="*70)
+    print("="*60)
+    print("Multi-Model Reward Comparison")
+    print("="*60)
 
-    # Load runs
-    print("\n1. Loading runs...")
-    run_qwen = get_run(ENTITY, PROJECT, RUN_QWEN_14B)
-    run_llama = get_run(ENTITY, PROJECT, RUN_LLAMA_8B)
+    # Set up the plot
+    setup_plotting_style()
+    fig, ax = plt.subplots(figsize=(12, 7))
 
-    # Get training reward history
-    print("\n2. Fetching training rewards...")
-    history_qwen = get_history(run_qwen, keys=["train/reward", "train/global_step"])
-    history_llama = get_history(run_llama, keys=["train/reward", "train/global_step"])
+    # Track max steps for x-axis limit
+    max_training_step = 0
 
-    # Clean data - remove NaN values
-    print("\n3. Cleaning data...")
-    mask_qwen = ~history_qwen["train/reward"].isna()
-    mask_llama = ~history_llama["train/reward"].isna()
+    # Process each model
+    for run_id, config in MODELS.items():
+        print(f"\nProcessing {config['name']} (run: {run_id})...")
 
-    steps_qwen = history_qwen.loc[mask_qwen, "train/global_step"].values
-    rewards_qwen = history_qwen.loc[mask_qwen, "train/reward"].values
+        # Get run and history
+        run = get_run(ENTITY, PROJECT, run_id)
+        history = get_history(run, keys=['_step', 'train/reward'])
+        history = history.dropna(subset=['train/reward'])
 
-    steps_llama = history_llama.loc[mask_llama, "train/global_step"].values
-    rewards_llama = history_llama.loc[mask_llama, "train/reward"].values
+        if history.empty:
+            print(f"  ❌ No reward data found for {config['name']}")
+            continue
 
-    print(f"Qwen3-14B: {len(rewards_qwen)} data points, final reward = {rewards_qwen[-1]:.4f}")
-    print(f"Llama3.1-8B: {len(rewards_llama)} data points, final reward = {rewards_llama[-1]:.4f}")
+        # Apply step limit if specified
+        if config['max_steps'] is not None:
+            history = history[history.index <= config['max_steps']]
+            print(f"  Limiting to {config['max_steps']} steps")
 
-    # Apply EMA smoothing
-    print(f"\n4. Applying EMA smoothing (alpha={EMA_ALPHA})...")
-    smoothed_qwen = exponential_moving_average(rewards_qwen, alpha=EMA_ALPHA)
-    smoothed_llama = exponential_moving_average(rewards_llama, alpha=EMA_ALPHA)
+        # Get reward data
+        reward_mean = history['train/reward'].values
+        print(f"  Found {len(reward_mean)} data points")
 
-    # Create figure
-    print("\n5. Creating publication-ready plot...")
-    fig, ax = create_figure(size="large")
+        # Apply rolling average smoothing
+        mean_smoothed = apply_rolling_average(reward_mean, window=args.window)
+        training_steps = np.arange(len(mean_smoothed))
 
-    # Define colors
-    color_qwen = get_color("primary")    # Blue for Qwen3-14B
-    color_llama = get_color("secondary")  # Red for Llama3.1-8B
+        # Track maximum step for axis limits
+        if len(training_steps) > 0:
+            max_training_step = max(max_training_step, training_steps[-1])
 
-    # Plot Qwen3-14B (better performer)
-    # Raw data (transparent)
-    ax.plot(steps_qwen, rewards_qwen,
-            color=color_qwen,
-            alpha=RAW_ALPHA,
-            linewidth=RAW_LINEWIDTH,
-            label='_nolegend_')  # Hide from legend
+        # Plot smoothed reward (no raw data)
+        ax.plot(training_steps, mean_smoothed,
+               label=config['name'], color=config['color'],
+               linewidth=2.5, alpha=0.9)
 
-    # Smoothed data
-    ax.plot(steps_qwen, smoothed_qwen,
-            color=color_qwen,
-            linewidth=SMOOTHED_LINEWIDTH,
-            label='Qwen3-14B-Multilingual-GSPO',
-            zorder=10)  # Draw on top
+        print(f"  Mean reward: {mean_smoothed.mean():.4f}, Final: {mean_smoothed[-1]:.4f}")
 
-    # Plot Llama3.1-8B (lower performer)
-    # Raw data (transparent)
-    ax.plot(steps_llama, rewards_llama,
-            color=color_llama,
-            alpha=RAW_ALPHA,
-            linewidth=RAW_LINEWIDTH,
-            label='_nolegend_')  # Hide from legend
+    # Styling
+    ax.set_xlabel('Training Steps', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Mean Reward', fontsize=14, fontweight='bold')
+    ax.set_title('Model Comparison: Mean Reward Over Training',
+                fontsize=16, fontweight='bold', pad=20)
 
-    # Smoothed data
-    ax.plot(steps_llama, smoothed_llama,
-            color=color_llama,
-            linewidth=SMOOTHED_LINEWIDTH,
-            label='Llama3.1-8B-Multilingual-GSPO-Nano',
-            zorder=9)
+    # Grid and legend
+    ax.grid(True, alpha=0.3, linestyle='--')
+    ax.set_axisbelow(True)
+    ax.legend(fontsize=12, frameon=True, fancybox=True, shadow=True, loc='best')
 
-    # Format axes
-    format_axis_labels(
-        ax,
-        xlabel="Training Steps",
-        ylabel="Reward",
-        title="Training Reward Comparison: Model Size Impact on RL Performance"
-    )
+    # Set y-axis to start at 0
+    ax.set_ylim(bottom=0)
 
-    # Add legend (forced to top right)
-    ax.legend(loc='upper right',
-             frameon=True,
-             framealpha=0.9,
-             edgecolor='gray',
-             fontsize=FONT_CONFIG["size"]["medium"])
+    # Remove duplicate "0" label on x-axis
+    xticks = ax.get_xticks()
+    xticks = xticks[xticks > 0]
+    ax.set_xticks(xticks)
 
-    # Add grid
-    ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
+    # Set x-axis to actual data range
+    ax.set_xlim(0, max_training_step)
 
-    # Add stats box (optional, controlled by --show-stats)
-    if args.show_stats:
-        create_stats_box(ax,
-                        rewards_qwen[-1],
-                        rewards_llama[-1],
-                        "Qwen3-14B",
-                        "Llama3.1-8B")
+    # Adjust layout and save
+    plt.tight_layout()
 
-    # Set y-axis limits
-    if args.max_y is not None:
-        ax.set_ylim(0, args.max_y)
-        print(f"\nUsing manual y-axis limit: 0 to {args.max_y}")
-    else:
-        # Ensure y-axis starts at 0 to show full scale of difference
-        ax.set_ylim(bottom=0)
-        print("\nUsing automatic y-axis scaling (starting from 0)")
+    output_path = get_output_filename(f"reward_comparison_win{args.window}", "multi", plot_type="comparison")
+    plt.savefig(f"{output_path}.png", dpi=300, bbox_inches='tight', facecolor='white')
+    print(f"\nSaved plot to: {output_path}.png")
 
-    # Format y-axis to show more precision
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.2f}'))
-
-    # Save figure with both run IDs in filename
-    print("\n6. Saving figure...")
-    save_figure(fig,
-               "reward_comparison_6wkkt1s0_vs_1doecift",
-               plot_type="comparison")
-
-    # Print key insights
-    print("\n" + "="*70)
-    print("KEY INSIGHTS:")
-    print("="*70)
-    print(f"Qwen3-14B (larger model):")
-    print(f"  - Initial reward: {rewards_qwen[0]:.4f}")
-    print(f"  - Final reward:   {rewards_qwen[-1]:.4f}")
-    print(f"  - Improvement:    {rewards_qwen[-1] - rewards_qwen[0]:.4f}")
-    print(f"  - Training steps: {len(rewards_qwen)} data points")
-    print()
-    print(f"Llama3.1-8B (smaller model):")
-    print(f"  - Initial reward: {rewards_llama[0]:.4f}")
-    print(f"  - Final reward:   {rewards_llama[-1]:.4f}")
-    print(f"  - Improvement:    {rewards_llama[-1] - rewards_llama[0]:.4f}")
-    print(f"  - Training steps: {len(rewards_llama)} data points")
-    print()
-
-    if rewards_llama[-1] > 0:
-        ratio = rewards_qwen[-1] / rewards_llama[-1]
-        print(f"Performance Gap:")
-        print(f"  - Qwen3-14B achieves {ratio:.1f}x higher final reward")
-        print(f"  - Absolute difference: {rewards_qwen[-1] - rewards_llama[-1]:.4f}")
-
-    print("\nConclusion:")
-    print("  Model size has a dramatic impact on RL training effectiveness.")
-    print("  The 14B model significantly outperforms the 8B model in learning")
-    print("  from reinforcement signals, suggesting larger models better capture")
-    print("  the complex patterns needed for code repair tasks.")
-    print("="*70)
-
-    plt.close()
-
+    print(f"\n✅ Reward comparison plot created successfully!")
 
 if __name__ == "__main__":
     main()

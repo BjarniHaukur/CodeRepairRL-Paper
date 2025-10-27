@@ -4,7 +4,7 @@
 This chapter presents an execution-free \acs{RL} methodology for repository-level \acs{APR}.
 The approach integrates a minimalist terminal agent (Nano) directly into the training loop, using terminal patch-similarity rewards computed deterministically on canonical diffs to enable language-agnostic learning without executable test harnesses.
 We first formalize the Nano agent specification (observation space, action space, termination conditions, reward function), then detail training data, policy optimization, and infrastructure requirements.
-Evaluation protocols are summarized in \cref{sec:eval-brief} and expanded with complete results in Chapter~\ref{ch:results}.
+Experimental results addressing the research questions are presented in Chapter~\ref{ch:results}.
 
 \section{Overview and Scope}
 
@@ -163,24 +163,7 @@ J(\theta) = J_{\mathrm{GSPO}}(\theta) - \beta_{\text{KL}} \cdot D_{\text{KL}}(\p
 
 We base our experiments on Qwen3-14B, a hybrid reasoning model combining strong coding capabilities with native tool-calling support.
 Qwen3 was selected based on widespread consensus that it was the strongest open-weight coding model for tool-augmented tasks at the time of experimentation.
-The 14B variant offered an optimal fit for available resources: Qwen3-8B proved too large for two \acp{GPU} yet too small to justify three, while larger variants (30B-A3B, 32B) imposed prohibitive computational demands.
+The 14B variant offered an optimal fit for available resources: Qwen3-8B proved too large for two \acp{GPU} yet too small to justify three, while the larger 32B variant imposed prohibitive computational demands.
 
 Several alternative models including Llama3.1-8B, Gemma3, Ministral, GLM4-9B, and Llama3.1-Nemotron were explored but ultimately excluded.
 Limited comparisons across Qwen3 sizes and Llama3.1-8B, along with more detailed justification of model selection constraints, appear in \cref{app:model-comparison}.
-
-\section{Evaluation Protocol}
-\label{sec:eval-brief}
-
-Our evaluation protocol addresses the three research questions established in Chapter~\ref{ch:introduction}.
-
-\textbf{RQ1: How does \ac{GSPO} training improve Nano harness adaptation?}
-We measure tool-call success rate, action efficiency, and evolution of command usage trends.
-Command usage patterns are analyzed qualitatively across training steps to identify shifts in debugging strategies.
-
-\textbf{RQ2: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?}
-We measure test-verified success rates on SWE-Bench-Verified, comparing pre-training baseline to post-training performance using identical evaluation protocol.
-
-\textbf{RQ3: Does execution-free \ac{RL} enable effective multilingual training without language-specific engineering?}
-We measure per-language reward improvements on the 50-task SWE-Bench-Multilingual held-out set spanning nine programming languages, comparing pre-training and post-training checkpoints with bootstrap confidence intervals.
-
-Baselines consist of the Qwen3-14B checkpoint with Nano before \ac{RL} training.
