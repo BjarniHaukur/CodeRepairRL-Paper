@@ -21,10 +21,6 @@ html: true
 
 **October 2025**
 
-<!--
-Welcome everyone—today I'll show you how we trained a debugging agent to learn terminal-based problem-solving through reinforcement learning.
--->
-
 ---
 
 # Motivation
@@ -122,6 +118,26 @@ Here's where we're headed—background, what we built, how it works, results, an
 
 ---
 
+# Research Questions
+
+**RQ0: Training Convergence**
+Does GSPO training converge effectively with execution-free rewards?
+
+**RQ1: Harness Adaptation**
+How does RL training improve operational behavior within the Nano harness?
+
+**RQ2: SWE-Bench Performance**
+Does execution-free RL improve test-verified success on SWE-Bench-Verified?
+
+**RQ3: Multilingual Generalization**
+Does execution-free RL improve performance across languages without language-specific engineering?
+
+<!-- Speaker notes:
+Four research questions guide our investigation: Does training converge? Does the agent learn to use tools better? Does it improve on real benchmarks? Does it work across languages?
+-->
+
+---
+
 <!-- _class: section-title -->
 
 # Background & Related Work
@@ -176,11 +192,11 @@ Three pre-LLM families dominated APR: generate-and-validate (GenProg mutation se
 - Model learns exploration strategies from experience
 - Natural credit assignment: actions → observations → rewards
 - Training aligns with deployment behavior
-
+<!-- 
 **Continuous Conversation Histories**:
 - No scaffold-induced context manipulation
 - Causal chain preserved for gradient-based learning
-- Reward reflects full decision process, not scaffold choices
+- Reward reflects full decision process, not scaffold choices -->
 
 
 <!-- Speaker notes:
@@ -192,6 +208,11 @@ Agentic systems are therefore uniquely positioned for end2end learning
 -->
 
 ---
+# Why Agentic Systems Enable RLs
+bridge
+
+---
+
 
 # Policy Optimization: PPO Foundation
 
@@ -520,31 +541,6 @@ Patch-similarity is the core technical innovation that enables language-agnostic
 Top: agent modified validate function signature, ground truth modified parse function logic—same file but different functions, near-zero similarity. Bottom: both modify parse to return split text, but agent uses intermediate variable—partial structural match, around 0.5 similarity.
 -->
 
----
-
-# GSPO Training Objective
-
-**Our Training Objective**:
-
-$$
-J(\theta) = J_{\text{GSPO}}(\theta) - \beta_{\text{KL}} \cdot D_{\text{KL}}(\pi_\theta \| \pi_{\theta_{\text{ref}}})
-$$
-
-**Components**:
-- $J_{\text{GSPO}}$: Sequence-level clipped surrogate with group advantages
-- $\beta_{\text{KL}}$: Light regularization for small batch stability
-- $\pi_{\theta_{\text{ref}}}$: Initial pre-trained checkpoint (frozen)
-
-**Rationale**:
-- GSPO provides superior stability for long-sequence agent training
-- KL penalty counteracts gradient variance from limited batch size
-
-
-<!-- Speaker notes:
-- GSPO: sequence-level clipped surrogate with group advantages
-- KL penalty: regularization for small-batch stability (critical for 3 GPUs)
-- Reference policy: frozen initial checkpoint
--->
 
 ---
 
@@ -645,31 +641,11 @@ Now the payoff—did it work? Four research questions about convergence, adaptat
 
 ---
 
-# RQ0: Training Convergence
-
-**Research Question**: Does GSPO training converge effectively with execution-free rewards?
-
-**Primary Indicators**:
-- Reward progression, variance evolution, policy gradient signal stability
-
-**Analysis**:
-- Reward mean and standard deviation trends over training
-
-**Hypothesis**: 
-Execution-free patch-similarity rewards provide sufficient signal for policy convergence despite not directly optimizing for functional correctness
-
-
-<!-- Speaker notes:
-Does execution-free training even work? Can patch-similarity rewards drive policy convergence without test execution?
-- Indicators: reward progression, variance evolution, gradient signal
-- Hypothesis: patch-similarity is enough signal despite not optimizing for test passage
--->
-
----
-
-# RQ0: Reward Progression
+# RQ0: Does GSPO training converge with execution-free rewards?
 
 ![width:1150px](../plotting/figures/plots/temporal/reward_over_time_8dc73bp4.png)
+
+**Yes—training converges. Rewards doubled, variance increased (strong gradient signal)**
 
 
 
@@ -708,22 +684,11 @@ Why does increasing variance matter? In GSPO, variance collapse kills learning�
 
 ---
 
-# RQ1: Harness Adaptation Overview
-
-**Research Question**: How does GSPO training improve Nano harness adaptation?
-
-**Measured Dimensions**:
-1. **Episode Length**: Tool calls per episode
-2. **Tool Success Rates**: Valid tool call generation
-3. **Command Usage**: Strategic debugging patterns
-
-**Hypothesis**: RL training improves operational behavior alongside reward progression
-
----
-
-# RQ1: Episode Length Evolution
+# RQ1: Does RL training improve harness adaptation?
 
 ![width:920px](../plotting/figures/plots/temporal/tool_calls_over_time_ema0.05_8dc73bp4.png)
+
+**Episode length**: Early training exhausts 30-call budget, late training converges to 10-15 calls
 
 
 <!-- Speaker notes:
@@ -809,31 +774,7 @@ Late training: much more focused—grep dominates, less random navigation, clean
 
 ---
 
-# RQ2: SWE-Bench-Verified Performance
-
-**Research Question**: Does execution-free patch-similarity RL improve SWE-Bench-Verified performance?
-
-**Evaluation Protocol**:
-- Same Nano harness for baseline and post-training
-- No scaffold engineering or prompt optimization
-- Identical evaluation settings (temperature 0.2, top-p 0.9)
-
-**Metrics**:
-- **Completion rate**: episodes producing non-empty patches
-- **Resolve rate**: test-verified success
-- **Mean reward**: patch-similarity on same instances
-
-
-<!-- Speaker notes:
-Does patch-similarity training improve test-verified success? Same harness, no prompt engineering, just policy updates.
-- Same Nano harness for baseline and post-training
-- No scaffold changes or prompt optimization
-- Metrics: completion rate, resolve rate (test-verified), mean reward
--->
-
----
-
-# RQ2: Test-Verified Results
+# RQ2: Does RL improve SWE-Bench-Verified performance?
 
 | Metric | Baseline | Ours (step 460) | Change |
 |--------|----------|-----------------|--------|
@@ -841,12 +782,10 @@ Does patch-similarity training improve test-verified success? Same harness, no p
 | **Resolved instances** | 36 (7.2%) | 31 (6.2%) | -13.9% |
 | **Empty patches** | 313 (62.6%) | 111 (22.2%) | **-64.5%** |
 
-**Key Findings**:
-1. **Dramatic operational improvement**: completion rate more than doubles
-2. **Test-verified success flat**: 7.2% → 6.2% (likely within error margins)
-3. Empty-patch failures reduced by 64%
-
-**Interpretation**: Training successfully acquired first capability tier (reliable harness operation) but not yet functional correctness
+**Mixed results**: Operational competence improved dramatically, functional correctness flat
+- Same harness, no scaffold engineering, identical evaluation settings
+- Completion rate more than doubles, test success unchanged
+- Interpretation: Acquired harness operation (Tier 1), not yet functional correctness (Tier 2)
 
 
 
@@ -886,34 +825,13 @@ Patch-similarity rewards did increase substantially—54% improvement—validati
 
 ---
 
-# RQ3: Multilingual Performance
-
-**Research Question**: Does execution-free RL improve performance across programming languages without language-specific engineering?
-
-**Evaluation Approach**:
-- Compare average per-language rewards on **same problem instances**
-- Epoch 1 average vs. Epoch 2 average
-
-**Key Constraint**:
-- Uneven data distribution (Python-heavy curriculum)
-- Limited multilingual instruction-driven data available
-- Validates language-agnostic reward design
-
-
-<!-- Speaker notes:
-Does execution-free RL generalize across languages without language-specific engineering? We test on 9 languages.
-- Compare same instances: epoch 1 vs. epoch 2 (controls for difficulty)
-- Direct measure of learning progression per language
-- Constraint: Python-heavy curriculum (750/1000 tasks)
--->
-
----
-
-# RQ3: Per-Language Improvements
+# RQ3: Does RL generalize across languages?
 
 ![width:920px](../plotting/figures/plots/analysis/language_reward_epochs_n1000_8dc73bp4.png)
 
-**Consistent improvements** across diverse languages
+**Yes—consistent improvements across all 9 languages (epoch 1 → epoch 2)**
+- Python-heavy curriculum (750/1,000 tasks)
+- Language-agnostic reward enables unified training
 
 
 <!-- Speaker notes:
