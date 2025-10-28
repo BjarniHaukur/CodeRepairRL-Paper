@@ -73,6 +73,9 @@ Public research harnesses make this concrete: \emph{SWE-Agent} formalizes an age
 
 Operationally, these systems rely on structured tool calls, typically via \acs{JSON}.
 The model emits a well-formed function call with arguments, an external executor runs it, and the resulting output is returned to the model.
+
+\begin{figure}[H]
+\centering
 \begin{verbatim}
 {
   "function_name": "apply_patch",
@@ -83,6 +86,9 @@ The model emits a well-formed function call with arguments, an external executor
   }
 }
 \end{verbatim}
+\caption{Example JSON tool call structure for an apply\_patch function.}
+\label{fig:json-tool-call}
+\end{figure}
 
 This approach transforms \acp{LLM} from passive text generators into systems capable of interacting with their environment by invoking tools and observing their results.
 

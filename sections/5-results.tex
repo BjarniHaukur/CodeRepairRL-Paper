@@ -4,7 +4,7 @@
 This chapter presents experimental results addressing the four research questions established in Chapter~\ref{ch:introduction}.
 We begin by validating training convergence (RQ0), then examine harness adaptation (RQ1), SWE-Bench-Verified performance (RQ2), and multilingual generalization (RQ3).
 
-\section{RQ0: Does \ac{GSPO} training converge effectively with execution-free rewards?}
+\section{RQ0: Training Convergence?}
 \label{sec:training-convergence}
 
 \textbf{Research Question:}
@@ -56,9 +56,9 @@ One plausible explanation is that the policy adopted a strategy of broadly affec
 As training progresses, the policy ceases to exhaust the tool call budget and episode lengths trend consistently downward.
 This indicates that the policy learns both to execute successful debugging workflows more efficiently and to terminate episodes when productive actions are exhausted rather than persisting with unproductive patterns.
 
-\begin{figure}[H]
+\begin{figure}[httb]
 	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/tool_calls_over_time_ema0.05_8dc73bp4.png}
+	\includegraphics[width=0.85\textwidth]{plotting/figures/plots/temporal/tool_calls_over_time_ema0.05_8dc73bp4.png}
 	\caption{Number of tool calls per episode throughout training, plotted with exponential moving average smoothing (\(\alpha = 0.05\)).}
 	\label{fig:episode-length}
 \end{figure}
@@ -76,7 +76,7 @@ The apply\_patch success rates exhibit greater volatility, but still trend upwar
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/tool_success_rates_ema0.05_8dc73bp4.png}
+	\includegraphics[width=0.85\textwidth]{plotting/figures/plots/temporal/tool_success_rates_ema0.05_8dc73bp4.png}
 	\caption{Tool execution success rates throughout training, computed as the mean proportion of successful invocations per tool type across episodes. Plotted with exponential moving average smoothing (\(\alpha = 0.05\)).}
 	\label{fig:tool-success}
 \end{figure}
@@ -87,9 +87,9 @@ The apply\_patch success rates exhibit greater volatility, but still trend upwar
 While \cref{subsec:episode-length} examined overall shell command and apply\_patch counts, \cref{fig:command-evolution} decomposes shell command usage into the most frequently invoked individual commands to reveal strategic shifts in debugging behavior.
 Each command's usage is expressed as a percentage of total tool calls at that training step, allowing us to broadly observe the patterns the policy favors as a function of time.
 
-\begin{figure}[H]
+\begin{figure}[httb]
 	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/temporal/command_trend_direct_ema0.05_8dc73bp4.png}
+	\includegraphics[width=0.85\textwidth]{plotting/figures/plots/temporal/command_trend_direct_ema0.05_8dc73bp4.png}
 	\caption{Evolution of command usage frequencies throughout training, plotted with exponential moving average smoothing (\(\alpha = 0.05\)).}
 	\label{fig:command-evolution}
 \end{figure}
@@ -175,9 +175,9 @@ This within-task comparison directly measures learning progression across langua
 \Cref{fig:language-reward-epochs} presents per-language reward improvements across the two training epochs.
 Despite the uneven data distribution, all languages demonstrate measurable gains, validating that execution-free rewards provide effective learning signals across diverse language ecosystems without language-specific adaptations.
 
-\begin{figure}[H]
+\begin{figure}[httb]
 	\centering
-	\includegraphics[width=0.9\textwidth]{plotting/figures/plots/analysis/language_reward_epochs_n1000_8dc73bp4.png}
+	\includegraphics[width=0.85\textwidth]{plotting/figures/plots/analysis/language_reward_epochs_n1000_8dc73bp4.png}
 	\caption{Per-language reward progression from epoch 1 to epoch 2 on the same problem instances.}
 	\label{fig:language-reward-epochs}
 \end{figure}

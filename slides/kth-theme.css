@@ -2,10 +2,10 @@
 
 /* ===== Color Palette ===== */
 :root {
-  --kth-blue: #1954a6;
-  --kth-blue-light: #4a8fd8;
-  --kth-blue-lighter: #e8f1fa;
-  --kth-accent: #2e7bc6;
+  --kth-blue: #004791;
+  --kth-blue-light: #3371b8;
+  --kth-blue-lighter: #e3edf7;
+  --kth-accent: #1a5fa6;
   --text-dark: #2c3e50;
   --text-medium: #5a6c7d;
   --text-light: #7f8c9d;
@@ -19,9 +19,9 @@ section {
   font-family: Georgia, serif;
   background-color: var(--background);
   color: var(--text-dark);
-  font-size: 24px;
-  line-height: 1.5;
-  padding: 50px 70px;
+  font-size: 26px;
+  line-height: 1.45;
+  padding: 45px 65px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -31,10 +31,10 @@ section {
 h1 {
   font-family: Arial, sans-serif;
   color: var(--kth-blue);
-  font-size: 44px;
+  font-size: 45px;
   font-weight: bold;
   margin-top: 0;
-  margin-bottom: 0.6em;
+  margin-bottom: 0.5em;
   line-height: 1.2;
   border-bottom: 3px solid var(--kth-blue);
   padding-bottom: 0.25em;
@@ -43,7 +43,7 @@ h1 {
 h2 {
   font-family: Arial, sans-serif;
   color: var(--kth-accent);
-  font-size: 32px;
+  font-size: 34px;
   font-weight: bold;
   margin-top: 0.6em;
   margin-bottom: 0.4em;
@@ -53,7 +53,7 @@ h2 {
 h3 {
   font-family: Arial, sans-serif;
   color: var(--text-medium);
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 600;
   margin-top: 0.5em;
   margin-bottom: 0.3em;
@@ -68,7 +68,7 @@ p {
 
 /* ===== Title Slide (Lead Class) ===== */
 section.lead {
-  background: linear-gradient(135deg, #1954a6 0%, #2e7bc6 50%, #4a8fd8 100%);
+  background: linear-gradient(135deg, #004791 0%, #1a5fa6 50%, #3371b8 100%);
   color: white;
   text-align: center;
   justify-content: center;
@@ -153,8 +153,8 @@ ul, ol {
 }
 
 li {
-  margin-bottom: 0.25em;
-  line-height: 1.5;
+  margin-bottom: 0.2em;
+  line-height: 1.45;
 }
 
 li::marker {
@@ -317,7 +317,7 @@ em {
 
 /* ===== Special Slide Classes ===== */
 section.section-title {
-  background: linear-gradient(135deg, var(--kth-blue) 0%, var(--kth-accent) 100%);
+  background: linear-gradient(135deg, #004791 0%, #1a5fa6 100%);
   color: white;
   justify-content: center;
   align-items: center;
@@ -383,25 +383,19 @@ section.iframe-slide .iframe-wrapper {
   width: 100%;
   max-width: none !important;
   height: calc(100vh - 160px);
-  overflow: hidden;
+  overflow: auto;
   border: 1px solid var(--code-border);
   border-radius: 4px;
   position: relative;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  transform: scale(0.85);
-  transform-origin: center top;
+  align-items: center;
 }
 
 section.iframe-slide iframe {
-  width: 140%;
-  height: 140%;
   border: none;
-  transform: scale(0.714);
-  transform-origin: top center;
   max-width: none !important;
-  min-width: none !important;
+  /* Allow min-width and min-height from inline styles */
 }
 
 /* ===== Highlight boxes ===== */
