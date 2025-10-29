@@ -9,7 +9,7 @@ html: true
 <!-- _class: lead -->
 
 # Learning Agency in the Terminal
-## Lessons from Repository-Level Reinforcement Learning
+## with Repository-Level Reinforcement Learning
 
 **Bjarni Haukur Bjarnason**
 
@@ -88,9 +88,10 @@ Thus the open resource community suffers
 
 <!-- Speaker notes:
 In this work, I contribute in my own small way on three fronts
-1.) Created training infrastmructure to train ulti-turn online rl
-2.) Cheap: 120× less compute than comparable systems (academic feasibility)
+1.) Created training infrastructure to train multi-turn online rl systems, in particular multi-turn tool-use and contributed to open-source
+2.) Cheap: 12× less computational than comparable systems (academic feasibility)
 3.) Simple: execution-free rewards eliminate infrastructure complexity, enable multilingual training
+-> Lowered bar to entry
 -->
 
 ---
@@ -110,8 +111,8 @@ Does execution-free RL improve test-verified success on SWE-Bench-Verified?
 Does execution-free RL improve performance across languages without language-specific engineering?
 
 <!-- Speaker notes:
-And As measured by these four research questions:
-Does training converge? Does the agent learn to use tools better? Does it improve on real benchmarks? Does it work across languages?
+And measured progress we have these four research questions:
+Does training converge? Does the agent learn to use tools better? Does it improve on real benchmarks? How well does it work across languages?
 -->
 
 ---
@@ -141,11 +142,12 @@ First I will quickly go through some of the foundational background
 - SWE-Agent, OpenHands, mini-swe-agent
 - Model autonomously navigates, edits, iterates
 
-<!-- Large language models have enabled an entirely new class of Automatic Program Repair methods
-To highlight our defintion of agentic, we contrast it with other types of LLM approaches 
+<!-- Before Large language models, we had an entire class of Automatic Program Repair methods that have laregly been superseded by the unprecedented performance of LLMs.
 
-1. Mostly uses LLM as functions that can learn patterns
-2. Uses LLMs as scripting, with some amount of autonomy
+Most LLM methods can roughly speaking be broken down into three categories by levels of autonomy
+
+1. Mostly uses LLM as trainable functions that can learn patterns in input output data pairs
+2. Uses LLMs with scripting, with some amount of autonomy, simulated conversations, branching paths
 3. Full autonomy in the given task
 -->
 
@@ -163,9 +165,13 @@ To highlight our defintion of agentic, we contrast it with other types of LLM ap
 - Result: RL can optimize exploration strategies, not just patterns
 
 <!-- Speaker notes:
-And what I find really exciting is that
+I think the applicationg of RL to agentic LLM systems is really exciting.
 
-LLMs provide the foundation to attempt real tasks, and agentic systems let the model control everything—what to explore, when to submit. This creates a clean gradient signal. Contrast with agentless: scaffold decides navigation, breaks causal chain, prevents learning exploration strategies. Now we can finally apply decades of RL research to optimize policies for real-world debugging.
+Because LLMs provide the foundations to attempt real world tasks coherently, they might not be really good at it currently, but just the ability to try means that we can reinforce those behaviours
+
+AND we can optimize those behaviours end2end.
+
+AND can finally apply decades of RL research to optimize LLM policies for tasks like real-world debugging.
 -->
 
 ---
@@ -178,6 +184,10 @@ LLMs provide the foundation to attempt real tasks, and agentic systems let the m
 Clipped surrogate objective with value baseline:
 
 $$
+\hat{A}_t = R_t - V_\phi(s_t)
+$$
+
+$$
 J_{\text{PPO}}(\theta) = \mathbb{E}\left[\frac{1}{|y|}\sum_{t=1}^{|y|} \min(w_t \hat{A}_t, \text{clip}(w_t) \hat{A}_t)\right] - \beta D_{\text{KL}}(\pi_\theta \| \pi_{\text{ref}})
 $$
 
@@ -187,13 +197,13 @@ Where $w_t = \frac{\pi_\theta(y_t \mid x, y_{<t})}{\pi_{\theta_{\text{old}}}(y_t
 **Drawback**: Separate value network $V_\phi$ doubles memory footprint
 
 <!-- 
-Policy optimization methods are ways to directly improve an agent’s decision-making policy by adjusting its parameters to maximize expected rewards through experience..
+I won't go to much detail here...
 
-First and foremost of those methods is PPO, I don´t have time to go into too much detail but basically:
+But policy optimization methods are ways to directly improve an agent’s decision making policy by adjusting its parameters to maximize expected rewards through experience.
 
+In PPO, that is done via Rewards AND a trained Value Network V to estimate the advantage of a give token.
 
-
-We optimize 
+However, training such a value network requires an effective doubling of your memory footprint and is hard to define for tokens in language.
 -->
 
 ---
@@ -219,7 +229,11 @@ $$
 
 
 <!-- Speaker notes:
-GRPO's innovation was eliminating the value network by using group-relative rewards. Instead of training a value network, we directly let determine 
+Therefore, GRPO has widely been adopted.
+
+It's innovation was eliminating the value network by using group-relative rewards.
+
+In it, we attempt a task G times and let the rewards directly dictate which behaviours are reinforced
 -->
 
 ---
@@ -245,24 +259,8 @@ $$
 
 
 <!-- Speaker notes:
-We use the more stable variant but I won't go into too much detail
+In my work, I adopted yet another variant which is known for better stability.
 -->
-
----
-
-# Positioning: Related Concurrent Work
-
-**SWE-RL** from Meta (Wei et al., 2025):
-- Agentless GRPO with patch-similarity rewards
-- **Static single-turn**: full context provided, no interactive tool use
-
-**DeepSWE** from Agentica (Zhang et al., 2025):
-- Agentic GRPO with test-based rewards
-- 72 H100s
-
-**CodeRepairRL (ours)**:
-- Agentic GSPO with patch-similarity
-- 3 A100s, **24x** less
 
 ---
 
@@ -278,6 +276,10 @@ We use the more stable variant but I won't go into too much detail
 - 14B optimal fit for 3× A100 allocation
 
 <!-- Speaker notes:
+We chose to use the Qwen3 family as our policies.
+
+Best in class, strong tool calling.
+
 Need power of 2 for both training and inference
 -->
 
@@ -310,6 +312,29 @@ Now let's see how we built the training system—starting with design decisions 
 
 ---
 
+# Positioning: Related Concurrent Work
+
+**SWE-RL** from Meta (Wei et al., 2025):
+- Agentless GRPO with patch-similarity rewards
+- **Static single-turn**: full context provided, no interactive tool use
+
+**DeepSWE** from Agentica (Zhang et al., 2025):
+- Agentic GRPO with test-based rewards
+- 72 H100s
+
+**CodeRepairRL (ours)**:
+- Agentic GSPO with patch-similarity
+- 3 A100s, **24x** less
+
+<!--
+There are two studies that are worth bringing up
+
+First is SWE-RL from Meta, we got our patch similarity idea from here
+Second is DeepSWE, concurrent work from Meta which highlights our training optimizations
+ -->
+
+---
+
 # Nano Agent
 
 <div class="columns">
@@ -332,7 +357,12 @@ Now let's see how we built the training system—starting with design decisions 
 </div>
 </div>
 
-<!-- First I'll tell you about Nano. It is very similar to coding agents you know, but simpler and tuned specifically to work well in training.  -->
+<!-- And now I'll tell you about Nano. It is very similar to coding agents you know, but much much simpler and specifically designed such that it work well in training.
+
+Fully agentic
+
+Two simples tools.
+ -->
 
 
 ---
@@ -380,6 +410,10 @@ index abc123..def456 100644
 
 **Eliminates brittle diff formatting errors**
 
+<!-- With these two simple tools, we effectively eliminate an entire class of problems that have plagued APR research which is generating valid diffs
+
+Since Nano ACTED on a real repository, we can just directly compute the diff, instead of having to generate this patch -->
+
 --- 
 
 
@@ -410,8 +444,8 @@ index abc123..def456 100644
 <span style="color: #0066cc;">--- a/src/utils.py</span>
 <span style="color: #0066cc;">+++ b/src/utils.py</span>
 <span style="color: #008080;">@@ -8,1 +8,1 @@</span>
-<span style="color: #cc0000;">-MAX_SIZE = 1024</span>
-<span style="color: #009900;">+MAX_SIZE = 2048</span>
+<span style="color: #cc0000;">-return 1024</span>
+<span style="color: #009900;">+return 2048</span>
 </div>
 
 </div>
@@ -420,8 +454,11 @@ index abc123..def456 100644
 </div>
 
 <!-- 
-With the agent generated diff
+With the agent authored diff
+
 Our reward function averages sequence similarities across the diffs of files affected.
+
+We do not exclude syntax or anything, so the agent would get a small reward here since "return" is in both, but only because they affect the same file.
 
 Correlates with functional similarity but does not fully overlap.-->
 
@@ -465,6 +502,7 @@ Correlates with functional similarity but does not fully overlap.-->
 </div>
 </div>
 
+<!-- operationally similar code tends to share a lot of patterns -->
 
 ---
 
@@ -473,7 +511,17 @@ Correlates with functional similarity but does not fully overlap.-->
 ![width:1100px](../plotting/figures/training_sequence_diagram.png)
 
 
-<!-- I'll linger on this for a bit
+<!-- With established model / data / agent / reward
+
+I can now define how our training infrastrucuter works
+
+on the left and right we have two servers operating with their own set of GPUs
+
+left model + optimizer
+
+right model + Openai Compatible + kvcache + tool calling support + optimized inference kernels
+
+and if follow the flow of this diagram
 
 LLMs are still only weights and biases, we need sophisticated endoint logic to make them useful (e.g. tool calling, conversation turns etc.)
 
@@ -497,7 +545,8 @@ LLMs are still only weights and biases, we need sophisticated endoint logic to m
 
 **Result**: 14B training on 2× A100, 1x A100 for inference
 
-<!-- Speaker notes:
+<!-- 
+Here is a table of most of the optimizations I did to make 
 Making 14B training fit on 3 A100s required stacking every memory optimization available—this is how we achieved 24× GPU reduction.
 
 Significantly lower bar to entry.
@@ -550,12 +599,12 @@ $$
 - Implies there is more to learn
 
 
-<!-- Speaker notes:
-Why does increasing variance matter? In GSPO, variance collapse kills learning—advantages approach zero and gradients disappear.
-- GSPO advantages normalize by group statistics: A = (r - μ) / σ
-- If σ collapses: all advantages → 0, no gradient signal
-- Our variance increased: policy generates diverse outcomes with different rewards
-- This proves the policy gradient signal stayed strong throughout training
+<!-- 
+Very important because in group relative policy optimization methods variance collapse kills learning
+
+advantages approach zero and gradients disappear.
+
+having variance means that there is still more to learn
 -->
 
 ---
@@ -604,9 +653,8 @@ Command distribution and transition patterns during early training (first 20% ep
 </div>
 
 
-
-<!-- Speaker notes:
-Early training: chaotic command flow with lots of basic navigation—look at the thickness of cd and ls flows.
+<!--
+To analyze better how behaviour changes, I've constructed a graph of ALL commands that occured during training, here for the first 20%
 -->
 
 ---
