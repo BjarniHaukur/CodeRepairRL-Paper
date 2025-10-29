@@ -61,8 +61,8 @@ Even "open-source" releases don't include training recipes.
 </div>
 
 <!--
-I'd wager that all of us in this room of heard of and used coding agents. Frontier systems like Claude Code and Codex are incredibly useful, but their training methods are completely proprietary.
-Even teams like Alibaba Qwen and MoonshotAI Kimi who do "open" research don't publish full recipes. Just weights and algorithms.
+I'd wager that all of us in this room of heard of and used LLM coding agents. Frontier systems like Claude Code and Codex are incredibly useful, but their training methods are completely proprietary.
+Even teams like Alibaba Qwen and MoonshotAI Kimi who do "open" research FALL SHORT when it comes publishing full recipes. Just weights and algorithms.
 Thus the open resource community suffers
 
 - Two barriers: cost (tens of thousands of GPU-hours), complexity (distributed systems)
@@ -74,7 +74,7 @@ Thus the open resource community suffers
 
 # Core Contributions
 
-**1. Open training recipe for online RL on LLMss**
+**1. Training infrastructure for online RL on LLMss**
 - Implemented live weight synchronization
 - Enables multi-turn, tool-using, asynchronous episodes
 
@@ -87,33 +87,10 @@ Thus the open resource community suffers
 - No test infrastructure required
 
 <!-- Speaker notes:
-So how did we make this possible? Three core contributions.
-- Built: first fully open recipe for online RL with coding agents
-- Cheap: 120× less compute than comparable systems (academic feasibility)
-- Simple: execution-free rewards eliminate infrastructure complexity, enable multilingual training
--->
-
----
-
-# Presentation Roadmap
-
-**Background & Related Work**
-APR evolution, scaffold taxonomy, policy optimization algorithms
-
-**Methodology**
-Nano agent design, execution-free rewards, training curriculum
-
-**Implementation**
-Live weight synchronization, asynchronous episodes, memory optimizations
-
-**Results**
-Four research questions: convergence, adaptation, performance, multilingual generalization
-
-**Discussion & Conclusions**
-Key findings, limitations, future work
-
-<!-- Speaker notes:
-Here's where we're headed—background, what we built, how it works, results, and conclusions.
+In this work, I contribute in my own small way on three fronts
+1.) Created training infrastmructure to train ulti-turn online rl
+2.) Cheap: 120× less compute than comparable systems (academic feasibility)
+3.) Simple: execution-free rewards eliminate infrastructure complexity, enable multilingual training
 -->
 
 ---
@@ -133,7 +110,8 @@ Does execution-free RL improve test-verified success on SWE-Bench-Verified?
 Does execution-free RL improve performance across languages without language-specific engineering?
 
 <!-- Speaker notes:
-Four research questions guide our investigation: Does training converge? Does the agent learn to use tools better? Does it improve on real benchmarks? Does it work across languages?
+And As measured by these four research questions:
+Does training converge? Does the agent learn to use tools better? Does it improve on real benchmarks? Does it work across languages?
 -->
 
 ---
@@ -143,34 +121,13 @@ Four research questions guide our investigation: Does training converge? Does th
 # Background & Related Work
 
 <!-- Speaker notes:
-First I will establish the foundational background
+First I will quickly go through some of the foundational background
 -->
+
 
 ---
 
-# APR Evolution: Pre-LLM Era
-
-**Generate-and-Validate**
-- GenProg: Mutation-based search with test validation
-- PAR: Pattern-guided edit selection
-
-**Semantics-Based**
-- SemFix: Symbolic execution + constraint solving
-
-**Learning-Guided**
-- Prophet: Statistical models rank candidate patches
-
-**Fundamental Limitations**:
-- Localized search spaces
-- Brittle test-suite overfitting
-
-<!-- Speaker notes:
-Three pre-LLM families dominated APR: generate-and-validate (GenProg mutation search, PAR pattern-guided), semantics-based (SemFix symbolic execution), learning-guided (Prophet statistical ranking). All evaluated on Defects4J and QuixBugs. Shared critical limitations: localized search spaces, brittle test-suite overfitting, no semantic reasoning beyond local context. These constraints motivated the shift to LLM-based repository-grounded approaches.
--->
-
----
-
-# Scaffold Taxonomy for LLM-Based APR
+# APR with LLMs
 
 **Scaffold-Free**: Direct patch generation
 - RepairLLaMA: Fine-tuned on bug-fix pairs
@@ -184,37 +141,37 @@ Three pre-LLM families dominated APR: generate-and-validate (GenProg mutation se
 - SWE-Agent, OpenHands, mini-swe-agent
 - Model autonomously navigates, edits, iterates
 
----
+<!-- Large language models have enabled an entirely new class of Automatic Program Repair methods
+To highlight our defintion of agentic, we contrast it with other types of LLM approaches 
 
-# Why Agentic Systems Enable RL
-
-**End-to-End Learning**:
-- Model learns exploration strategies from experience
-- Natural credit assignment: actions → observations → rewards
-- Training aligns with deployment behavior
-<!-- 
-**Continuous Conversation Histories**:
-- No scaffold-induced context manipulation
-- Causal chain preserved for gradient-based learning
-- Reward reflects full decision process, not scaffold choices -->
-
-
-<!-- Speaker notes:
-Agentic systems are therefore uniquely positioned for end2end learning
-- End-to-end learning: model learns exploration strategies, not just text generation
-- Continuous histories: no scaffold disruptions, clean gradient flow
-- Natural paradigm: hypothesis → investigation → refinement (active learning)
-- Result: RL can optimize the full debugging process
+1. Mostly uses LLM as functions that can learn patterns
+2. Uses LLMs as scripting, with some amount of autonomy
+3. Full autonomy in the given task
 -->
 
 ---
-# Why Agentic Systems Enable RLs
-bridge
+
+# Why Agentic LLM Systems Enable RL
+
+**LLMs have sufficient priors to attempt real world tasks coherently**
+- Stumbling attempts are VASTLY better than starting from nothing
+
+**Agentic systems enable End-to-End Learning**:
+- Model controls all actions → clean credit assignment
+- Actions → observations → rewards (full causal chain)
+- No scaffold interference breaking the gradient signal
+- Result: RL can optimize exploration strategies, not just patterns
+
+<!-- Speaker notes:
+And what I find really exciting is that
+
+LLMs provide the foundation to attempt real tasks, and agentic systems let the model control everything—what to explore, when to submit. This creates a clean gradient signal. Contrast with agentless: scaffold decides navigation, breaks causal chain, prevents learning exploration strategies. Now we can finally apply decades of RL research to optimize policies for real-world debugging.
+-->
 
 ---
 
 
-# Policy Optimization: PPO Foundation
+# Policy Optimization PPO Foundation
 
 **Proximal Policy Optimization** (Schulman et al., 2017)
 
@@ -227,7 +184,17 @@ $$
 Where $w_t = \frac{\pi_\theta(y_t \mid x, y_{<t})}{\pi_{\theta_{\text{old}}}(y_t \mid x, y_{<t})}$ (per-token importance ratio)
 
 **Advantages**: Stable updates via clipping, well-established
-**Drawback**: Separate critic $V_\phi$ doubles memory footprint
+**Drawback**: Separate value network $V_\phi$ doubles memory footprint
+
+<!-- 
+Policy optimization methods are ways to directly improve an agent’s decision-making policy by adjusting its parameters to maximize expected rewards through experience..
+
+First and foremost of those methods is PPO, I don´t have time to go into too much detail but basically:
+
+
+
+We optimize 
+-->
 
 ---
 
@@ -247,15 +214,12 @@ $$
 J_{\text{GRPO}}(\theta) = \mathbb{E}\left[\frac{1}{G}\sum_{i=1}^G \frac{1}{|y_i|}\sum_{t=1}^{|y_i|} \min(w_{i,t} A_i, \text{clip}(w_{i,t}) A_i)\right]
 $$
 
-**Advantages**: No critic network, lower memory, simpler training
+**Advantages**: No value network, lower memory, simpler training
 **Issue**: Per-token importance ratios unstable for long sequences
 
 
 <!-- Speaker notes:
-GRPO's innovation was eliminating the critic network by using group-relative advantages—simpler but unstable for long sequences.
-- Key insight: replace learned baseline with group mean
-- Advantage: no critic = half the memory
-- Problem: per-token importance ratios become noisy with long agent trajectories
+GRPO's innovation was eliminating the value network by using group-relative rewards. Instead of training a value network, we directly let determine 
 -->
 
 ---
@@ -281,97 +245,84 @@ $$
 
 
 <!-- Speaker notes:
-GSPO solves GRPO's stability problem with sequence-level weighting—this is why our training converges reliably despite long agent trajectories.
-- Core innovation: one importance weight per sequence (not per token)
-- Length-normalized ratio prevents sequence length bias
-- Benefits: superior stability, robust to precision differences, MoE-friendly
-- This choice was critical for our small-batch academic setup
+We use the more stable variant but I won't go into too much detail
 -->
 
 ---
 
 # Positioning: Related Concurrent Work
 
-**SWE-RL** (Wei et al., 2025):
+**SWE-RL** from Meta (Wei et al., 2025):
 - Agentless GRPO with patch-similarity rewards
 - **Static single-turn**: full context provided, no interactive tool use
 
-**DeepSWE** (Zhang et al., 2025):
+**DeepSWE** from Agentica (Zhang et al., 2025):
 - Agentic GRPO with test-based rewards
-- ~10,368 H100-hours (at least 16,000 A100-hours equivalent)
+- 72 H100s
 
-**Our Work**:
-- GSPO with patch-similarity
-- ~ 144 A100-hours (**~120× less GPU hours than DeepSWE**)
+**CodeRepairRL (ours)**:
+- Agentic GSPO with patch-similarity
+- 3 A100s, **24x** less
 
+---
+
+# Model Selection: Qwen3-14B
+
+**Why Qwen3?**
+- Hybrid reasoning model with strong tool-calling capabilities
+- Community consensus: strongest open-weight models at the time
+
+**Why 14B?**
+- **Practical constraint**: 8B too large for 2 GPUs, too small for 3
+- 32B requires 6 GPUs minimum
+- 14B optimal fit for 3× A100 allocation
+
+<!-- Speaker notes:
+Need power of 2 for both training and inference
+-->
 
 ---
 
 # Datasets
 
-**Training (1,000 tasks)**:
-- SWE-Gym: 750 out of 2440 Python debugging tasks from real repositories
+**Training (1,000 multilingual tasks)**:
+- SWE-Gym: 750 Python debugging tasks from real repositories
 - SWE-Bench-Multilingual: 250 tasks across 9 languages (Rust, Java, PHP, Ruby, JS, TS, Go, C, C++)
 
-**Evaluation (500 tasks)**:
+**Evaluation (500 python tasks)**:
 - SWE-Bench-Verified: 500 Python tasks
-- SWE-Bench-Multilingual: 50 held-out multilingual tasks (not used)
 
 
 <!-- Speaker notes:
-We evaluate on SWE-Bench-Verified and test multilingual generalization, training on 1,000 tasks across 10 languages.
-- Primary: SWE-Bench-Verified (~500 Python tasks, test-verified)
-- Multilingual: SWE-Bench-Multilingual (9 languages, 50 held-out)
-- Training: 750 Python + 250 multilingual = 1,000-task curriculum
+All are datasets buggy repositories from Github with instructions to fix them
 -->
 
 ---
 
 <!-- _class: section-title -->
 
-# Methodology
+# Methodology & Implementation
 
 
 <!-- Speaker notes:
-Now let's see how we built the training system—starting with our minimalist agent design.
+Now let's see how we built the training system—starting with design decisions and implementation details.
 -->
 
 ---
 
 # Nano Agent
-<!-- # Agent Design for Efficiency
 
-**Explicit Episode Limits** (dual purpose):
-
-**Memory Constraints**:
-- Token budget: prevent OOM as conversation grows
-- Tool-call budget: prevent runaway exploration
-- Wall-clock timeout: bound episode duration
-
-**Sample Efficiency**:
-- Progressive warnings as limits approach
-- Encourages submission attempts
-- Ensures episodes yield gradient information (even for unsolved tasks)
-
-**Configuration**:
-- 30 tool calls max
-- 10,240 generated tokens max
-- ~60 second timeout
-- 2,000 char truncation per tool output -->
 <div class="columns">
 <div>
+
+**Fully agentic**
+- No repository summaries
+- No pre-computed context
+- Starts with a blank slate + a mission
 
 **Two tools only**
 - `shell` to navigate and read
 - `apply_patch` to affect files
-- No repository summaries
-- No pre-computed context
-- Fully agentic
-
-**Explicit episode limits**
-- Token limit: 10,240
-- Tool call limit: 30
-- Time limit: 60s
 
 </div>
 <div>
@@ -381,9 +332,12 @@ Now let's see how we built the training system—starting with our minimalist ag
 </div>
 </div>
 
+<!-- First I'll tell you about Nano. It is very similar to coding agents you know, but simpler and tuned specifically to work well in training.  -->
+
+
 ---
 
-# Tool Interaction Example
+# Illustrative Nano episode
 
 ```
 shell(cmd="ls src/")
@@ -405,19 +359,17 @@ Patch applied successfully.
 
 Agent explores → identifies bug → applies targeted fix
 
-
-
 <!-- Speaker notes:
-Here's the workflow in action: explore the repository, identify the issue, apply a targeted fix.
+To illustrate more clearly...
 -->
 
 ---
 
 # Sidestepping Diff Generation Complexity
 
-**Agent uses semantic search-replace → git computes canonical diff**
+**Nano uses semantic search-replace → git computes canonical diff**
 
-<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 20px; line-height: 1.6; margin: 20px 0; white-space: pre;">$ git diff
+<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 24px; line-height: 1.6; margin: 20px 0; white-space: pre;">$ git diff
 diff --git a/src/utils.py b/src/utils.py
 index abc123..def456 100644
 <span style="color: #0066cc;">--- a/src/utils.py</span>
@@ -430,39 +382,10 @@ index abc123..def456 100644
 
 --- 
 
-# Execution-Free Reward Design
-
-**Patch-Similarity Reward** $R(\tau) \in [0, 1]$:
-
-Let $F_a, F_g$ = files modified by agent, ground truth
-
-Let $p_a(f), p_g(f)$ = canonical diff hunks for file $f$
-
-$$
-R(\tau) = \frac{1}{\max(|F_a|, |F_g|)} \sum_{f \in F_a \cup F_g} \text{similarity}(p_a(f), p_g(f))
-$$
-
-**Properties**:
-- Python's `difflib.SequenceMatcher.ratio()` for similarity
-- Files in only one set contribute zero
-- **Deterministic, language-agnostic, easily reproducible**
-
-
-
-<!-- Speaker notes:
-Patch-similarity is the core technical innovation that enables language-agnostic, scalable training without test execution infrastructure.
-- Compares agent's diff to ground-truth diff using sequence matching
-- Averaged over all modified files (union of agent and ground-truth file sets)
-- Properties: deterministic, language-agnostic, reproducible, no execution needed
-- Trade-off: gives up functional verification for massive simplicity + multilingual scalability
-- Result: train on 10 languages with a single reward function
--->
-
----
 
 # Patch-Similarity Examples
 
-**No Similarity (R < 0.1)** — Different files → minimal overlap
+**No Similarity (R < 0.1)** — Same file, different functions → minimal overlap
 
 <div style="display: flex; justify-content: center; margin: 20px 0;">
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
@@ -470,12 +393,12 @@ Patch-similarity is the core technical innovation that enables language-agnostic
 <div>
 <strong>Agent Patch:</strong>
 
-<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.5; margin-top: 8px; white-space: pre;">
-<span style="color: #0066cc;">--- a/config.py</span>
-<span style="color: #0066cc;">+++ b/config.py</span>
-<span style="color: #008080;">@@ -8,1 +8,1 @@</span>
-<span style="color: #cc0000;">-MAX_SIZE = 1024</span>
-<span style="color: #009900;">+MAX_SIZE = 2048</span>
+<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 24px; line-height: 1.5; margin-top: 8px; white-space: pre;">
+<span style="color: #0066cc;">--- a/src/utils.py</span>
+<span style="color: #0066cc;">+++ b/src/utils.py</span>
+<span style="color: #008080;">@@ -42,1 +42,1 @@</span>
+<span style="color: #cc0000;">-    return data.strip().lower()</span>
+<span style="color: #009900;">+    return data.strip().lower().replace(' ', '_')</span>
 </div>
 
 </div>
@@ -483,18 +406,24 @@ Patch-similarity is the core technical innovation that enables language-agnostic
 <div>
 <strong>Ground Truth Patch:</strong>
 
-<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.5; margin-top: 8px; white-space: pre;">
-<span style="color: #0066cc;">--- a/server.py</span>
-<span style="color: #0066cc;">+++ b/server.py</span>
-<span style="color: #008080;">@@ -12,1 +12,1 @@</span>
-<span style="color: #cc0000;">-PORT = 8000</span>
-<span style="color: #009900;">+PORT = 9000</span>
+<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 24px; line-height: 1.5; margin-top: 8px; white-space: pre;">
+<span style="color: #0066cc;">--- a/src/utils.py</span>
+<span style="color: #0066cc;">+++ b/src/utils.py</span>
+<span style="color: #008080;">@@ -8,1 +8,1 @@</span>
+<span style="color: #cc0000;">-MAX_SIZE = 1024</span>
+<span style="color: #009900;">+MAX_SIZE = 2048</span>
 </div>
 
 </div>
 
 </div>
 </div>
+
+<!-- 
+With the agent generated diff
+Our reward function averages sequence similarities across the diffs of files affected.
+
+Correlates with functional similarity but does not fully overlap.-->
 
 ---
 
@@ -508,7 +437,7 @@ Patch-similarity is the core technical innovation that enables language-agnostic
 <div>
 <strong>Agent Patch:</strong>
 
-<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.5; margin-top: 8px; white-space: pre;">
+<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 24px; line-height: 1.5; margin-top: 8px; white-space: pre;">
 <span style="color: #0066cc;">--- a/parser.py</span>
 <span style="color: #0066cc;">+++ b/parser.py</span>
 <span style="color: #008080;">@@ -18,3 +18,4 @@</span>
@@ -523,7 +452,7 @@ Patch-similarity is the core technical innovation that enables language-agnostic
 <div>
 <strong>Ground Truth Patch:</strong>
 
-<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.5; margin-top: 8px; white-space: pre;">
+<div style="padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 24px; line-height: 1.5; margin-top: 8px; white-space: pre;">
 <span style="color: #0066cc;">--- a/parser.py</span>
 <span style="color: #0066cc;">+++ b/parser.py</span>
 <span style="color: #008080;">@@ -18,1 +18,1 @@</span>
@@ -537,58 +466,6 @@ Patch-similarity is the core technical innovation that enables language-agnostic
 </div>
 
 
-<!-- Speaker notes:
-Top: agent modified validate function signature, ground truth modified parse function logic—same file but different functions, near-zero similarity. Bottom: both modify parse to return split text, but agent uses intermediate variable—partial structural match, around 0.5 similarity.
--->
-
-
----
-
-# Model Selection: Qwen3-14B
-
-**Why Qwen3?**
-- Hybrid reasoning model with strong tool-calling capabilities
-- Community consensus: strongest open-weight models at the time
-
-**Why 14B?**
-- **Practical constraint**: 8B too large for 2 GPUs, too small for 3
-- 32B requires 6 GPUs minimum
-- 14B optimal fit for 3× A100 allocation
-
-<!-- Speaker notes:
-Need power of 2 for both training and inference
--->
-
----
-
-<!-- _class: section-title -->
-
-# Implementation & Infrastructure
-
-
-<!-- Speaker notes:
-The infrastructure had to solve a hard problem: continuous policy improvement without server restarts.
--->
-
----
-
-# Live Weight Synchronization via NCCL
-
-**Key Innovation**: Continuous policy improvement without server restarts
-
-Training broadcasts weight updates via NCCL to a deployed **OpenAI-compatible API server**
-
-**This means**: Any AI application that speaks OpenAI API can be trained with this infrastructure
-
-**Ships with**: All vLLM inference optimizations and first-class features like tool calling 
-
-**Generality**: Same agent code for training and deployment
-
-
-<!-- Speaker notes:
-The breakthrough is NCCL weight sync to an OpenAI-compatible API server—this makes the infrastructure general. Any AI application speaking that API can be trained. Nano agent, but also any other agentic system. Training and inference run on separate GPUs, weights sync via NCCL broadcasts, agents progress asynchronously. No server restarts, no coupling between trainer and agent code.
--->
-
 ---
 
 # Training Infrastructure
@@ -596,8 +473,10 @@ The breakthrough is NCCL weight sync to an OpenAI-compatible API server—this m
 ![width:1100px](../plotting/figures/training_sequence_diagram.png)
 
 
-<!-- Speaker notes:
-This diagram shows the full training loop—the key innovation is NCCL weight synchronization enabling continuous policy updates.
+<!-- I'll linger on this for a bit
+
+LLMs are still only weights and biases, we need sophisticated endoint logic to make them useful (e.g. tool calling, conversation turns etc.)
+
 -->
 
 ---
@@ -619,12 +498,9 @@ This diagram shows the full training loop—the key innovation is NCCL weight sy
 **Result**: 14B training on 2× A100, 1x A100 for inference
 
 <!-- Speaker notes:
-Making 14B training fit on 3 A100s required stacking every memory optimization available—this is how we achieved 120× cost reduction.
-- LoRA: train 0.35% of parameters (rank 32, alpha 64)
-- ZeRO-2: shard optimizer states across GPUs
-- Gradient checkpointing: trade compute for memory
-- Flash Attention 2 + fused kernels: faster + less memory
-- Result: 14B fits in 80GB with batch size 4
+Making 14B training fit on 3 A100s required stacking every memory optimization available—this is how we achieved 24× GPU reduction.
+
+Significantly lower bar to entry.
 -->
 
 ---
@@ -641,11 +517,11 @@ Now the payoff—did it work? Four research questions about convergence, adaptat
 
 ---
 
-# RQ0: Does GSPO training converge with execution-free rewards?
+# RQ0: Training Convergence
 
 ![width:1150px](../plotting/figures/plots/temporal/reward_over_time_8dc73bp4.png)
 
-**Yes—training converges. Rewards doubled, variance increased (strong gradient signal)**
+**Yes—training converges. Rewards doubled, variance increased.**
 
 
 
@@ -657,7 +533,7 @@ Yes—training converges!
 
 ---
 
-# RQ0: Why Variance Matters
+# Why Variance Matters
 
 In group-relative methods like GSPO, advantages compare each response against within-group statistics:
 
@@ -684,28 +560,12 @@ Why does increasing variance matter? In GSPO, variance collapse kills learning�
 
 ---
 
-# RQ1: Does RL training improve harness adaptation?
-
-![width:920px](../plotting/figures/plots/temporal/tool_calls_over_time_ema0.05_8dc73bp4.png)
-
-**Episode length**: Early training exhausts 30-call budget, late training converges to 10-15 calls
-
-
-<!-- Speaker notes:
-Early training shows "death spiral" behavior—repeatedly calling failing tools until hitting the 30-call budget, then learning efficiency.
-- Early: consistently exhausts 30-call budget
-- Pattern: repeated failures, no termination decision
-- Late: episodes shorten to 10-15 calls
-- Learning: both efficiency and when to stop
--->
-
----
-
-# RQ1: Tool Execution Success Rates
+# RQ1: Harness Adaptation
 
 ![width:920px](../plotting/figures/plots/temporal/tool_success_rates_ema0.05_8dc73bp4.png)
 
-<!-- Speaker notes:
+<!-- 
+Harness adaptation through tool calling accuracies and 
 Shell success rates nearly doubled—and this happened during the budget-exhaustion phase, so it's learning better tool use, not just selectivity.
 - Shell: 45% → 80% (+78% improvement)
 - apply_patch: volatile but trending up
@@ -715,7 +575,7 @@ Shell success rates nearly doubled—and this happened during the budget-exhaust
 
 ---
 
-# RQ1: Command Usage Evolution
+# RQ1: Harness Adaptation
 
 ![width:920px](../plotting/figures/plots/temporal/command_trend_direct_ema0.05_8dc73bp4.png)
 
@@ -765,16 +625,13 @@ Early training: chaotic command flow with lots of basic navigation—look at the
 Command distribution and transition patterns after training convergence (last 20% episodes)
 </div>
 
-
-
 <!-- Speaker notes:
 Late training: much more focused—grep dominates, less random navigation, cleaner transitions to apply_patch.
 -->
 
-
 ---
 
-# RQ2: Does RL improve SWE-Bench-Verified performance?
+# RQ2: SWE-Bench Performance
 
 | Metric | Baseline | Ours (step 460) | Change |
 |--------|----------|-----------------|--------|
@@ -825,7 +682,7 @@ Patch-similarity rewards did increase substantially—54% improvement—validati
 
 ---
 
-# RQ3: Does RL generalize across languages?
+# RQ3: Multilingual Generalization
 
 ![width:920px](../plotting/figures/plots/analysis/language_reward_epochs_n1000_8dc73bp4.png)
 
@@ -959,32 +816,6 @@ Let's synthesize what we learned, acknowledge limitations, and chart future dire
 
 <!-- Speaker notes:
 Several promising directions. Infrastructure: eliminate idle time, reduce GPU requirements. Most important: extended training with larger models—our curves haven't plateaued, DeepSWE showed this works. Multi-task: does debugging skill transfer? And the big open question: where do execution-free methods plateau, or do they scale all the way?
--->
-
----
-
-# Final Reflections
-
-**AlphaGo learned from human games, then self-play made it superhuman.**
-
-Foundation first. Then reinforcement learning.
-
-But real-world tasks remained out of reach.
-
-**No foundation to build on.**
-
-**LLMs changed everything:**
-
-They provide the prerequisite knowledge to attempt real tasks coherently.
-
-Now RL can finally climb the ladder—from that crucial first rung upward.
-
-**What excites me:**
-
-Decades of RL research now applies to problems that actually matter.
-
-<!-- Speaker notes:
-This is what excites me most about this work. AlphaGo learned from human games first—supervised learning gave it the foundation to participate in Go. Then RL through self-play made it superhuman. That's the pattern: foundation first, then reinforcement learning optimizes. But for real-world tasks like coding? We had no foundation. Games give you reward signals for every legal move. Real-world tasks require deep conceptual understanding just to participate meaningfully. Before LLMs, applying RL to coding was futile. Our models couldn't even attempt such problems. The issue wasn't that RL algorithms were broken—they had no gradient to climb, no foundation to build on. LLMs cracked this. They provide the prerequisite knowledge to attempt real tasks coherently. Now when an RL agent tries to fix a bug, it can at least run valid commands, read error messages, generate the rich learning signals RL needs. For the first time, we can apply decades of RL research—exploration strategies, credit assignment, policy optimization—to problems that actually matter. LLMs gave us that crucial first rung on the ladder. We're just beginning to understand what's possible.
 -->
 
 ---
