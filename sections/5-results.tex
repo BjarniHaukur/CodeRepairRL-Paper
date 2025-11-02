@@ -1,16 +1,24 @@
 \chapter{Experimental Results}
 \label{ch:results}
 
-This chapter presents experimental results addressing the four research questions established in Chapter~\ref{ch:introduction}.
-We begin by validating training convergence (RQ0), then examine scaffold adaptation (RQ1), SWE-Bench-Verified performance (RQ2), and multilingual generalization (RQ3).
+This chapter presents experimental results addressing the three research questions established in Chapter~\ref{ch:introduction}.
+We begin by validating training convergence across diverse programming languages (RQ1), then examine scaffold adaptation (RQ2) and SWE-Bench-Verified performance (RQ3), concluding with a discussion of the observed patterns and their implications.
 
-\section{RQ0: Training Convergence?}
+\section{RQ1: Training Convergence Across Languages}
 \label{sec:training-convergence}
 
 \textbf{Research Question:}
-Does \ac{GSPO} training converge effectively with execution-free rewards?
+Does execution-free \ac{GSPO} training converge across diverse programming languages?
 
-Training proceeded for a little over 2 epochs over the 1{,}000-task curriculum, completing in 2 days of wall-clock time on 3 A100 \acp{GPU} (144 total \ac{GPU}-hours), with \Cref{fig:reward-progression} demonstrating sustained learning throughout.
+\textbf{Approach:}
+We monitor training dynamics over 460 gradient steps spanning 2 epochs of the 1{,}000-task curriculum (750 Python + 250 multilingual tasks across nine languages).
+Overall convergence is assessed through mean and standard deviation of patch-similarity rewards computed after each episode, with reward progression indicating learning and sustained variance ensuring strong gradient signal.
+Language-level convergence is validated by comparing per-language rewards on identical problem instances between epoch 1 (first exposure) and epoch 2 (second exposure).
+For group-relative methods like \ac{GSPO}, sustained variance is critical: when all responses receive similar rewards, advantages collapse toward zero and eliminate the policy gradient.
+
+\subsection{Overall Training Dynamics}
+
+Training proceeded for a little over 2 epochs, completing in 2 days of wall-clock time on 3 A100 \acp{GPU} (144 total \ac{GPU}-hours), with \Cref{fig:reward-progression} demonstrating sustained learning throughout.
 Mean patch-similarity rewards approximately doubled from 0.05 to peak values exceeding 0.10.
 The continued upward trend validates that execution-free rewards provide sufficient signal for policy optimization in the agentic debugging setting.
 
@@ -22,7 +30,7 @@ The sustained and growing variance indicates the policy generates diverse episod
 This stands in contrast to variance collapse, a common failure mode where the policy converges prematurely to a narrow strategy that produces uniform outcomes.
 
 The transient reward decline around step 200 reflects a characteristic challenge in online reinforcement learning.
-As detailed in \cref{sec:rq1-harness}, the tool usage patterns that proved effective through step 150 subsequently degraded performance, and it took considerable time for alternative patterns to reemerge in the policy distribution.
+As detailed in \cref{sec:rq2-harness}, the tool usage patterns that proved effective through step 150 subsequently degraded performance, and it took considerable time for alternative patterns to reemerge in the policy distribution.
 These alternative patterns ultimately proved superior, yielding the subsequent reward improvements.
 Similar transitions occur throughout training as the policy sifts through different behavioral patterns.
 
@@ -33,17 +41,32 @@ Similar transitions occur throughout training as the policy sifts through differ
 	\label{fig:reward-progression}
 \end{figure}
 
-While this exploration maintains healthy gradient signal, extended training would likely require curriculum mixing with non-agentic or meaningfully different tasks to preserve broader model capabilities and prevent catastrophic forgetting.
+\subsection{Language-Level Convergence}
 
-\section{RQ1: Nano Agent Scaffold Adaptation}
-\label{sec:rq1-harness}
+The overall convergence demonstrated above aggregates performance across all languages in the training curriculum.
+To validate that execution-free rewards enable effective learning across diverse programming ecosystems, \Cref{fig:language-reward-epochs} presents per-language reward progression from epoch 1 to epoch 2.
+All nine languages demonstrate measurable learning progression despite substantial differences in syntax, semantics, and runtime characteristics, including systems languages (C, Rust), dynamically-typed languages (Python, Ruby, JavaScript, PHP), and statically-typed languages (Java, Go, TypeScript).
+
+Despite substantial variation in absolute reward magnitudes (likely reflecting language verbosity differences and task difficulty), every language shows epoch-over-epoch improvement.
+This validates that patch-similarity rewards provide effective learning signals across diverse syntax and semantics without language-specific adaptations, confirming that execution-free training supports unified policy optimization across heterogeneous language ecosystems.
+
+\begin{figure}[httb]
+	\centering
+	\includegraphics[width=0.85\textwidth]{plotting/figures/plots/analysis/language_reward_epochs_n1000_8dc73bp4.png}
+	\caption{Per-language reward progression from epoch 1 to epoch 2 on the same problem instances, demonstrating convergence across nine programming languages.}
+	\label{fig:language-reward-epochs}
+\end{figure}
+
+\section{RQ2: Nano Agent Scaffold Adaptation}
+\label{sec:rq2-harness}
 
 \textbf{Research Question:}
 How does \ac{GSPO} training improve Nano agent scaffold adaptation?
 
-Effective scaffold adaptation requires the policy to generate valid tool calls, strategically appropriate commands, and applying syntactically correct changes to files.
-We measure tool execution success rates, number of tool calls, and command usage patterns to characterize how the policy's interaction behavior evolves during training.
-These trends offer insight into the learning that is occurring, as evidenced by concurrent reward progression shown in \cref{sec:training-convergence}.
+\textbf{Approach:}
+We analyze operational metrics extracted from training episode logs: tool execution success rates (proportion of syntactically valid tool calls that execute without errors), episode length (number of tool calls per episode), and command usage patterns (frequency distribution of specific shell commands over time).
+All metrics are computed over the training trajectory and visualized with exponential moving average smoothing ($\alpha = 0.05$) to reveal trends.
+These operational measures characterize how the policy's scaffold interaction behavior evolves during training, complementing the reward progression analysis in \cref{sec:training-convergence}.
 
 \subsection{Episode Length}
 \label{subsec:episode-length}
@@ -51,7 +74,6 @@ These trends offer insight into the learning that is occurring, as evidenced by 
 \Cref{fig:episode-length} tracks the number of tool calls per episode throughout training.
 Initially, the policy consistently exhausts the maximum episode budget of 30 tool calls, frequently exhibiting ``death spiral'' behavior where it repeatedly invokes the same failing tool without adapting its strategy.
 The reward decline around step 200 discussed in \cref{sec:training-convergence} coincides with a spike in apply\_patch usage visible in \cref{fig:command-evolution}.
-One plausible explanation is that the policy adopted a strategy of broadly affecting the repository to attain tail rewards, but this approach proved harmful to performance and was eventually superseded after many gradient updates.
 
 As training progresses, the policy ceases to exhaust the tool call budget and episode lengths trend consistently downward.
 This indicates that the policy learns both to execute successful debugging workflows more efficiently and to terminate episodes when productive actions are exhausted rather than persisting with unproductive patterns.
@@ -94,13 +116,17 @@ Each command's usage is expressed as a percentage of total tool calls at that tr
 	\label{fig:command-evolution}
 \end{figure}
 
-\section{RQ2: SWE-Bench-Verified Performance}
-\label{sec:rq2-swebench}
+\section{RQ3: SWE-Bench-Verified Performance}
+\label{sec:rq3-swebench}
 
 \textbf{Research Question:}
 Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?
 
-We compare pre-training Qwen3-14B baseline performance with post-\ac{GSPO} training results on SWE-Bench-Verified.
+\textbf{Approach:}
+We evaluate on the full 500-instance SWE-Bench-Verified benchmark using identical evaluation infrastructure (Nano scaffold, inference settings, episode limits) for both baseline and post-training checkpoints.
+The baseline is Qwen3-14B operating through the Nano scaffold before any \ac{RL} training.
+Primary metrics are completion rate (episodes producing non-empty repository modifications) and resolve rate (test-verified functional correctness).
+Both evaluations use deterministic generation to isolate policy learning effects from sampling variance.
 
 \Cref{tab:swebench-verified-results} compares SWE-Bench-Verified performance before and after \ac{GSPO} training.
 The baseline model, evaluated using the identical Nano agent before \ac{RL} training, demonstrates substantial difficulties with fundamental agent operation.
@@ -147,42 +173,22 @@ Mean reward & 0.122 & \textbf{0.189} \\
 \end{tabular}
 \end{table}
 
-The 54\% reward improvement provides crucial context for interpreting the unchanged resolve rate.
-The baseline results characterize the reward distribution at the start of training: heavily concentrated near zero, with 313 instances producing empty patches (zero reward by definition) and many of the 150 unresolved instances generating patches which might bear little resemblance to ground truth.
-This initial distribution creates a natural learning hierarchy.
-When most trajectories yield near-zero rewards, the highest-impact optimization target involves escaping this low-reward regime entirely—learning to navigate repositories systematically, avoid unproductive tool-use patterns, and achieve the small tail rewards that distinguish \textit{any} progress from complete failure.
-Only after the policy reliably produces non-zero outcomes does gradient-based optimization gain sufficient signal to hill-climb toward higher-quality patches.
+The 54\% reward improvement demonstrates that the policy is learning according to the training objective (patch similarity), even though this learning has not yet translated to improved test-verified success rates.
 
-The observed training trajectory aligns with this hierarchical structure.
-Substantial gains in operational metrics documented in \cref{sec:rq1-harness}—completion rates, tool success, and strategic command usage—alongside the 54\% reward increase suggest that step 460 represents successful acquisition of the first capability tier: consistent achievement of non-zero rewards through competent harness interaction.
-Extended training may be necessary to translate these operational and textual improvements into functional correctness.
+\section{Discussion}
+\label{sec:discussion}
 
-\section{RQ3: Multilingual Performance Improvements}
-\label{sec:rq3-multilingual}
+Training demonstrates clear convergence: rewards double, variance sustains, operational metrics improve substantially, and learning generalizes across nine programming languages.
+Yet test-verified success on SWE-Bench-Verified remains flat at approximately 6--7\%.
 
-\textbf{Research Question:}
-Does execution-free \ac{RL} improve performance across programming languages without language-specific engineering?
+One plausible explanation involves the initial reward distribution, where 313 of 500 instances (62.6\%) produce empty patches.
+This creates a natural learning progression: escaping the zero-reward regime offers abundant signal where any valid patch constitutes measurable progress, while refining patch quality toward higher similarity scores becomes feasible only after the policy reliably produces non-zero outcomes.
+Step 460's trajectory aligns with this interpretation.
+Completion rates increase from 37\% to 78\%, tool success improves from 45\% to 80\%, and the 54\% reward gain demonstrates operational competence, but this competence has not yet translated to test-verified improvements.
+The transient reward decline at step 200, coinciding with increased apply\_patch usage, may reflect temporary overweighting of patch production at the expense of quality.
 
-The mixed 1{,}000-task curriculum described in \cref{sec:data-env} combines 750 Python tasks with 250 multilingual tasks spanning nine programming languages.
-To evaluate whether execution-free patch-similarity rewards enable unified training across diverse languages, we compare per-language rewards on the same problem instances between epoch 1 (first exposure) and epoch 2 (second exposure).
-This within-task comparison directly measures learning progression across languages while controlling for task difficulty variation.
+Extended training may bridge this gap, particularly given that similar methodologies (DeepSWE~\cite{deepSWE2025}) achieve strong results after substantially longer training with greater resources.
+Alternative explanations remain possible, including fundamental limitations of patch-similarity rewards for functional correctness, though continued upward reward trends suggest the policy has not exhausted learning from the current objective.
 
-\Cref{fig:language-reward-epochs} presents per-language reward improvements across the two training epochs.
-Despite the uneven data distribution, all languages demonstrate measurable gains, validating that execution-free rewards provide effective learning signals across diverse language ecosystems without language-specific adaptations.
-
-\begin{figure}[httb]
-	\centering
-	\includegraphics[width=0.85\textwidth]{plotting/figures/plots/analysis/language_reward_epochs_n1000_8dc73bp4.png}
-	\caption{Per-language reward progression from epoch 1 to epoch 2 on the same problem instances.}
-	\label{fig:language-reward-epochs}
-\end{figure}
-
-The absolute reward magnitudes vary substantially across languages.
-Java, Ruby, and PHP achieve the highest rewards (0.12--0.18 in epoch 2), while Rust and TypeScript remain lower (0.06--0.08) despite clear learning progression.
-These differences likely reflect multiple confounding factors.
-Language verbosity introduces a systematic bias where verbose and strict syntax causes any two Java patches to share more boilerplate and structural similarity by default, inflating similarity scores.
-Concise languages like Rust and TypeScript generate shorter patches with less redundant structure, potentially yielding lower similarity scores even when semantically equivalent.
-Task difficulty variation across languages may also contribute—Rust's memory safety constraints and TypeScript's type system complexities could produce intrinsically harder debugging scenarios—though disentangling difficulty from verbosity effects would require controlled investigation beyond the scope of this work.
-
-The consistent improvements across languages with diverse syntax, semantics, and programming paradigms—from low-level systems languages (C, Rust) to dynamic scripting languages (Python, Ruby, JavaScript) to statically-typed enterprise languages (Java, TypeScript)—demonstrate that patch-similarity rewards provide language-agnostic learning signals.
-This validates the core premise of execution-free training: by decoupling reward computation from language-specific test infrastructure, a single methodology trains effectively across heterogeneous language ecosystems.
+The results validate core feasibility: execution-free \ac{RL} training converges across diverse programming languages and drives measurable scaffold adaptation.
+The gap between operational competence and functional success highlights open questions about training duration, reward design, and the relationship between textual similarity and semantic correctness.

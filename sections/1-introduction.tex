@@ -9,11 +9,12 @@ A broad consensus has emerged among researchers: competitive access to training 
 Recent open weight releases such as Kimi-K2~\cite{kimiK2_2025} and Qwen3-Coder~\cite{qwen3CoderBlog2025} follow closely behind frontier performance, but do not include full training recipes.
 This reinforces the need for open, reproducible methods and analysis.
 
-This thesis directly addresses this need by investigating how a single, minimalist agent—Nano—enables a model to acquire agentic behavior through experiential \ac{RL} feedback occurring entirely within the agent's interactive loop.
+This thesis directly addresses this need by investigating how a single, minimalist agent called Nano enables a model to acquire agentic behavior through experiential \ac{RL} feedback occurring entirely within the agent's interactive loop.
 By situating all learning and adaptation within the Nano agent, we provide clear, reproducible insights into the mechanisms by which \ac{RL} cultivates autonomy and effective tool use in repository-level code repair.
 
-An important contemporaneous effort is SWE-RL~\cite{wei2025swerladvancingllmreasoning}, which applies \ac{GRPO} with patch-similarity rewards (using Python's \texttt{difflib.SequenceMatcher}) in a static, single-turn setting: full file contexts are provided, the model outputs a patch directly, and similarity to ground truth defines the reward signal.
-Our work is complementary: we also use execution-free patch-similarity rewards but combine them with \ac{GSPO}—a more robust sequence-level variant—in an agentic, multi-turn regime where the model must first acquire relevant context through tool use before proposing edits.
+An important contemporaneous effort is SWE-RL~\cite{wei2025swerladvancingllmreasoning}, which applies \ac{GRPO} with patch-similarity rewards (using Python's \texttt{difflib.SequenceMatcher}) in a static, single-turn setting where full file contexts are provided, the model outputs a patch directly, and similarity to ground truth defines the reward signal.
+Our work is complementary.
+We also use execution-free patch-similarity rewards but combine them with \ac{GSPO}, a more robust sequence-level variant, in an agentic, multi-turn regime where the model must first acquire relevant context through tool use before proposing edits.
 This distinction between static one-shot patch generation and interactive context acquisition motivates our focus on agent-integrated training within a single minimalist scaffold rather than prompt-time scaffold engineering.
 
 The necessity and transformative potential of agentic training emerge from examining the historical limitations of supervised learning for code repair and the foundational role of \acp{LLM} in enabling \ac{RL} for complex tasks.
@@ -42,7 +43,7 @@ They cannot directly perceive environments or execute actions; they require an i
 
 This architectural distinction necessitates a different approach to \ac{RL}.
 In this paradigm, a lightweight agent scaffold interprets tool calls from the \ac{LLM}, executes corresponding actions in the environment, and returns textual observations for processing.
-The entire system—\ac{LLM} plus scaffold—forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
+The entire system combining the \ac{LLM} and scaffold forms the \ac{RL} agent, with learning occurring through this mediated interaction cycle.
 This thesis instantiates exactly one such scaffold (Nano agent) and conducts all training strictly within this single-agent setting.
 
 When equipped with appropriate scaffolds, \acp{LLM} can navigate file systems, execute terminal commands, interpret error messages, and generate syntactically correct code modifications.
@@ -65,7 +66,8 @@ Our work addresses this need by studying \ac{RL} with interactive coding agents 
 \label{sec:intro-problem}
 
 The central problem is twofold: understanding how online \ac{RL} for multi-turn tool-using agents is done and making it feasible within academic compute constraints.
-Frontier labs have likely addressed these challenges—systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting specialized agent training—but their methods remain proprietary.
+Frontier labs have likely addressed these challenges.
+Systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting specialized agent training, but their methods remain proprietary.
 The investment in purpose-built agent scaffolds indicates successful training approaches exist, yet without disclosed methodologies, the scientific community cannot replicate these results or understand how they were achieved.
 
 Even when methodologies are partially disclosed, computational and operational demands place such training beyond most academic budgets, as pipelines involve dozens of interacting components built atop complex \ac{LLM} foundations.
@@ -73,36 +75,28 @@ This concentration of both knowledge and resources in proprietary labs creates f
 As online \ac{RL} for interactive agents emerges as a promising direction, bridging both the knowledge gap and the resource gap becomes essential for broad research participation.
 
 We therefore develop a low-resource, execution-free \ac{RL} recipe for repository-level \ac{APR}.
-The investigation addresses four research questions:
+The investigation addresses three research questions:
 
-\textbf{RQ0: Does \ac{GSPO} training converge effectively with execution-free rewards?
+\textbf{RQ1: Does execution-free \ac{GSPO} training converge across diverse programming languages?
 }
 \begin{itemize}
-	\item Primary indicators: reward progression, variance evolution, and policy gradient signal stability over training.
-	\item Analysis: reward mean and standard deviation trends.
-	\item Hypothesis: execution-free patch-similarity rewards provide sufficient signal for policy convergence despite not directly optimizing for functional correctness.
+	\item Primary indicators: overall reward progression and variance evolution across the 1{,}000-task curriculum (750 Python + 250 multilingual tasks); per-language reward improvements from epoch 1 to epoch 2 on identical problem instances across nine programming languages.
+	\item Analysis: reward mean and standard deviation trends for convergence validation; epoch-over-epoch comparison per language to assess language-agnostic learning.
+	\item Hypothesis: execution-free patch-similarity rewards provide sufficient signal for policy convergence despite not directly optimizing for functional correctness, and this convergence generalizes across diverse programming languages without language-specific engineering.
 \end{itemize}
 
-\textbf{RQ1: How does \ac{GSPO} training improve Nano agent scaffold adaptation?
-}
+\textbf{RQ2: How does \ac{GSPO} training improve Nano agent scaffold adaptation?}
 \begin{itemize}
 	\item Primary indicators: tool-call success rate, action efficiency, and command usage evolution over training.
 	\item Analysis: pre-training vs. post-training comparison of scaffold-level efficiency metrics and qualitative examination of changes in command usage patterns.
 	\item Hypothesis: \ac{RL} training improves scaffold interaction efficiency and tool-use reliability, with observable shifts in command patterns toward more effective tool use.
 \end{itemize}
 
-\textbf{RQ2: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?}
+\textbf{RQ3: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?}
 \begin{itemize}
 	\item Primary metric: test-verified success rate on SWE-Bench-Verified (approximately 500 Python debugging tasks).
 	\item Comparison: pre-training baseline vs. post-training performance using identical evaluation protocol.
 	\item Hypothesis: training on static patch-similarity rewards improves functional bug-fixing success despite not directly optimizing for test passage.
-\end{itemize}
-
-\textbf{RQ3: Does execution-free \ac{RL} improve performance across programming languages without language-specific engineering?}
-\begin{itemize}
-	\item Primary evaluation: per-language reward improvements from first to second training epoch on the 1{,}000-task curriculum spanning nine programming languages.
-	\item Analysis: comparing epoch 1 and epoch 2 rewards for the same problem instances across languages.
-	\item Hypothesis: execution-free patch-similarity rewards enable unified training across programming languages without language-specific adaptations, with measurable improvements across diverse languages despite limited non-Python training data.
 \end{itemize}
 
 \section{Contributions}
@@ -158,10 +152,11 @@ The remainder of this thesis progresses from theoretical foundations through emp
 \textbf{Chapter 2: Background and Related Work} reviews policy optimization algorithms for language models (\ac{PPO}, \ac{GRPO}, DAPO, \ac{GSPO}), situates \ac{APR} within repository-level evaluation paradigms, and contrasts agentless vs.
 agentic approaches to motivate our execution-free, agent-integrated training methodology.
 
-\textbf{Chapter 3: Method} formalizes the Nano agent (observation/action spaces, interaction loop, termination), specifies training data (SWE-Gym, SWE-Bench-Multilingual), defines the patch-similarity reward formulation, describes \ac{GSPO} policy optimization with masked loss, and outlines the evaluation protocol addressing RQ0-RQ3.
+\textbf{Chapter 3: Method} formalizes the Nano agent (observation/action spaces, interaction loop, termination), specifies training data (SWE-Gym, SWE-Bench-Multilingual), defines the patch-similarity reward formulation, describes \ac{GSPO} policy optimization with masked loss, and outlines the evaluation protocol addressing RQ1-RQ3.
 
 \textbf{Chapter 4: Infrastructure} documents the practical realization: vLLM-based serving with tool calling, live adapter synchronization via \ac{NCCL}, trainer extensions for multi-turn \ac{GSPO}, SLURM orchestration, compute-efficient infrastructure (\ac{LoRA}, DeepSpeed ZeRO, gradient checkpointing, BF16), and training protocol execution.
 
-\textbf{Chapter 5: Results} presents experimental findings: training convergence and policy gradient signal stability (RQ0), scaffold adaptation metrics and behavioral changes (RQ1), SWE-Bench-Verified performance and hierarchical learning dynamics (RQ2), and per-language reward improvements across nine programming languages (RQ3).
+\textbf{Chapter 5: Results} presents experimental findings: training convergence across languages with policy gradient signal stability (RQ1), scaffold adaptation metrics and behavioral changes (RQ2), and SWE-Bench-Verified performance (RQ3).
+The chapter concludes with a discussion interpreting the observed patterns and their implications.
 
-\textbf{Chapter 6: Conclusions} synthesizes findings, discusses design philosophy and lessons learned (system complexity, reward misspecification, infrastructure challenges), examines broader implications for agentic \ac{AI}, identifies limitations, and proposes future research directions for \ac{RL}-trained coding agents.
+\textbf{Chapter 6: Conclusions} summarizes contributions, discusses design philosophy and lessons learned (system complexity, reward misspecification, infrastructure challenges), examines broader implications for agentic \ac{AI}, identifies limitations, and proposes future research directions for \ac{RL}-trained coding agents.
