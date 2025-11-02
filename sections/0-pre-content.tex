@@ -27,7 +27,7 @@ Similarly, while companies like OpenHands have achieved impressive results, they
 
 % Contribution
 This thesis presents \textit{one of the first fully open training recipes} for coding agents, addressing a fundamental misalignment in current practice: while deployment combines models with agent scaffolds providing tools, memory, and action spaces, training typically optimizes models in isolation.
-We introduce a \ac{RL} approach that trains the \ac{LLM} within its deployment scaffold, enabling the model to learn tool usage and debugging strategies through environmental interaction rather than mere pattern matching.
+We introduce a \ac{RL} approach that trains the \ac{LLM} within its deployment scaffold, enabling the model to learn tool usage through environmental interaction rather than mere pattern matching.
 Our work bridges the gap between closed-source frontier capabilities and open research, providing complete implementation details, training procedures and infrastructure specifications.
 
 % Detail/Nuance
@@ -36,7 +36,7 @@ The key technical innovation lies in our training-inference duality: a custom co
 Our \textit{Nano Agent} architecture provides essential bash and file operations, enabling investigation of how agent capabilities develop through \ac{RL} training with minimal tool complexity.
 
 % Evidence / Secondary Contribution
-Training on a 1{,}000-task curriculum over 144 \ac{GPU}-hours across 2 days on 3 A100s, tractable within typical academic allocations, demonstrates measurable improvements in harness adaptation and patch-similarity rewards.
+Training on a 1{,}000-task curriculum over 144 \ac{GPU}-hours across 2 days on 3 A100s, tractable within typical academic allocations, demonstrates measurable improvements in scaffold adaptation and patch-similarity rewards.
 Patch completion rates more than double from 37\% to 78\%, while patch-similarity rewards increase by 54\% on SWE-Bench-Verified.
 However, test-verified success remains flat at approximately 6--7\%.
 Training across nine programming languages demonstrates that execution-free rewards enable language-agnostic learning, with all languages showing measurable improvements throughout training.

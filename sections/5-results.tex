@@ -2,7 +2,7 @@
 \label{ch:results}
 
 This chapter presents experimental results addressing the four research questions established in Chapter~\ref{ch:introduction}.
-We begin by validating training convergence (RQ0), then examine harness adaptation (RQ1), SWE-Bench-Verified performance (RQ2), and multilingual generalization (RQ3).
+We begin by validating training convergence (RQ0), then examine scaffold adaptation (RQ1), SWE-Bench-Verified performance (RQ2), and multilingual generalization (RQ3).
 
 \section{RQ0: Training Convergence?}
 \label{sec:training-convergence}
@@ -35,13 +35,13 @@ Similar transitions occur throughout training as the policy sifts through differ
 
 While this exploration maintains healthy gradient signal, extended training would likely require curriculum mixing with non-agentic or meaningfully different tasks to preserve broader model capabilities and prevent catastrophic forgetting.
 
-\section{RQ1: Nano Harness Adaptation}
+\section{RQ1: Nano Agent Scaffold Adaptation}
 \label{sec:rq1-harness}
 
 \textbf{Research Question:}
-How does \ac{GSPO} training improve Nano harness adaptation?
+How does \ac{GSPO} training improve Nano agent scaffold adaptation?
 
-Effective harness adaptation requires the policy to generate valid tool calls, strategically appropriate commands, and applying syntactically correct changes to files.
+Effective scaffold adaptation requires the policy to generate valid tool calls, strategically appropriate commands, and applying syntactically correct changes to files.
 We measure tool execution success rates, number of tool calls, and command usage patterns to characterize how the policy's interaction behavior evolves during training.
 These trends offer insight into the learning that is occurring, as evidenced by concurrent reward progression shown in \cref{sec:training-convergence}.
 
@@ -103,13 +103,13 @@ Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified
 We compare pre-training Qwen3-14B baseline performance with post-\ac{GSPO} training results on SWE-Bench-Verified.
 
 \Cref{tab:swebench-verified-results} compares SWE-Bench-Verified performance before and after \ac{GSPO} training.
-The baseline model, evaluated using the identical Nano harness before \ac{RL} training, demonstrates substantial difficulties with fundamental agent operation.
+The baseline model, evaluated using the identical Nano agent before \ac{RL} training, demonstrates substantial difficulties with fundamental agent operation.
 Although all 500 instances receive submission attempts, only 186 episodes (37.2\%) produce non-empty patches, while 313 episodes (62.6\%) fail to modify the repository.
 This high empty-patch rate reveals that the pre-trained model struggles to execute valid debugging workflows within episode constraints, frequently exhausting token budgets or tool-call limits without applying repository changes.
 Among the 186 episodes that produce patches, 36 instances (7.2\% of total) pass all associated test cases.
 
 After \ac{GSPO} training at step 460, episodes producing patches more than double to 388 instances (77.6\%), reducing empty-patch failures by 64\%.
-This demonstrates substantial improvement in harness adaptation: the trained model reliably executes multi-turn debugging episodes, navigates repositories, and applies patches within operational constraints.
+This demonstrates substantial improvement in scaffold adaptation: the trained model reliably executes multi-turn debugging episodes, navigates repositories, and applies patches within operational constraints.
 
 \emph{However}, test-verified success decreases from 36 to 31 resolved instances (7.2\% → 6.2\%).
 Given the small absolute numbers and inherent evaluation variance, this difference likely falls within error margins and may reflect statistical noise rather than meaningful degradation.
@@ -117,20 +117,15 @@ Nonetheless, the results clearly indicate that training has not yet improved fun
 
 \begin{table}[H]
 \centering
-\caption{SWE-Bench-Verified performance comparing pre-training baseline and post-\ac{GSPO} training. The baseline model is Qwen3-14B with the Nano agent before \ac{RL} training. Metrics represent test-verified outcomes on the full 500-instance benchmark.}
+\caption{SWE-Bench-Verified performance comparing pre-training baseline and post-\ac{GSPO} training on 500 instances. The baseline model is Qwen3-14B with the Nano agent before \ac{RL} training. All metrics are presented such that higher values indicate better performance.}
 \label{tab:swebench-verified-results}
 \begin{tabular}{lcc}
 \toprule
 \textbf{Metric} & \textbf{Baseline} & \textbf{Ours (step 460)} \\
 \midrule
-Total instances & 500 & 500 \\
-Submitted instances & 500 & 500 \\
 Completed instances & 186 & \textbf{388} \\
+Completion rate & 37.2\% & \textbf{77.6\%} \\
 Resolved instances & \textbf{36} & 31 \\
-Unresolved instances & 150 & 357 \\
-Empty patch instances & 313 & 111 \\
-Error instances & 0 & 1 \\
-\midrule
 Resolve rate & 7.2\% & 6.2\% \\
 \bottomrule
 \end{tabular}

@@ -1,4 +1,4 @@
-\chapter{Methodology}
+\chapter{Method}
 \label{ch:method}
 
 This chapter presents an execution-free \acs{RL} methodology for repository-level \acs{APR}.
@@ -31,6 +31,9 @@ Instruction-driven, repository-level multilingual debugging datasets remain subs
 
 \section{Nano Agent}
 \label{sec:nano-agent}
+
+Existing production agent scaffolds optimize for task success through rich tool sets and sophisticated orchestration, but lack properties needed for tractable \ac{RL} training.
+Nano fills this gap by prioritizing trainability: unmodified conversation histories that enable end-to-end policy optimization, resource-limit awareness and persistence to lessen reward sparsity, and minimal dependencies for reproducible implementation.
 
 We formalize the Nano agent through its observation space, action space, interaction dynamics, termination conditions, and safety constraints.
 This specification provides the foundation for the \ac{RL} training methodology described subsequently.
@@ -91,11 +94,11 @@ drwxr-xr-x  utils/
 ... )
 Patch applied successfully.
 \end{minted}
-\caption{Illustrative episode execution of the Nano agent. Strings in red are supplied by the \ac{LLM} as \ac{JSON} tool call arguments. The agent explores repository structure and file contents before applying a targeted edit.}
+\caption{Illustrative episode execution showing the Nano agent's two tools: \texttt{shell} for repository navigation and inspection, and \texttt{apply\_patch} for file modification. The agent explores repository structure through shell commands before applying targeted edits.}
 \label{fig:nano-tools}
 \end{figure}
 
-\subsection{Sidestepping the Diff Generation Problem}
+\subsection{Deterministic Canonical Diff Computation}
 
 Generating syntactically valid unified diffs presents a high-dimensional formatting challenge for language models: line numbers must accurately reflect current file state, context lines must match existing content exactly character-for-character, and headers must specify correct paths, offsets, and chunk sizes.
 State-of-the-art models frequently produce malformed diffs with misaligned line numbers, incorrect context, or invalid headers that fail during patch application, introducing a brittle failure mode orthogonal to the semantic debugging task.
@@ -128,7 +131,7 @@ These limits keep \ac{VRAM} utilization bounded and improve sample efficiency: t
 \subsection{Sampling and Exploration}
 
 Training and evaluation employ distinct sampling configurations that reflect the fundamental exploration-exploitation trade-off in \ac{RL}.
-During training episodes, we configure sampling with temperature 1.0 and top-$p$ 1.0 to encourage exploration of diverse debugging strategies and tool-usage patterns.
+During training episodes, we configure sampling with temperature 1.0 and top-$p$ 1.0 to encourage exploration of diverse tool-use approaches and interaction patterns.
 This maximally stochastic sampling enables the policy to discover varied solution trajectories and prevents premature convergence to suboptimal behaviors.
 Conversely, evaluation episodes use temperature 0.2 and top-$p$ 0.9 to exploit the learned policy, producing more deterministic and reliable behavior when assessing performance on held-out benchmarks.
 This exploration-during-training, exploitation-during-evaluation paradigm ensures that the model explores broadly while learning but executes confidently when deployed.
@@ -152,12 +155,10 @@ The trade-off exchanges direct functional verification for infrastructure simpli
 \section{Policy Optimization} \label{sec:rl}
 
 We adopt \ac{GSPO}~\cite{gspo2025} as our policy optimization algorithm.
-\ac{GSPO} extends the group-relative baseline principle from \ac{GRPO} with sequence-level importance weighting, offering improved stability over earlier group-relative methods.
-This stability is essential for long-context, multi-turn coding agent training where episodes vary substantially in length and structure.
+As detailed in \cref{subsubsec:gspo}, \ac{GSPO} extends \ac{GRPO} with sequence-level importance weighting, offering superior stability for variable-length episodes compared to token-level methods—critical for multi-turn agent training where episodes vary substantially in length and structure.
 
-Our training objective combines \ac{GSPO} with a modest \ac{KL} penalty to counteract gradient variance from limited batch sizes: \begin{equation}
-J(\theta) = J_{\mathrm{GSPO}}(\theta) - \beta_{\text{KL}} \cdot D_{\text{KL}}(\pi_\theta \| \pi_{\theta_{\text{ref}}}),
-\end{equation} where the \ac{KL} divergence is computed on the logits of the episodes used for training, $\beta_{\text{KL}}$ controls regularization strength, and $\pi_{\theta_{\text{ref}}}$ is the initial pre-trained checkpoint.
+To further stabilize training under small effective batch sizes constrained by available compute, we add a light \ac{KL} regularizer to the initial pre-trained checkpoint.
+Implementation details including batch configuration, custom Triton kernels for \ac{GSPO} loss computation, and gradient masking for multi-turn trajectories are documented in \cref{ch:work}.
 
 \section{Model Choice}
 \label{sec:models}

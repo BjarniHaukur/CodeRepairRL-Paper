@@ -1,7 +1,7 @@
 \chapter{Conclusions and Future Work}
 \label{ch:conclusions}
 
-This thesis investigates online \ac{RL} training for repository-level code repair through a single minimalist agent, demonstrating that execution-free patch-similarity rewards enable meaningful improvements in harness adaptation within academic compute constraints.
+This thesis investigates online \ac{RL} training for repository-level code repair through a single minimalist agent, demonstrating that execution-free patch-similarity rewards enable meaningful improvements in scaffold adaptation within academic compute constraints.
 We developed infrastructure for live weight synchronization between distributed trainers and deployed inference servers, enabling efficient multi-turn agent training on modest \ac{GPU} clusters.
 Training Qwen3-14B with \ac{GSPO} on execution-free rewards substantially improves operational reliability—more than doubling patch completion rates from 37\% to 78\%—though test-verified correctness remains flat at approximately 6--7\%.
 
@@ -48,22 +48,22 @@ Transient declines around step 200 reflect characteristic online learning dynami
 
 \textbf{Implications}: Execution-free patch-similarity rewards provide sufficient signal for policy convergence in agentic debugging, validating the core feasibility assumption underlying the entire training approach.
 
-\subsection{RQ1: Nano Harness Adaptation} \label{subsec:rq1-answer}
+\subsection{RQ1: Nano Agent Scaffold Adaptation} \label{subsec:rq1-answer}
 
-\textbf{Research Question}: How does \ac{GSPO} training improve Nano harness adaptation?
+\textbf{Research Question}: How does \ac{GSPO} training improve Nano agent scaffold adaptation?
 
 \textbf{Findings}: Training substantially improves operational metrics across all measures.
 Shell command success rates improve from approximately 45\% to 80\%, while episodes consistently exhaust the 30-tool-call budget early in training but trend downward as the policy learns more efficient debugging workflows.
 Command usage patterns shift strategically, with the model developing systematic repository navigation and focused debugging behaviors rather than death-spiral patterns.
 
-\textbf{Implications}: Policy gradient optimization successfully reinforces effective tool-usage patterns within the single-agent paradigm, demonstrating co-adaptation between model and harness through environmental interaction.
+\textbf{Implications}: Policy gradient optimization successfully reinforces effective tool-usage patterns within the single-agent paradigm, demonstrating co-adaptation between model and scaffold through environmental interaction.
 
 \subsection{RQ2: Execution-Free Patch-Similarity \ac{RL}
 Performance} \label{subsec:rq2-answer}
 
 \textbf{Research Question}: Does execution-free patch-similarity \ac{RL} training improve SWE-Bench-Verified performance?
 
-\textbf{Findings}: Training dramatically improves harness adaptation—patch completion rates more than double from 37\% to 78\% and patch-similarity rewards increase by 54\%—but test-verified success remains flat at approximately 6--7\%.
+\textbf{Findings}: Training dramatically improves scaffold adaptation—patch completion rates more than double from 37\% to 78\% and patch-similarity rewards increase by 54\%—but test-verified success remains flat at approximately 6--7\%.
 The baseline reward distribution concentrates heavily near zero (313 empty patches, 150 unresolved with poor patches), creating a hierarchical learning structure where escaping this low-reward regime represents the highest-impact optimization target.
 Step 460 demonstrates successful acquisition of operational competence (non-zero reward achievement through reliable tool use) without yet translating to functional correctness improvements.
 
@@ -127,7 +127,7 @@ For the first time, we can apply decades of reinforcement learning research to p
 
 \subsection{Performance Levels and Task Scope}
 
-While \ac{GSPO} training substantially improved harness adaptation—more than doubling patch completion rates from 37\% to 78\%—test-verified success on SWE-Bench-Verified remained flat at approximately 6-7\%.
+While \ac{GSPO} training substantially improved scaffold adaptation—more than doubling patch completion rates from 37\% to 78\%—test-verified success on SWE-Bench-Verified remained flat at approximately 6-7\%.
 This gap likely reflects insufficient training duration rather than fundamental methodological limitations.
 DeepSWE~\cite{deepSWE2025}, which applies similar online \ac{RL} methods to terminal-based coding agents, demonstrates strong test-verified performance after training with more than 30x computing power for 3x longer.
 Given the methodological similarities, replicating such results may primarily require additional training rather than architectural changes.
@@ -256,7 +256,7 @@ This experience reinforced the value of sparse, well-aligned rewards over dense 
 \section{Final Reflections}
 \label{sec:final-reflections}
 
-This work demonstrates that online \ac{RL} training for coding agents is practically feasible within academic compute constraints and yields measurable improvements in harness adaptation.
+This work demonstrates that online \ac{RL} training for coding agents is practically feasible within academic compute constraints and yields measurable improvements in scaffold adaptation.
 The convergence of \acp{LLM} and \ac{RL} enables training approaches previously confined to simple domains with well-defined action spaces to extend to complex reasoning tasks like repository-level debugging.
 
 \acp{LLM} fundamentally transformed what reinforcement learning can accomplish by providing the conceptual foundation necessary for coherent interaction with complex environments.

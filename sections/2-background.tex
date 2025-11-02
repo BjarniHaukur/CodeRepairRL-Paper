@@ -3,8 +3,8 @@
 
 This chapter establishes the theoretical and empirical foundations for applying online \ac{RL} to \ac{APR} with tool-augmented \acp{LLM}.
 We begin by situating \ac{APR} historically, then introduce a taxonomy of \ac{LLM}-based approaches—scaffold-free, agentless, and agentic—that clarifies which paradigms support end-to-end policy learning.
-Having established why agentic systems enable \ac{RL} training, we provide an in-depth treatment of policy optimization algorithms, progressing from \ac{PPO} through group-relative methods, with emphasis on stability challenges.
-We then cover parameter-efficient adaptation, instruction-driven datasets, and conclude with research positioning that contrasts our execution-free approach with concurrent work, establishing the methodological context for subsequent chapters.
+With the APR landscape established, we review the instruction-driven datasets that enable training and evaluation of repository-level repair systems.
+We then provide an in-depth treatment of policy optimization algorithms, progressing from \ac{PPO} through group-relative methods to \ac{GSPO}, followed by parameter-efficient adaptation via \ac{LoRA}, establishing the theoretical toolkit for the methodology in subsequent chapters.
 
 \section{Automated Program Repair before \acsp{LLM}}\label{sec:apr-pre-llm}
 
@@ -23,7 +23,7 @@ These constraints, combined with difficulty reasoning beyond localized contexts,
 \section{Automated Program Repair with \acsp{LLM}}\label{sec:apr-with-llms}
 
 Codex marked an inflection point: large-scale pretraining on code enabled practical repair and synthesis, shifting \ac{APR} from symbolic search to learned edit distributions~\cite{codex2021}.
-Frontier laboratories subsequently converged on repository-grounded evaluation (SWE-Bench, SWE-Bench-Verified) and deployed first-party agent harnesses (OpenAI Codex CLI, Anthropic Claude Code, Google Gemini CLI) that orchestrate tool invocations over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
+Frontier laboratories subsequently converged on repository-grounded evaluation (SWE-Bench, SWE-Bench-Verified) and deployed first-party agent scaffolds (OpenAI Codex CLI, Anthropic Claude Code, Google Gemini CLI) that orchestrate tool invocations over live repositories~\cite{sweBench2024,sweBenchVerified2024,openaiCodexCLIRepo,claudeCode,geminiCLIRepo}.
 
 We organize \ac{LLM}-based repair by inference-time autonomy: (i) \emph{scaffold-free} models that generate patches without tool execution, (ii) \emph{agentless} systems where external scripts curate context and apply edits, and (iii) \emph{agentic} systems where models autonomously plan, invoke tools, and iterate based on observations.
 
@@ -34,7 +34,7 @@ There is no repository traversal, no tool use during generation, and no executio
 Any tests are run outside the model after the fact.
 
 Within this regime we focus on post-training methods that adapt an existing \ac{LLM} for repair.
-A representative example is \emph{RepairLLaMA}, which fine-tunes a general code model on curated bug-fix pairs so that it proposes minimal and targeted edits without relying on an execution harness~\cite{repairllama2023}.
+A representative example is \emph{RepairLLaMA}, which fine-tunes a general code model on curated bug-fix pairs so that it proposes minimal and targeted edits without relying on an execution scaffold~\cite{repairllama2023}.
 A parallel thread brings \ac{RL} into the same scaffold-free setting at the function or snippet level.
 \emph{CodeRL} optimizes code generation with unit test execution as feedback while operating on localized contexts \cite{codeRL2022}.
 
@@ -45,7 +45,7 @@ Repository state and build systems remain external to generation.
 
 \subsection{Agentless}\label{subsec:agentless}
 Moving beyond scaffold-free translation, \emph{agentless} systems typically operate over a live repository while keeping execution outside the model.
-A thin scaffold retrieves relevant files, builds diffs, and structures the prompt; the model returns patch blocks or edit intents; a human or scripted harness runs tests and shell commands and applies the edits.
+A thin scaffold retrieves relevant files, builds diffs, and structures the prompt; the model returns patch blocks or edit intents; a human or scripted scaffold runs tests and shell commands and applies the edits.
 This preserves repository grounding and repeatability without autonomous tool use.
 
 We treat agentless systems as interfaces rather than agents: they make the contributions of context curation and patch formatting explicit and easy to ablate.
@@ -69,7 +69,7 @@ This architectural choice optimizes for immediate task performance through caref
 
 Agentic systems operate directly over a live repository and let the model initiate actions.
 The model can open and edit files, run tests and shell commands, read raw outputs, and iterate until a patch is ready.
-Public research harnesses make this concrete: \emph{SWE-Agent} formalizes an agent-computer loop for software tasks, \emph{OpenHands} provides a general terminal-based platform for coding agents, and \emph{mini-swe-agent} shows that a small, disciplined tool set in a tight loop is effective~\cite{sweAgent2024,openHands2024, miniSWEAgentRepo}.
+Public research scaffolds make this concrete: \emph{SWE-Agent} formalizes an agent-computer loop for software tasks, \emph{OpenHands} provides a general terminal-based platform for coding agents, and \emph{mini-swe-agent} shows that a small, disciplined tool set in a tight loop is effective~\cite{sweAgent2024,openHands2024, miniSWEAgentRepo}.
 
 Operationally, these systems rely on structured tool calls, typically via \acs{JSON}.
 The model emits a well-formed function call with arguments, an external executor runs it, and the resulting output is returned to the model.
@@ -92,14 +92,14 @@ The model emits a well-formed function call with arguments, an external executor
 
 This approach transforms \acp{LLM} from passive text generators into systems capable of interacting with their environment by invoking tools and observing their results.
 
-This shift has also shaped how models are packaged and evaluated: recent open-weight releases pair model checkpoints with first-party harnesses and report agent-style evaluations, while disclosing only partial training details.
+This shift has also shaped how models are packaged and evaluated: recent open-weight releases pair model checkpoints with first-party scaffolds and report agent-style evaluations, while disclosing only partial training details.
 We summarize representative examples.
 
 \paragraph{Qwen3\textendash Coder (Alibaba/Qwen team).}
-Qwen3\textendash Coder is positioned as an \emph{agentic} coding model and ships with a first-party command-line harness (\emph{Qwen Code}) that drives repository-grounded autonomous workflows~\cite{qwen3CoderBlog2025,qwenCodeCLI}.
-The release materials emphasize agent behavior in realistic development loops and demonstrate how the paired harness surfaces those capabilities.
+Qwen3\textendash Coder is positioned as an \emph{agentic} coding model and ships with a first-party command-line scaffold (\emph{Qwen Code}) that drives repository-grounded autonomous workflows~\cite{qwen3CoderBlog2025,qwenCodeCLI}.
+The release materials emphasize agent behavior in realistic development loops and demonstrate how the paired scaffold surfaces those capabilities.
 At the same time, the post-training recipe, data generation, reward design, and optimization details is described only at a high level.
-Weights and the harness are available, but a reproducible end-to-end training pipeline is not.
+Weights and the scaffold are available, but a reproducible end-to-end training pipeline is not.
 
 \paragraph{Kimi\textendash K2 (Moonshot AI).}
 Kimi-K2 details an \emph{agentic} data synthesis pipeline paired with a joint reinforcement learning stage that mixes real and synthetic environment interactions.
@@ -122,7 +122,21 @@ In practical terms, agentic systems close the loop between hypothesis and verifi
 This makes online \ac{RL} feasible and aligns the learning signal with the deployed behavior.
 By contrast with agentless setups, the model is exposed to the full decision process of repair rather than a curated slice, so the resulting histories are suitable for end-to-end training.
 
-Having established how agentic systems enable end-to-end learning, we now turn to the theoretical foundations of training such systems through reinforcement learning.
+\section{Training and Evaluation Datasets}
+\label{sec:training-evaluation-datasets}
+
+Instruction-driven datasets provide natural language issue descriptions alongside buggy repository states and ground-truth patches, enabling both training and rigorous evaluation of repository-level repair systems.
+Each instance specifies the debugging task through a problem description, enabling agents to learn from how developers communicate bugs rather than from test failure signals alone.
+
+\subsection{Training Datasets}
+
+SWE-Gym~\cite{sweGym2025} provides approximately 2,400 Python bug-fixing tasks extracted from real GitHub repositories, serving as a large-scale training resource for repository-level repair.
+SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} extends instruction-driven debugging beyond Python, offering tasks spanning nine programming languages: Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++.
+
+\subsection{Evaluation Benchmark}
+
+SWE-Bench-Verified~\cite{sweBenchVerified2024} serves as the community evaluation standard, containing approximately 500 carefully validated Python debugging tasks with deterministic test outcomes.
+The benchmark measures functional correctness through actual test execution, providing ground-truth signals for whether proposed fixes resolve reported issues without introducing regressions.
 
 \section{\acl{RL} for Language Models}
 \label{sec:rl-language-models}
@@ -141,10 +155,8 @@ Expectations are taken over $x \sim \mathcal{D}$ and over responses sampled from
 The operator $\operatorname{clip}(w)$ denotes clipping importance ratio $w$ into the symmetric range $(1-\epsilon,\, 1+\epsilon)$ controlled by $\epsilon>0$; when asymmetric clipping is used, we write the bounds explicitly.
 A frozen reference model is denoted $\pi_{\mathrm{ref}}$ and a \ac{KL} penalty to this reference is written $\beta\,D_{\mathrm{KL}}(\pi_\theta\| \pi_{\mathrm{ref}})$ where $\beta\geq 0$ controls the penalty strength.
 
-This section surveys policy optimization methods for \acp{LLM}, presenting their original formulations to establish context for our adoption of \ac{GSPO}.
 Each method's original design with respect to \ac{KL} regularization is preserved in the presentation: \ac{PPO}, \ac{GRPO}, and Dr.
 \,\ac{GRPO} include an optional \ac{KL} penalty to $\pi_{\mathrm{ref}}$, whereas DAPO and \ac{GSPO} do not.
-Our actual training methodology—using \ac{GSPO} with a light \ac{KL} stabilizer for small effective batch sizes—is detailed in \cref{ch:method}.
 
 \subsection{\acl{PPO}}
 \label{subsec:ppo}
@@ -307,16 +319,3 @@ Initializing $B{=}0$ preserves the base model at the start ($W{=}W_0$), which st
 For online \acl{RL} with coding agents, \ac{LoRA} reduces trainable state, supports clean policy-reference separation (adapters differ, base is shared), and accelerates iteration.
 Adapter placement is flexible—practitioners select which modules to adapt based on capacity/efficiency goals; rank $r$ and scale $\alpha$ set the capacity-efficiency trade-off.
 
-With the theoretical and practical foundations established, we now examine the datasets used to train and evaluate code repair systems in realistic settings.
-
-\section{Instruction-Driven Repository-Level Datasets}
-\label{sec:training-evaluation-datasets}
-
-Instruction-driven datasets provide natural language issue descriptions alongside buggy repository states and ground-truth patches.
-Each instance specifies the debugging task through a problem description, enabling agents to learn from how developers communicate bugs rather than from test failure signals alone.
-
-SWE-Gym~\cite{sweGym2025} provides approximately 2,400 Python bug-fixing tasks extracted from real GitHub repositories.
-SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025} extends instruction-driven debugging beyond Python, offering tasks spanning nine programming languages: Rust, Java, PHP, Ruby, JavaScript, TypeScript, Go, C, and C++.
-
-SWE-Bench-Verified~\cite{sweBenchVerified2024} serves as the community evaluation standard, containing approximately 500 carefully validated Python debugging tasks with deterministic test outcomes.
-The benchmark measures functional correctness through actual test execution, providing ground-truth signals for whether proposed fixes resolve reported issues without introducing regressions.

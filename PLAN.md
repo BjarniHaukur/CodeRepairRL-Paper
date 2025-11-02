@@ -2,6 +2,41 @@
 
 This plan tracks the restructuring of the thesis to follow the KTH template with clear separation between methodology (Ch 3), implementation (Ch 4), and results (Ch 5).
 
+---
+
+## MONPERRUS FEEDBACK
+
+- [x] Change name to Learning Agency in the Terminal with Repository-Level Reinforcement Learning
+- [ ] abstract too long
+- [x] problem statement is very important  "The problem I am addressing IS..."
+- [ ] RQs are a bit weak
+- [x] 1.3 should be Contribution
+- [x] harness <-> scaffold
+- [-] list of scaffolds along with list of models
+- [x] in background, move RL + Lora up, now it is: "apr, apr, apr, theory, theory, apr"
+- [x] current 2.5 can split it up a bit more clear
+- [x] rename "Methodology" to something more impressive
+- [x] 3.3 should start with "why we made Nano", not "what it is"
+- [x] "Sidestepping" sounds like we are avoiding the diff problem, we should describe it as what it IS, not WHAT IT IS NOT"
+- [x] could add more in policy optimization
+- [x] skip SLURM
+- [x] rename 4 to something more impressive: "Contributions to …"
+- [ ] in 5, add RQ methodology before showing the results
+- [x] figure 5.2.1, add apply_patch + shell
+- [-] like figure 5.2.3, do per tool success rate
+- [-] add episode example to results
+- [x] swe bench table remove first two (500(
+- [x] make everything in the table into higher->better, flip the values
+- [ ] rq4, maybe remove, maybe move to RQ0, definitely make it shorter
+- [ ] a short 6.3.1 to an extremely long 6.3.2. is bad smell
+- [ ] Maybe call it: "Broader Reflections on Reinforcement Learning"
+- [ ] 6.2 can be moved into 5 as the final / summary section
+- [ ] Chapter 2: Go from most theoretical to most practical
+- [ ] Chapter 6: From most factual, to most theoretical
+- [ ] Adding stuff detracts from my cool stuff
+
+---
+
 ## ✅ Supervisor Feedback Session (Acknowledgements, Abstract, Minor Fixes)
 
 ### Completed Items
