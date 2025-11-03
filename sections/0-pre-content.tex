@@ -14,40 +14,17 @@ Bjarni Haukur Bjarnason <bhbj@kth.se>\\ Electrical Engineering and Computer Scie
 
 \newpage \thispagestyle{plain} \input{sections/0.1-acronyms}
 
-\newpage \thispagestyle{plain} \chapter*{Abstract} Software engineering agents have emerged as the dominant approach for automated program repair, with systems like SWE-agent, OpenHands and Claude Code achieving unprecedented success on real-world software engineering tasks.
-These agents augment large language models with tools for repository navigation, code execution, and iterative refinement—capabilities essential for solving complex software engineering problems.
+\newpage \thispagestyle{plain} \chapter*{Abstract} Software engineering agents have shown strong real-world debugging capabilities, yet a core mismatch persists between multi-step, interactive deployment and training that uses static datasets of isolated code changes.
+This thesis presents a fully open, end-to-end system for online, execution-free \ac{RL} that trains \acp{LLM} inside a coding agent scaffold (Nano).
+The system uses live weight synchronization via \acs{NCCL} to push policy updates to running inference servers during training.
+While industry systems exhibit agentic coding capabilities consistent with agent-based training, their methods remain undisclosed.
+This work provides an open, reproducible recipe.
 
-% Motivation
-Two critical disconnects limit current approaches.
-First, a training-deployment mismatch exists: while deployment requires dynamic, multi-step interactions with complex software environments, training typically relies on static datasets of isolated code changes.
-Second, a language isolation barrier prevents unified training: test-based rewards require language-specific infrastructure including test runners, build systems, and package managers, making multilingual training prohibitively complex.
-
-Frontier labs have likely addressed the training-deployment gap—systems like Anthropic's Claude Code and OpenAI's Codex demonstrate capabilities suggesting agent-based training—but their methods remain proprietary.
-Similarly, while companies like OpenHands have achieved impressive results, they have not released their training procedures, leaving the open-source community without access to these critical techniques.
-
-% Contribution
-This thesis presents \textit{one of the first fully open training recipes} for coding agents, addressing a fundamental misalignment in current practice: while deployment combines models with agent scaffolds providing tools, memory, and action spaces, training typically optimizes models in isolation.
-We introduce a \ac{RL} approach that trains the \ac{LLM} within its deployment scaffold, enabling the model to learn tool usage and debugging strategies through environmental interaction rather than mere pattern matching.
-Our work bridges the gap between closed-source frontier capabilities and open research, providing complete implementation details, training procedures and infrastructure specifications.
-
-% Detail/Nuance
-We implement this through \ac{GSPO}~\cite{gspo2025} with an explicit KL regularizer, enabling stable updates while models actively debug real repositories during training.
-The key technical innovation lies in our training-inference duality: a custom communication layer enables simultaneous model training and serving, with \ac{NCCL} facilitating live weight synchronization across distributed \acsp{GPU}.
-Our \textit{Nano Agent} architecture provides essential bash and file operations, enabling investigation of how agent capabilities develop through \ac{RL} training with minimal tool complexity.
-
-% Evidence / Secondary Contribution
-Training on a 1{,}000-task curriculum over 144 \ac{GPU}-hours across 2 days on 3 A100s, tractable within typical academic allocations, demonstrates measurable improvements in harness adaptation and patch-similarity rewards.
-Patch completion rates more than double from 37\% to 78\%, while patch-similarity rewards increase by 54\% on SWE-Bench-Verified.
-However, test-verified success remains flat at approximately 6--7\%.
-Training across nine programming languages demonstrates that execution-free rewards enable language-agnostic learning, with all languages showing measurable improvements throughout training.
-
-% Narrow Impact
-For automated program repair, this work demonstrates that online \ac{RL} training substantially improves agent operational reliability within academic compute constraints, though test-verified correctness improvements were not observed at this training scale.
-Similar methodologies achieve strong results with substantially more computational resources, suggesting extended training may be necessary.
-
-% Broad Impact
-Beyond code repair, \ac{RL} offers a general framework for training \ac{AI} systems on interactive tasks where static datasets poorly capture deployment complexity.
-By demonstrating that models can learn rich environmental interactions through \ac{RL} rather than requiring hand-crafted reasoning chains, this work provides one of the first fully open training recipes for coding agents, enabling broader academic investigation of experiential learning approaches.
+We train using \ac{GSPO} with a light \ac{KL} regularizer on a 1{,}000-task curriculum spanning ten programming languages, completing in 144 \ac{GPU}-hours on 3 A100s.
+On SWE-Bench-Verified, patch submission rates (non-empty patches) rise from 37\% to 78\% and mean patch-similarity rewards increase by 54\%, while test-verified success remains approximately flat at 6--7\%.
+These results establish that online, execution-free \ac{RL} reliably improves agent operational competence within academic compute budgets.
+Translating these gains to functional correctness likely requires longer training or alternative reward design.
+We release all infrastructure, methodology, and evaluation protocols to enable reproducible study of online \ac{RL} for interactive coding agents.
 
 \subsection*{Keywords}
 automated program repair, coding agents, reinforcement learning, group relative policy optimization, group sequence policy optimization, online learning, tool-augmented language models, execution-free training, multilingual generalization
@@ -60,34 +37,17 @@ automated program repair, coding agents, reinforcement learning, group relative 
 \chapter*{Sammanfattning}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Kodagenter har vuxit fram som den dominerande metoden för automatisk programreparation, där system som SWE-agent, OpenHands och Claude Code uppnår enastående framgång på verkliga mjukvaruutvecklingsuppgifter.
-Dessa agenter förstärker stora språkmodeller med verktyg för navigering i kodbaser, kodexekvering och iterativ förfining—förmågor som är nödvändiga för att lösa komplexa mjukvaruutvecklingsproblem.
+Kodagenter har visat starka verkliga felsökningsförmågor, men en grundläggande diskrepans kvarstår mellan flerstegs, interaktiv implementation och träning som använder statiska dataset av isolerade kodändringar.
+Denna avhandling presenterar ett helt öppet, end-to-end-system för online, exekveringsfri \ac{RL} som tränar \acp{LLM} inuti en kodagentskall (Nano).
+Systemet använder live viktsynkronisering via \acs{NCCL} för att skicka policyuppdateringar till körande inferensservrar under träning.
+Medan industrisystem uppvisar agentiska kodningsförmågor som överensstämmer med agentbaserad träning, förblir deras metoder hemliga.
+Detta arbete tillhandahåller ett öppet, reproducerbart recept.
 
-Två kritiska skillnader begränsar nuvarande metoder.
-För det första finns en tränings-implementeringsskillnad: medan implementation kräver dynamiska, flerstegsinteraktioner med komplexa mjukvarumiljöer, förlitar sig träning vanligtvis på statiska dataset av isolerade kodändringar.
-För det andra förhindrar en språkisoleringsbarriär enhetlig träning: testbaserade belöningar kräver språkspecifik infrastruktur inklusive testkörare, byggsystem och pakethanterare, vilket gör flerspråkig träning oöverkomligt komplex.
-
-Frontlaboratorier har sannolikt adresserat tränings-implementeringsgapet—system som Anthropics Claude Code och OpenAIs Codex visar förmågor som antyder agentbaserad träning—men deras metoder förblir proprietära.
-På liknande sätt har företag som OpenHands uppnått imponerande resultat men har inte släppt sina träningsförfaranden, vilket lämnar öppen källkods-gemenskapen utan tillgång till dessa kritiska tekniker.
-
-Denna avhandling presenterar \textit{ett av de första helt öppna träningsrecepten} för kodagenter, och adresserar en grundläggande skillnad i nuvarande praxis: medan implementation kombinerar modeller med agentskallar som tillhandahåller verktyg, minne och handlingsutrymmen, optimerar träning vanligtvis modeller isolerat.
-Vi introducerar en \ac{RL}-metod som tränar \ac{LLM} inom dess implementeringsskall, vilket möjliggör att modellen lär sig verktygsanvändning och felsökningsstrategier genom miljöinteraktion snarare än bara mönsterigenkänning.
-Vårt arbete överbryggar klyftan mellan slutna frontierfunktioner och öppen forskning, och tillhandahåller fullständiga implementeringsdetaljer, träningsförfaranden och infrastrukturspecifikationer.
-
-Vi implementerar detta genom \ac{GSPO}~\cite{gspo2025} med en explicit KL-regularisator, vilket möjliggör stabila uppdateringar medan modeller aktivt felsöker verkliga kodbaser under träning.
-Den viktigaste tekniska innovationen ligger i vår tränings-inferens-dualitet: ett anpassat kommunikationslager möjliggör samtidig modellträning och servering, med \ac{NCCL} som underlättar live viktsynkronisering över distribuerade \acsp{GPU}.
-Vår \textit{Nano Agent}-arkitektur tillhandahåller grundläggande bash- och filoperationer, vilket möjliggör undersökning av hur agentförmågor utvecklas genom \ac{RL}-träning med minimal verktygskomplexitet.
-
-Träning på ett 1{,}000-uppgifters läroplan över 144 \ac{GPU}-timmar under 2 dagar på 3 A100s, genomförbart inom typiska akademiska tilldelningar, visar mätbara förbättringar i skalanpassning och patch-likhetsbelöningar.
-Patch-slutförandefrekvenser mer än fördubblas från 37\% till 78\%, medan patch-likhetsbelöningar ökar med 54\% på SWE-Bench-Verified.
-Dock förblir testverifierad framgång platt vid cirka 6--7\%.
-Träning över nio programmeringsspråk visar att exekveringsfria belöningar möjliggör språkagnostisk inlärning, där alla språk visar mätbara förbättringar under träning.
-
-För automatisk programreparation visar detta arbete att online-\ac{RL}-träning väsentligt förbättrar agentoperativ tillförlitlighet inom akademiska beräkningsbegränsningar, även om testverifierade korrekthetsförbättringar inte observerades vid denna träningsskala.
-Liknande metoder uppnår starka resultat med väsentligt mer beräkningsresurser, vilket antyder att utökad träning kan vara nödvändig.
-
-Utöver kodreparation erbjuder \ac{RL} ett allmänt ramverk för träning av \ac{AI}-system på interaktiva uppgifter där statiska dataset dåligt fångar implementeringskomplexitet.
-Genom att visa att modeller kan lära sig rika miljöinteraktioner genom \ac{RL} snarare än att kräva handgjorda resonemangskedjor, tillhandahåller detta arbete ett av de första helt öppna träningsrecepten för kodagenter, vilket möjliggör bredare akademisk undersökning av erfarenhetsbaserade inlärningsmetoder.
+Vi tränar med \ac{GSPO} med en lätt \ac{KL}-regularisator på ett 1{,}000-uppgifters läroplan som spänner över tio programmeringsspråk, och slutför på 144 \ac{GPU}-timmar på 3 A100s.
+På SWE-Bench-Verified ökar patch-inlämningsfrekvenser (icke-tomma patchar) från 37\% till 78\% och genomsnittliga patch-likhetsbelöningar ökar med 54\%, medan testverifierad framgång förblir ungefär platt vid 6--7\%.
+Dessa resultat fastställer att online, exekveringsfri \ac{RL} pålitligt förbättrar agentoperativ kompetens inom akademiska beräkningsbudgetar.
+Att översätta dessa vinster till funktionell korrekthet kräver sannolikt längre träning eller alternativ belöningsdesign.
+Vi släpper all infrastruktur, metodik och utvärderingsprotokoll för att möjliggöra reproducerbar studie av online \ac{RL} för interaktiva kodagenter.
 
 \subsection*{Nyckelord}
 automatisk programreparation, kodagenter, förstärkningsinlärning, grupprelativ policyoptimering, gruppsekvens-policyoptimering, online-inlärning, verktygsförstärkta språkmodeller, exekveringsfri träning, flerspråkig generalisering

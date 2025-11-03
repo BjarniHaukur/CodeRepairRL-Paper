@@ -1,3 +1,7 @@
+% Language settings must come before biblatex
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+
 \usepackage[
 citestyle=ieee,
 bibstyle=ieee,
@@ -40,11 +44,8 @@ citecolor=blue
 \usepackage{nameref}					% References with names
 \usepackage[parfill]{parskip}			% New line instead of indent for sections
 
-% Improve word spacing and justification
-\tolerance=1000
-\emergencystretch=\maxdimen
-\hyphenpenalty=1000
-\hbadness=10000
+% Improve word spacing and justification with microtype
+\usepackage{microtype}
 
 \usepackage{tcolorbox}					% Create boxes around content
 \tcbset{colback=white,arc=0mm}
@@ -157,7 +158,9 @@ python3=true
 \end{tikzpicture}%
 }
 
-% Disable hyphenation
-\pretolerance=10000
-\tolerance=2000
-\emergencystretch=50pt
+% Balanced hyphenation settings - avoid excessive hyphenation and spacing
+\pretolerance=1000
+\tolerance=1500
+\hyphenpenalty=5000
+\exhyphenpenalty=5000
+\emergencystretch=3em

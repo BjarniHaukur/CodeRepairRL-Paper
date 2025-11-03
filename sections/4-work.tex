@@ -1,7 +1,7 @@
-\chapter{Training Infrastructure}
+\chapter{Infrastructure: Live Weight Synchronization for Online RL}
 \label{ch:work}
 
-Chapter~\ref{ch:method} established the methodology: execution-free patch-similarity rewards, the Nano agent specification, \ac{GSPO} training, and evaluation protocol.
+\Cref{ch:method} established the methodology: execution-free patch-similarity rewards, the Nano agent specification, \ac{GSPO} training, and evaluation protocol.
 This chapter documents the practical realization of that methodology, addressing two primary challenges: enabling online \ac{RL} training with live policy updates to deployed inference servers, and making multi-turn agent training tractable within academic compute constraints through systematic optimization.
 
 We detail the training environment implementation, including live adapter synchronization via \ac{NCCL}, trainer extensions for variable-turn episodes, and orchestration under SLURM.
@@ -57,15 +57,6 @@ The worker resets the prefix cache completely, ensuring subsequent requests exec
 
 The system coordinates synchronization timing such that no episode requests arrive during the weight update and cache reset window.
 This design eliminates race conditions between parameter updates and ongoing inference without requiring explicit locking mechanisms or request queuing—the training loop naturally gates new episode dispatch on synchronization completion.
-
-\section{\acs{SLURM}
-  Orchestration Workflow} \label{sec:slurm-orchestration}
-
-All experiments run on the Berzelius and Alvis clusters provided by \ac{NAISS}, which deploy \ac{SLURM} as their workload manager for allocating compute resources and scheduling batch jobs.
-The complete training system executes within a single SLURM batch job that allocates three A100 \acp{GPU}—two for distributed training and one for inference serving—and partitions them between processes using \acs{CUDA} device visibility controls.
-The job script spawns the vLLM server on the inference \ac{GPU}, then launches the DeepSpeed-coordinated trainer on the training \acp{GPU}, with all processes sharing the same SLURM allocation and communicating via the cluster's InfiniBand interconnect.
-Dependency management employs Apptainer/Singularity containers, necessary for installing the complete software stack with exact library versions on shared cluster environments where users lack root privileges.
-Complete SLURM submission scripts, environment configurations, and all implementation code are released open-source; details appear in \cref{app:reproducibility}
 
 \section{Compute Optimizations} \label{sec:compute-optimizations}
 
