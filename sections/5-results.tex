@@ -1,7 +1,7 @@
 \chapter{Experimental Results}
 \label{ch:results}
 
-This chapter presents experimental results addressing the three research questions established in Chapter~\ref{ch:introduction}.
+This chapter presents experimental results addressing the three research questions established in \Cref{ch:introduction}.
 We begin by validating training convergence across diverse programming languages (RQ1), then examine scaffold adaptation (RQ2) and SWE-Bench-Verified performance (RQ3), concluding with a discussion of the observed patterns and their implications.
 
 \section{RQ1: Training Convergence Across Languages}
@@ -137,7 +137,7 @@ Among the 186 episodes that produce patches, 36 instances (7.2\% of total) pass 
 After \ac{GSPO} training at step 460, episodes producing patches more than double to 388 instances (77.6\%), reducing empty-patch failures by 64\%.
 This demonstrates substantial improvement in scaffold adaptation: the trained model reliably executes multi-turn debugging episodes, navigates repositories, and applies patches within operational constraints.
 
-\emph{However}, test-verified success decreases from 36 to 31 resolved instances (7.2\% → 6.2\%).
+\emph{However}, test-verified success decreases from 36 to 31 resolved instances (7.2\% $\to$ 6.2\%).
 Given the small absolute numbers and inherent evaluation variance, this difference likely falls within error margins and may reflect statistical noise rather than meaningful degradation.
 Nonetheless, the results clearly indicate that training has not yet improved functional correctness despite clear gains in operational reliability.
 

@@ -1,7 +1,7 @@
 \chapter{Infrastructure: Live Weight Synchronization for Online RL}
 \label{ch:work}
 
-Chapter~\ref{ch:method} established the methodology: execution-free patch-similarity rewards, the Nano agent specification, \ac{GSPO} training, and evaluation protocol.
+\Cref{ch:method} established the methodology: execution-free patch-similarity rewards, the Nano agent specification, \ac{GSPO} training, and evaluation protocol.
 This chapter documents the practical realization of that methodology, addressing two primary challenges: enabling online \ac{RL} training with live policy updates to deployed inference servers, and making multi-turn agent training tractable within academic compute constraints through systematic optimization.
 
 We detail the training environment implementation, including live adapter synchronization via \ac{NCCL}, trainer extensions for variable-turn episodes, and orchestration under SLURM.

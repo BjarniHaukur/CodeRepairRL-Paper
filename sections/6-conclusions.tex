@@ -97,11 +97,14 @@ The trade-off favors execution-free rewards for academic research contexts prior
 \subsection{Model Architecture and Scale}
 
 This work focuses on the Qwen3 model family (primarily 14B parameters) due to strong tool-calling capabilities and computational accessibility within academic budgets.
-The methodology's effectiveness across models with different architectural characteristics, such as varying attention mechanisms, tokenization schemes, or pre-training objectives, requires validation beyond the limited multi-size experiments documented in Appendix~\ref{app:model-comparison}.
+The methodology's effectiveness across models with different architectural characteristics, such as varying attention mechanisms, tokenization schemes, or pre-training objectives, requires validation beyond the limited multi-size experiments documented in \Cref{app:model-comparison}.
 Whether the observed improvements generalize to other model families or depend on Qwen3-specific capabilities remains an open empirical question.
 
 \section{Future Research Directions}
 \label{sec:future-work}
+
+The infrastructure and methodology developed in this thesis open several promising directions for extending online \ac{RL} training of coding agents.
+We identify four areas where architectural refinements, expanded scope, or increased scale could yield substantial improvements in both system efficiency and agent capabilities.
 
 \subsection{Cross-Group Walltime Optimization}
 \label{subsec:cross-group-optimization}
@@ -188,7 +191,7 @@ Downstream performance improved initially but noticeably worsened after a certai
 The agent learned to modify the correct files consistently while producing increasingly poor patches, a textbook case of reward hacking where optimizing a proxy metric degraded the true objective.
 This experience reinforced the value of sparse, well-aligned rewards over dense but misspecified shaping signals.
 
-\section{Broader Reflections on Reinforcement Learning}
+\section{Broader Reflections on RL}
 \label{sec:final-reflections}
 
 The application of \ac{RL} to real-world tasks like coding represents a fundamental shift in what reinforcement learning can accomplish.

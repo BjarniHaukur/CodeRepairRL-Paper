@@ -4,7 +4,7 @@
 This chapter presents an execution-free \acs{RL} methodology for repository-level \acs{APR}.
 The approach integrates a minimalist terminal agent (Nano) directly into the training loop, using terminal patch-similarity rewards computed deterministically on canonical diffs to enable language-agnostic learning without executable test harnesses.
 We first formalize the Nano agent specification (observation space, action space, termination conditions, reward function), then detail training data, policy optimization, and infrastructure requirements.
-Experimental results addressing the research questions are presented in Chapter~\ref{ch:results}.
+Experimental results addressing the research questions are presented in \Cref{ch:results}.
 
 \section{Overview and Scope}
 
@@ -26,7 +26,7 @@ Our execution-free training approach requires the instruction-driven variant.
 We employ a 1{,}000-task curriculum combining Python and multilingual repositories.
 From SWE-Gym~\cite{sweGym2025}, we select 750 Python bug-fixing tasks for training.
 From SWE-Bench-Multilingual~\cite{sweBenchMultilingual2025}, we incorporate 250 multilingual tasks into training, providing coverage across nine programming languages.
-Due to the sparsity of instruction-driven multilingual data, an additional 50 multilingual instances were held out for potential test-verified evaluation, though time constraints limited the scope to only reward-based analysis presented in \cref{sec:rq3-multilingual}.
+Due to the sparsity of instruction-driven multilingual data, an additional 50 multilingual instances were held out for potential test-verified evaluation, though time constraints limited the scope to only reward-based analysis presented in \cref{sec:rq3-swebench}.
 Instruction-driven, repository-level multilingual debugging datasets remain substantially scarcer than their test-execution counterparts, constraining the scale of cross-language training currently feasible.
 
 \section{Nano Agent}
